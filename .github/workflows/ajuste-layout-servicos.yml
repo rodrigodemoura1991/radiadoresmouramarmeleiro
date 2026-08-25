@@ -29,7 +29,6 @@ jobs:
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
 
-          # Garante a descricao principal e Marca/modelo no topo.
           if 'id="ds"' not in s:
               s = s.replace(
                   '<div class="field wide">Cliente<input id="cl" list="lscl" autocomplete="off"></div>',
@@ -41,19 +40,19 @@ jobs:
                   '<div class="field wide">Descrição do serviço<input id="ds" autocomplete="off"></div>\n<div class="field">Marca e modelo<input id="mm" autocomplete="off"></div>'
               )
 
-          # Remove definitivamente Marca/modelo dos itens individuais.
+          # Marca/modelo existe somente no topo, nunca dentro de serviços/produtos.
           s = re.sub(r'<input[^>]*(?:placeholder="Marca/modelo"|class="[^\"]*imodel[^\"]*")[^>]*>', '', s)
           s = s.replace('Descrição | Marca / modelo | Venda | Custo | Alíquota | Situação', 'Descrição | Venda | Custo | Alíquota | Situação')
           s = s.replace('Descrição | Marca / modelo | Venda | Custo |', 'Descrição | Venda | Custo |')
 
-          # Substitui o editor de itens por campos monetários em formato R$.
+          # Campos de serviço/produto: descrição, venda, custo e situação.
           add_start = s.find('function addItem(')
           calc_start = s.find('function calc()', add_start)
           if add_start >= 0 and calc_start >= 0:
               new_add = r'''function addItem(x={}){let d=document.createElement('div');d.className='item';d.innerHTML=`<input class="ides" placeholder="Descrição do serviço / produto" value="${x.d||''}"><input class="ivs money" inputmode="decimal" autocomplete="off" placeholder="Venda" value="${x.v!=null&&x.v!==''?br(x.v):''}"><input class="ics money" inputmode="decimal" autocomplete="off" placeholder="Custo" value="${x.c!=null&&x.c!==''?br(x.c):''}"><select class="item-sit" title="Situação do serviço"><option value="A fazer">A fazer</option><option value="Liberado">Liberado</option><option value="Entregue">Entregue</option><option value="Parado">Parado</option></select><button type="button" class="btn" onclick="this.parentElement.remove();calc()">×</button>`;items.appendChild(d);d.querySelector('.item-sit').value=x.sit||x.situacao||'A fazer';d.querySelectorAll('input').forEach(e=>e.oninput=e.classList.contains('money')?moneyInput:calc);calc()}'''
               s = s[:add_start] + new_add + s[calc_start:]
 
-          # Faz os campos Venda/Custo aceitarem digitação e exibirem R$ automaticamente.
+          # Valores digitados ficam imediatamente em R$ e continuam calculáveis.
           calc_start = s.find('function calc()')
           save_start = s.find('function save()', calc_start)
           if calc_start >= 0 and save_start >= 0:
@@ -63,17 +62,19 @@ function calc(){let v=[...document.querySelectorAll('.ivs')].reduce((s,e)=>s+mon
 '''
               s = s[:calc_start] + new_calc + s[save_start:]
 
-          # Salva valores monetários corretamente como números.
+          # Corrige também o cálculo do salvar para campos já formatados como R$.
+          s = s.replace(
+              "v=[...document.querySelectorAll('.ivs')].reduce((s,e)=>s+(+e.value||0),0),c=[...document.querySelectorAll('.ics')].reduce((s,e)=>s+(+e.value||0),0)",
+              "v=[...document.querySelectorAll('.ivs')].reduce((s,e)=>s+moneyToNumber(e.value),0),c=[...document.querySelectorAll('.ics')].reduce((s,e)=>s+moneyToNumber(e.value),0)"
+          )
           s = s.replace(
               "v:+x.querySelector('.ivs').value||0,c:+x.querySelector('.ics').value||0",
               "v:moneyToNumber(x.querySelector('.ivs').value),c:moneyToNumber(x.querySelector('.ics').value)"
           )
 
-          # Entrada e saída: saída inicia automaticamente igual à data de lançamento.
+          # Saída automática: começa igual à data de entrada e acompanha sua alteração.
           s = s.replace("let D=[],CL=[],ready=false;en.value=today();rd.value=today();", "let D=[],CL=[],ready=false;en.value=today();sa.value=en.value;rd.value=today();en.addEventListener('change',()=>{sa.value=en.value});")
           s = s.replace("f.reset();id.value='';en.value=today();al.value=0;", "f.reset();id.value='';en.value=today();sa.value=en.value;al.value=0;")
-
-          # Ao editar, mantém a saída existente; se estiver vazia, usa a entrada.
           s = s.replace("sa.value=x.saida||'';cl.value=x.cliente;", "sa.value=x.saida||x.entrada||'';cl.value=x.cliente;")
 
           p.write_text(s, encoding='utf-8')
@@ -85,7 +86,7 @@ function calc(){let v=[...document.querySelectorAll('.ivs')].reduce((s,e)=>s+mon
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
           if ! git diff --cached --quiet; then
-            git commit -m "Remove marca modelo dos itens e formata valores em reais"
+            git commit -m "Corrige moeda dos itens e data de saida"
             git push
           fi
 
