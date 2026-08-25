@@ -1,0 +1,38 @@
+name: Ajustar pagamento em aberto
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ajuste-pagamento-aberto.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  ajustar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Aplicar ajuste no aplicativo
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          s = s.replace('<option value="">— Em branco —</option><option>Dinheiro</option>', '<option value="EM ABERTO">EM ABERTO</option><option>Dinheiro</option>')
+          s = s.replace("$('<payment>')", "")
+          s = s.replace("const main=statuses.includes('Pronto entregue')?'Pronto entregue':statuses[0]||'A fazer';return `<article", "const main=statuses.includes('Pronto entregue')?'Pronto entregue':statuses[0]||'A fazer';const paymentFlag=(o.payment_status==='EM ABERTO'||o.payment_status==='Carteira')?' ★':'';return `<article")
+          s = s.replace("<span class=\"chip\">${esc(o.payment_status||'Pagamento em branco')}</span>", "<span class=\"chip\">${paymentFlag}${esc(o.payment_status||'EM ABERTO')}</span>")
+          s = s.replace("$('[id=payment]').value", "$('[id=payment]').value")
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Publicar alteração
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'Destacar pagamentos em aberto e carteira'
+          git push
