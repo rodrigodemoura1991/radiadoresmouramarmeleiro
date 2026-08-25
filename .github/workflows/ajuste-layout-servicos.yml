@@ -24,6 +24,33 @@ jobs:
       - name: Baixar código atual
         uses: actions/checkout@v4
 
+      - name: Corrigir versão publicada do formulário
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          # Garante que a versão publicada nunca tenha Marca/modelo dentro de Serviços/Produtos.
+          s = s.replace('<span>Marca / modelo</span>', '')
+          s = s.replace('<span>Marca/modelo</span>', '')
+
+          # Compatibilidade com versões antigas do addItem que ainda possam estar no arquivo.
+          s = s.replace('<input class="imm" placeholder="Marca/modelo" value="${String(x.mm||\'\').replace(/"/g,\'&quot;\')}">', '')
+          s = s.replace('<input class="imm" placeholder="Marca/modelo" value="${x.mm||\'\'}">', '')
+
+          # Marca e modelo continuam somente no cadastro principal, na parte superior.
+          # Força a nova versão do documento a não ser confundida com uma cópia antiga em cache.
+          stamp = '<meta name="app-build" content="20260825-1620">'
+          if 'name="app-build"' not in s:
+              s = s.replace('</head>', stamp + '\n</head>', 1)
+
+          # Corrige a grade caso uma versão antiga do item ainda tenha 7 colunas.
+          s = s.replace('grid-template-columns:minmax(0,6fr) minmax(130px,1.35fr) minmax(130px,1.35fr) minmax(120px,1.2fr) minmax(130px,1.35fr) 38px', 'grid-template-columns:minmax(0,6fr) minmax(130px,1.35fr) minmax(130px,1.35fr) minmax(120px,1.2fr) minmax(130px,1.35fr) 38px')
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
 
