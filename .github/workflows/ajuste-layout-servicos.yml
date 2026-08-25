@@ -1,4 +1,4 @@
-name: Ajustar layout dos servicos
+name: Publicar aplicativo no GitHub Pages
 
 on:
   push:
@@ -6,96 +6,32 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
-  actions: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
-  ajustar-e-publicar:
+  deploy:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Baixar codigo
+      - name: Baixar código atual
         uses: actions/checkout@v4
-
-      - name: Corrigir campos do lancamento
-        shell: python
-        run: |
-          from pathlib import Path
-          import re
-          p = Path('index.html')
-          s = p.read_text(encoding='utf-8')
-
-          if 'id="ds"' not in s:
-              s = s.replace(
-                  '<div class="field wide">Cliente<input id="cl" list="lscl" autocomplete="off"></div>',
-                  '<div class="field wide">Cliente<input id="cl" list="lscl" autocomplete="off"></div>\n<div class="field wide">Descrição do serviço<input id="ds" autocomplete="off"></div>'
-              )
-          if 'id="mm"' not in s:
-              s = s.replace(
-                  '<div class="field wide">Descrição do serviço<input id="ds" autocomplete="off"></div>',
-                  '<div class="field wide">Descrição do serviço<input id="ds" autocomplete="off"></div>\n<div class="field">Marca e modelo<input id="mm" autocomplete="off"></div>'
-              )
-
-          # Marca/modelo existe somente no topo, nunca dentro de serviços/produtos.
-          s = re.sub(r'<input[^>]*(?:placeholder="Marca/modelo"|class="[^\"]*imodel[^\"]*")[^>]*>', '', s)
-          s = s.replace('Descrição | Marca / modelo | Venda | Custo | Alíquota | Situação', 'Descrição | Venda | Custo | Alíquota | Situação')
-          s = s.replace('Descrição | Marca / modelo | Venda | Custo |', 'Descrição | Venda | Custo |')
-
-          # Campos de serviço/produto: descrição, venda, custo e situação.
-          add_start = s.find('function addItem(')
-          calc_start = s.find('function calc()', add_start)
-          if add_start >= 0 and calc_start >= 0:
-              new_add = r'''function addItem(x={}){let d=document.createElement('div');d.className='item';d.innerHTML=`<input class="ides" placeholder="Descrição do serviço / produto" value="${x.d||''}"><input class="ivs money" inputmode="decimal" autocomplete="off" placeholder="Venda" value="${x.v!=null&&x.v!==''?br(x.v):''}"><input class="ics money" inputmode="decimal" autocomplete="off" placeholder="Custo" value="${x.c!=null&&x.c!==''?br(x.c):''}"><select class="item-sit" title="Situação do serviço"><option value="A fazer">A fazer</option><option value="Liberado">Liberado</option><option value="Entregue">Entregue</option><option value="Parado">Parado</option></select><button type="button" class="btn" onclick="this.parentElement.remove();calc()">×</button>`;items.appendChild(d);d.querySelector('.item-sit').value=x.sit||x.situacao||'A fazer';d.querySelectorAll('input').forEach(e=>e.oninput=e.classList.contains('money')?moneyInput:calc);calc()}'''
-              s = s[:add_start] + new_add + s[calc_start:]
-
-          # Valores digitados ficam imediatamente em R$ e continuam calculáveis.
-          calc_start = s.find('function calc()')
-          save_start = s.find('function save()', calc_start)
-          if calc_start >= 0 and save_start >= 0:
-              new_calc = r'''function moneyToNumber(v){if(v==null||v==='')return 0;let t=String(v).replace(/[^0-9,.-]/g,'').trim();if(t.includes(',')){t=t.replace(/\./g,'').replace(',','.')}else if((t.match(/\./g)||[]).length>1){t=t.replace(/\./g,'')}return parseFloat(t)||0}
-function moneyInput(e){let n=moneyToNumber(e.target.value);e.target.value=n?br(n):'';calc()}
-function calc(){let v=[...document.querySelectorAll('.ivs')].reduce((s,e)=>s+moneyToNumber(e.value),0),c=[...document.querySelectorAll('.ics')].reduce((s,e)=>s+moneyToNumber(e.value),0),i=v*(+al.value||0)/100;ve.value=v?br(v):'';cu.value=c?br(c):'';im.value=v?br(i):'—';lu.value=v?br(v-c-i):'—';tot.textContent='Total: '+br(v)}
-'''
-              s = s[:calc_start] + new_calc + s[save_start:]
-
-          # Corrige também o cálculo do salvar para campos já formatados como R$.
-          s = s.replace(
-              "v=[...document.querySelectorAll('.ivs')].reduce((s,e)=>s+(+e.value||0),0),c=[...document.querySelectorAll('.ics')].reduce((s,e)=>s+(+e.value||0),0)",
-              "v=[...document.querySelectorAll('.ivs')].reduce((s,e)=>s+moneyToNumber(e.value),0),c=[...document.querySelectorAll('.ics')].reduce((s,e)=>s+moneyToNumber(e.value),0)"
-          )
-          s = s.replace(
-              "v:+x.querySelector('.ivs').value||0,c:+x.querySelector('.ics').value||0",
-              "v:moneyToNumber(x.querySelector('.ivs').value),c:moneyToNumber(x.querySelector('.ics').value)"
-          )
-
-          # Saída automática: começa igual à data de entrada e acompanha sua alteração.
-          s = s.replace("let D=[],CL=[],ready=false;en.value=today();rd.value=today();", "let D=[],CL=[],ready=false;en.value=today();sa.value=en.value;rd.value=today();en.addEventListener('change',()=>{sa.value=en.value});")
-          s = s.replace("f.reset();id.value='';en.value=today();al.value=0;", "f.reset();id.value='';en.value=today();sa.value=en.value;al.value=0;")
-          s = s.replace("sa.value=x.saida||'';cl.value=x.cliente;", "sa.value=x.saida||x.entrada||'';cl.value=x.cliente;")
-
-          p.write_text(s, encoding='utf-8')
-
-      - name: Salvar alteracao no repositorio
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html
-          if ! git diff --cached --quiet; then
-            git commit -m "Corrige moeda dos itens e data de saida"
-            git push
-          fi
 
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
+
       - name: Preparar site
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
+
       - name: Publicar no GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
