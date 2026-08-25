@@ -1,1 +1,1 @@
-window.SUPABASE_CONFIG={url:'https://uwnzpoqhxioxjegflksv.supabase.co',key:atob('c2JfcHVibGlzaGFibGVfV0xYSF9mZWxMbFNPLXI5ZWJRSEFud19NdFVkN3c3cg==')};
+window.SUPABASE_CONFIG={url:'https://uwnzpoqhxioxjegflksv.supabase.co',key:'sb_publishable_WLXH_fefLlSO-r9ebQHAnw_MtUd7w7r'};
