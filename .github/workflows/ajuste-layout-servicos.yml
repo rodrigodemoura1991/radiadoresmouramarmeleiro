@@ -21,44 +21,32 @@ jobs:
       - name: Baixar codigo
         uses: actions/checkout@v4
 
-      - name: Corrigir layout do lancamento
+      - name: Corrigir campos do lancamento
         shell: python
         run: |
           from pathlib import Path
           import re
-
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
 
-          # Remove o campo Marca e modelo do formulario principal.
+          # Remove Marca e modelo do formulario principal.
           s = re.sub(r'<div class="field">Marca e modelo<input id="mm"[^>]*></div>', '', s)
 
-          # Remove qualquer campo Marca/modelo que tenha ficado dentro de servicos/produtos.
+          # Remove Marca/modelo dos itens de servicos/produtos.
           s = re.sub(r'<input[^>]*(?:placeholder="Marca/modelo"|class="[^"]*imodel[^"]*")[^>]*>', '', s)
 
-          # Remove cabecalhos antigos que exibiam Marca/modelo.
-          s = s.replace('Descrição | Marca / modelo | Venda | Custo | Alíquota | Situação', 'Descrição | Venda | Custo | Alíquota | Situação')
-          s = s.replace('Descrição | Marca/modelo | Venda | Custo | Alíquota | Situação', 'Descrição | Venda | Custo | Alíquota | Situação')
+          # Restaura a descricao do servico logo depois do Cliente.
+          if 'id="ds"' not in s:
+              s = s.replace(
+                  '<div class="field wide">Cliente<input id="cl" list="lscl" autocomplete="off"></div>',
+                  '<div class="field wide">Cliente<input id="cl" list="lscl" autocomplete="off"></div>\n<div class="field wide">Descrição do serviço<input id="ds" autocomplete="off"></div>'
+              )
 
-          # Aumenta a area da descricao e deixa os demais campos menores.
-          s = re.sub(
-              r'\.item\{display:grid;grid-template-columns:[^;]+;',
-              '.item{display:grid;grid-template-columns:minmax(0,6fr) minmax(90px,1fr) minmax(90px,1fr) minmax(120px,1.25fr) auto;',
-              s,
-              count=1
-          )
-          s = re.sub(
-              r'\.item\{grid-template-columns:[^}]+\}',
-              '.item{grid-template-columns:minmax(0,6fr) minmax(90px,1fr) minmax(90px,1fr) minmax(110px,1.2fr) auto}',
-              s,
-              count=1
-          )
+          # Salva a descricao principal separadamente, sem apagar os itens.
+          s = s.replace("desc=its.map(x=>x.d).filter(Boolean).join(', '),o={", "desc=ds.value||its.map(x=>x.d).filter(Boolean).join(', '),o={")
 
-          # Remove referencias do antigo campo principal, sem apagar dados antigos salvos.
-          s = s.replace(',marcaModelo:mm.value', '')
-          s = s.replace('mm.value=x.marcaModelo||\'\';', '')
-          s = re.sub(r'<datalist id="lsmm"></datalist>', '', s)
-          s = s.replace(";lsmm.innerHTML=u('marcaModelo').map(x=>`<option value=\"${x}\">`).join('')", '')
+          # Carrega a descricao principal ao editar.
+          s = s.replace("cl.value=x.cliente;ob.value=x.obs||'';st.value=x.status||'';", "cl.value=x.cliente;ds.value=x.descricao||'';ob.value=x.obs||'';st.value=x.status||'';")
 
           p.write_text(s, encoding='utf-8')
 
@@ -69,18 +57,16 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
           if ! git diff --cached --quiet; then
-            git commit -m "Remove marca modelo e amplia descricao dos servicos"
+            git commit -m "Restaura descricao e remove marca modelo"
             git push
           fi
 
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
-
       - name: Preparar site
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
-
       - name: Publicar no GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
