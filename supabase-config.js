@@ -1,0 +1,1 @@
+window.SUPABASE_CONFIG={url:'https://uwnzpoqhxioxjegflksv.supabase.co',key:atob('c2JfcHVibGlzaGFibGVfV0xYSF9mZWZMbFNPLXI5ZWJRSEFud19NdFVkN3c3cg==')};
