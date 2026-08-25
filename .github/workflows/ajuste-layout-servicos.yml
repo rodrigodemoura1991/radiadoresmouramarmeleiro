@@ -21,7 +21,7 @@ jobs:
       - name: Baixar codigo
         uses: actions/checkout@v4
 
-      - name: Ajustar campo de servicos/produtos
+      - name: Corrigir layout do lancamento
         shell: python
         run: |
           from pathlib import Path
@@ -30,23 +30,35 @@ jobs:
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
 
-          # Retira qualquer campo Marca/modelo que esteja dentro de cada servico/produto.
-          s = re.sub(r'<input[^>]*class="[^"]*imodel[^"]*"[^>]*>', '', s)
-          s = re.sub(r'<input[^>]*placeholder="Marca/modelo"[^>]*>', '', s)
+          # Remove o campo Marca e modelo do formulario principal.
+          s = re.sub(r'<div class="field">Marca e modelo<input id="mm"[^>]*></div>', '', s)
 
-          # Deixa a descricao ocupar a maior parte da linha.
-          s = s.replace(
-              '.item{display:grid;grid-template-columns:minmax(0,3fr) minmax(100px,1fr) minmax(100px,1fr) minmax(120px,1.25fr) auto;',
-              '.item{display:grid;grid-template-columns:minmax(0,4fr) minmax(90px,1fr) minmax(90px,1fr) minmax(120px,1.25fr) auto;'
+          # Remove qualquer campo Marca/modelo que tenha ficado dentro de servicos/produtos.
+          s = re.sub(r'<input[^>]*(?:placeholder="Marca/modelo"|class="[^"]*imodel[^"]*")[^>]*>', '', s)
+
+          # Remove cabecalhos antigos que exibiam Marca/modelo.
+          s = s.replace('Descrição | Marca / modelo | Venda | Custo | Alíquota | Situação', 'Descrição | Venda | Custo | Alíquota | Situação')
+          s = s.replace('Descrição | Marca/modelo | Venda | Custo | Alíquota | Situação', 'Descrição | Venda | Custo | Alíquota | Situação')
+
+          # Aumenta a area da descricao e deixa os demais campos menores.
+          s = re.sub(
+              r'\.item\{display:grid;grid-template-columns:[^;]+;',
+              '.item{display:grid;grid-template-columns:minmax(0,6fr) minmax(90px,1fr) minmax(90px,1fr) minmax(120px,1.25fr) auto;',
+              s,
+              count=1
           )
-          s = s.replace(
-              '.item{grid-template-columns:2fr 1fr 1fr 1fr}.item .item-sit{grid-column:auto}.item button{grid-column:auto}',
-              '.item{grid-template-columns:minmax(0,2.5fr) minmax(90px,1fr) minmax(90px,1fr) minmax(110px,1.2fr) auto}.item .item-sit{grid-column:auto}.item button{grid-column:auto}'
+          s = re.sub(
+              r'\.item\{grid-template-columns:[^}]+\}',
+              '.item{grid-template-columns:minmax(0,6fr) minmax(90px,1fr) minmax(90px,1fr) minmax(110px,1.2fr) auto}',
+              s,
+              count=1
           )
 
-          # Garante que a descricao possa encolher sem criar barra horizontal desnecessaria.
-          if '.item .ides{width:100%;min-width:0}' not in s:
-              s = s.replace('.item .ides{width:100%}', '.item .ides{width:100%;min-width:0}')
+          # Remove referencias do antigo campo principal, sem apagar dados antigos salvos.
+          s = s.replace(',marcaModelo:mm.value', '')
+          s = s.replace('mm.value=x.marcaModelo||\'\';', '')
+          s = re.sub(r'<datalist id="lsmm"></datalist>', '', s)
+          s = s.replace(";lsmm.innerHTML=u('marcaModelo').map(x=>`<option value=\"${x}\">`).join('')", '')
 
           p.write_text(s, encoding='utf-8')
 
@@ -57,7 +69,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
           if ! git diff --cached --quiet; then
-            git commit -m "Ajusta descricao dos servicos e remove marca modelo"
+            git commit -m "Remove marca modelo e amplia descricao dos servicos"
             git push
           fi
 
