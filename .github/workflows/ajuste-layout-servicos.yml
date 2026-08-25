@@ -29,24 +29,42 @@ jobs:
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
 
-          # Remove Marca e modelo do formulario principal.
-          s = re.sub(r'<div class="field">Marca e modelo<input id="mm"[^>]*></div>', '', s)
-
-          # Remove Marca/modelo dos itens de servicos/produtos.
-          s = re.sub(r'<input[^>]*(?:placeholder="Marca/modelo"|class="[^"]*imodel[^"]*")[^>]*>', '', s)
-
-          # Restaura a descricao do servico logo depois do Cliente.
+          # Garante a descricao principal no formulario superior.
           if 'id="ds"' not in s:
               s = s.replace(
                   '<div class="field wide">Cliente<input id="cl" list="lscl" autocomplete="off"></div>',
                   '<div class="field wide">Cliente<input id="cl" list="lscl" autocomplete="off"></div>\n<div class="field wide">Descrição do serviço<input id="ds" autocomplete="off"></div>'
               )
 
-          # Salva a descricao principal separadamente, sem apagar os itens.
-          s = s.replace("desc=its.map(x=>x.d).filter(Boolean).join(', '),o={", "desc=ds.value||its.map(x=>x.d).filter(Boolean).join(', '),o={")
+          # Marca e modelo fica SOMENTE na parte superior do lançamento.
+          if 'id="mm"' not in s:
+              s = s.replace(
+                  '<div class="field wide">Descrição do serviço<input id="ds" autocomplete="off"></div>',
+                  '<div class="field wide">Descrição do serviço<input id="ds" autocomplete="off"></div>\n<div class="field">Marca e modelo<input id="mm" autocomplete="off"></div>'
+              )
 
-          # Carrega a descricao principal ao editar.
-          s = s.replace("cl.value=x.cliente;ob.value=x.obs||'';st.value=x.status||'';", "cl.value=x.cliente;ds.value=x.descricao||'';ob.value=x.obs||'';st.value=x.status||'';")
+          # Remove Marca/modelo dos itens de serviços/produtos.
+          s = re.sub(r'<input[^>]*(?:placeholder="Marca/modelo"|class="[^"]*imodel[^"]*")[^>]*>', '', s)
+
+          # Salva Marca/modelo no lançamento principal.
+          if 'marcaModelo:mm.value' not in s:
+              s = s.replace(
+                  'cliente:cl.value,descricao:desc,obs:ob.value,status:st.value,',
+                  'cliente:cl.value,descricao:desc,marcaModelo:mm.value,obs:ob.value,status:st.value,'
+              )
+
+          # Carrega Marca/modelo ao editar.
+          if 'mm.value=x.marcaModelo' not in s:
+              s = s.replace(
+                  "cl.value=x.cliente;ds.value=x.descricao||'';ob.value=x.obs||'';st.value=x.status||'';",
+                  "cl.value=x.cliente;ds.value=x.descricao||'';mm.value=x.marcaModelo||'';ob.value=x.obs||'';st.value=x.status||'';"
+              )
+
+          # Compatibilidade com registros antigos.
+          s = s.replace(
+              "{d:x.descricao,m:x.marcaModelo,v:x.venda||0,c:x.custo||0,sit:'A fazer'}",
+              "{d:x.descricao,v:x.venda||0,c:x.custo||0,sit:'A fazer'}"
+          )
 
           p.write_text(s, encoding='utf-8')
 
@@ -57,7 +75,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
           if ! git diff --cached --quiet; then
-            git commit -m "Restaura descricao e remove marca modelo"
+            git commit -m "Move marca e modelo para o topo do lancamento"
             git push
           fi
 
