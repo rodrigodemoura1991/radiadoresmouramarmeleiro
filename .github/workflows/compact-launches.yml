@@ -1,0 +1,40 @@
+name: Compactar lancamentos
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  compact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compactar cards de lancamentos
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          old = '.launches{display:grid;gap:10px}.launch{border:1px solid var(--line);border-left:6px solid #94a3b8;border-radius:15px;padding:14px;background:#fff;cursor:pointer}.launch.Liberado{border-left-color:var(--blue)}.launch.Parado{border-left-color:var(--orange)}.launch.Pronto{border-left-color:var(--purple)}.launch.Prontoentregue{border-left-color:var(--green)}.ltop{display:flex;justify-content:space-between;gap:10px}.lname{font-weight:900;font-size:16px}.meta{color:var(--muted);font-size:12px;margin-top:4px}.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.chip{padding:5px 8px;border-radius:999px;font-size:11px;font-weight:900;background:#edf1f5;color:#64748b}'
+          new = '.launches{display:grid;gap:6px}.launch{border:1px solid var(--line);border-left:4px solid #94a3b8;border-radius:11px;padding:8px 10px;background:#fff;cursor:pointer}.launch.Liberado{border-left-color:var(--blue)}.launch.Parado{border-left-color:var(--orange)}.launch.Pronto{border-left-color:var(--purple)}.launch.Prontoentregue{border-left-color:var(--green)}.ltop{display:flex;justify-content:space-between;gap:8px}.lname{font-weight:900;font-size:14px}.meta{color:var(--muted);font-size:11px;margin-top:2px}.chips{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}.chip{padding:3px 6px;border-radius:999px;font-size:10px;font-weight:900;background:#edf1f5;color:#64748b}'
+          if old not in s:
+              raise SystemExit('CSS alvo nao encontrado')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+      - name: Publicar alteracao
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Compactar lista de lancamentos" || exit 0
+          git push
+      - name: Remover workflow temporario
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/compact-launches.yml
+          git commit -m "Remover workflow temporario"
+          git push
