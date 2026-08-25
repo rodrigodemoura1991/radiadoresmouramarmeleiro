@@ -1,0 +1,74 @@
+name: Ajustar layout dos servicos
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  actions: read
+
+jobs:
+  ajustar-e-publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Baixar codigo
+        uses: actions/checkout@v4
+
+      - name: Ajustar campo de servicos/produtos
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          # Retira qualquer campo Marca/modelo que esteja dentro de cada servico/produto.
+          s = re.sub(r'<input[^>]*class="[^"]*imodel[^"]*"[^>]*>', '', s)
+          s = re.sub(r'<input[^>]*placeholder="Marca/modelo"[^>]*>', '', s)
+
+          # Deixa a descricao ocupar a maior parte da linha.
+          s = s.replace(
+              '.item{display:grid;grid-template-columns:minmax(0,3fr) minmax(100px,1fr) minmax(100px,1fr) minmax(120px,1.25fr) auto;',
+              '.item{display:grid;grid-template-columns:minmax(0,4fr) minmax(90px,1fr) minmax(90px,1fr) minmax(120px,1.25fr) auto;'
+          )
+          s = s.replace(
+              '.item{grid-template-columns:2fr 1fr 1fr 1fr}.item .item-sit{grid-column:auto}.item button{grid-column:auto}',
+              '.item{grid-template-columns:minmax(0,2.5fr) minmax(90px,1fr) minmax(90px,1fr) minmax(110px,1.2fr) auto}.item .item-sit{grid-column:auto}.item button{grid-column:auto}'
+          )
+
+          # Garante que a descricao possa encolher sem criar barra horizontal desnecessaria.
+          if '.item .ides{width:100%;min-width:0}' not in s:
+              s = s.replace('.item .ides{width:100%}', '.item .ides{width:100%;min-width:0}')
+
+          p.write_text(s, encoding='utf-8')
+
+      - name: Salvar alteracao no repositorio
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "Ajusta descricao dos servicos e remove marca modelo"
+            git push
+          fi
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Preparar site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Publicar no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
