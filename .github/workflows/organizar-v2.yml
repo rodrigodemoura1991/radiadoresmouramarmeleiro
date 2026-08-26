@@ -1,0 +1,48 @@
+name: Organizar publicacao V2
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  organize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Corrigir estrutura e bugs da V2
+        shell: bash
+        run: |
+          set -e
+          mkdir -p css js
+          [ -f style.css ] && cp style.css css/style.css || true
+          [ -f clientes.js ] && cp clientes.js js/clientes.js || true
+          [ -f lancamentos.js ] && cp lancamentos.js js/lancamentos.js || true
+          [ -f servicos.js ] && cp servicos.js js/servicos.js || true
+          [ -f balanco.js ] && cp balanco.js js/balanco.js || true
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('app.js')
+          s=p.read_text(encoding='utf-8')
+          if 'const paymentFlag' not in s:
+              marker='function renderLaunches()'
+              s=s.replace(marker, "const paymentFlag=(o)=>((o.payment_status==='EM ABERTO'||o.payment_status==='Carteira')?'★ ':'');\n"+marker, 1)
+          s=s.replace('${paymentFlag}${esc(o.payment_status||\'EM ABERTO\')}', '${paymentFlag(o)}${esc(o.payment_status||\'EM ABERTO\')}')
+          p.write_text(s,encoding='utf-8')
+          PY
+
+          if git diff --quiet; then
+            echo 'Nada para corrigir.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .
+          git commit -m 'Corrigir estrutura da V2 e publicar assets'
+          git push
