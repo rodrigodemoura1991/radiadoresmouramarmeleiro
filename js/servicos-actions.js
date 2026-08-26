@@ -20,6 +20,15 @@
     if(typeof toast==='function') toast('Lançamento excluído com sucesso');
   }
 
+  function openEditor(id){
+    const launchNav=document.querySelector('.nav[data-view="launch"]');
+    if(launchNav) launchNav.click();
+    setTimeout(()=>{
+      if(typeof window.editOrder==='function') window.editOrder(id);
+      else if(typeof editOrder==='function') editOrder(id);
+    },20);
+  }
+
   function decorate(){
     const list=document.getElementById('allServicesList');
     if(!list) return;
@@ -30,15 +39,11 @@
     cards.forEach((card,index)=>{
       const item=rows[index];
       if(!item?.order?.id) return;
-
       card.dataset.orderId=item.order.id;
       card.dataset.serviceId=item.id||'';
 
       let actions=card.querySelector('.service-actions-v2');
-      if(actions){
-        actions.querySelector('.service-edit-btn')?.replaceWith(actions.querySelector('.service-edit-btn')?.cloneNode(true));
-        actions.querySelector('.service-delete-btn')?.replaceWith(actions.querySelector('.service-delete-btn')?.cloneNode(true));
-      } else {
+      if(!actions){
         actions=document.createElement('div');
         actions.className='service-actions-v2';
         actions.innerHTML='<button type="button" class="service-edit-btn">Editar</button><button type="button" class="service-delete-btn">Excluir</button>';
@@ -47,27 +52,18 @@
 
       const edit=actions.querySelector('.service-edit-btn');
       const del=actions.querySelector('.service-delete-btn');
-      if(edit) edit.onclick=(e)=>{
-        e.preventDefault();
-        e.stopPropagation();
-        if(typeof window.editOrder==='function') window.editOrder(item.order.id);
-        else if(typeof editOrder==='function') editOrder(item.order.id);
-      };
-      if(del) del.onclick=(e)=>{
-        e.preventDefault();
-        e.stopPropagation();
-        removeOrder(item.order.id);
-      };
+      if(edit) edit.onclick=(e)=>{e.preventDefault();e.stopPropagation();openEditor(item.order.id)};
+      if(del) del.onclick=(e)=>{e.preventDefault();e.stopPropagation();removeOrder(item.order.id)};
     });
   }
 
   function install(){
     const list=document.getElementById('allServicesList');
     if(!list) return;
-    const original=window.renderAllServices;
-    if(typeof original==='function' && !original.__actionsWrapped){
+    const originalRender=window.renderAllServices;
+    if(typeof originalRender==='function' && !originalRender.__actionsWrapped){
       const wrapped=function(){
-        original.apply(this,arguments);
+        originalRender.apply(this,arguments);
         requestAnimationFrame(decorate);
       };
       wrapped.__actionsWrapped=true;
