@@ -1,30 +1,103 @@
-/* Correções finais: saída em branco, Enter no botão adicionar e legendas de cores. */
+/* Correções finais: saída em branco, Enter no botão adicionar e legenda lateral dinâmica. */
 (function(){
   const $=id=>document.getElementById(id);
   const today=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)};
+
   function injectCss(){
     if(document.getElementById('final-fixes-css')) return;
-    const s=document.createElement('style');s.id='final-fixes-css';s.textContent=`
-      /* Legenda lateral: acompanha a rolagem e fica ao lado da lista. */
-      .launches,.all-services{display:grid;grid-template-columns:minmax(0,1fr) 138px;column-gap:12px;align-items:start}
-      .launches > .color-legend,.all-services > .color-legend{grid-column:2;grid-row:1;position:sticky;top:82px;z-index:12;display:flex;flex-direction:column;align-items:stretch;gap:7px;margin:0;padding:10px 9px;background:rgba(255,255,255,.98);border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 14px #17203312;font-size:10px}
-      .color-legend strong{font-size:10px;margin:0 0 3px;line-height:1.2}.legend-item{display:flex;align-items:center;gap:6px;white-space:nowrap;color:var(--muted);font-weight:800;line-height:1.25}.legend-dot{width:9px;height:9px;min-width:9px;border-radius:50%;display:inline-block;border:1px solid #0002}
+    const s=document.createElement('style');
+    s.id='final-fixes-css';
+    s.textContent=`
+      /* Legenda fica realmente ao lado da lista e acompanha a rolagem. */
+      .dynamic-legend-layout{
+        display:grid !important;
+        grid-template-columns:minmax(0,1fr) 150px !important;
+        gap:12px !important;
+        align-items:start !important;
+        width:100% !important;
+      }
+      .dynamic-legend-layout > .dynamic-list-host{
+        min-width:0 !important;
+        grid-column:1 !important;
+      }
+      .dynamic-legend-layout > .color-legend{
+        grid-column:2 !important;
+        grid-row:1 !important;
+        position:sticky !important;
+        top:86px !important;
+        align-self:start !important;
+        display:flex !important;
+        flex-direction:column !important;
+        gap:8px !important;
+        width:150px !important;
+        box-sizing:border-box !important;
+        margin:0 !important;
+        padding:11px 10px !important;
+        background:#fff !important;
+        border:1px solid var(--line) !important;
+        border-radius:10px !important;
+        box-shadow:0 4px 14px #17203312 !important;
+        z-index:20 !important;
+        font-size:10px !important;
+      }
+      .dynamic-legend-layout > .color-legend strong{
+        display:block !important;
+        margin:0 0 2px !important;
+        font-size:10px !important;
+        line-height:1.2 !important;
+      }
+      .dynamic-legend-layout > .color-legend .legend-item{
+        display:flex !important;
+        align-items:center !important;
+        gap:7px !important;
+        white-space:nowrap !important;
+        color:var(--muted) !important;
+        font-weight:800 !important;
+        line-height:1.25 !important;
+      }
+      .legend-dot{width:9px !important;height:9px !important;min-width:9px !important;border-radius:50% !important;display:inline-block !important;border:1px solid #0002 !important}
       .legend-black{background:#111}.legend-green{background:#138a5b}.legend-blue{background:#2f80ed}.legend-purple{background:#7356c8}.legend-orange{background:#d97706}.legend-brown{background:#b7791f}.legend-cyan{background:#0891b2}.legend-gray{background:#64748b}
-      .launches > :not(.color-legend),.all-services > :not(.color-legend){grid-column:1}
-      @media(max-width:900px){.launches,.all-services{grid-template-columns:minmax(0,1fr) 118px;column-gap:8px}.launches > .color-legend,.all-services > .color-legend{top:66px;padding:8px 7px}.color-legend{font-size:9px}.color-legend strong{font-size:9px}.legend-item{font-size:9px}}
-      @media(max-width:600px){.launches,.all-services{display:block}.launches > .color-legend,.all-services > .color-legend{position:sticky;top:60px;width:120px;margin:0 0 8px auto}.launches > :not(.color-legend),.all-services > :not(.color-legend){width:100%}}
-    `;document.head.appendChild(s);
+      @media(max-width:1000px){
+        .dynamic-legend-layout{grid-template-columns:minmax(0,1fr) 125px !important;gap:8px !important}
+        .dynamic-legend-layout > .color-legend{width:125px !important;padding:9px 7px !important}
+        .dynamic-legend-layout > .color-legend .legend-item{font-size:9px !important}
+        .dynamic-legend-layout > .color-legend strong{font-size:9px !important}
+      }
+      @media(max-width:700px){
+        .dynamic-legend-layout{display:block !important}
+        .dynamic-legend-layout > .color-legend{position:sticky !important;top:64px !important;width:150px !important;margin:0 0 8px auto !important}
+      }
+    `;
+    document.head.appendChild(s);
   }
-  function legend(hostId,title,items){
-    const host=$(hostId);if(!host)return;
-    let el=host.querySelector(':scope > .color-legend');
-    if(!el){el=document.createElement('div');el.className='color-legend';host.insertBefore(el,host.firstChild)}
+
+  function ensureLegendLayout(hostId,title,items){
+    const host=$(hostId); if(!host)return;
+    let layout=host.closest('.dynamic-legend-layout');
+    if(!layout){
+      layout=document.createElement('div');
+      layout.className='dynamic-legend-layout';
+      host.parentNode.insertBefore(layout,host);
+      layout.appendChild(host);
+      host.classList.add('dynamic-list-host');
+    }
+    let legend=layout.querySelector(':scope > .color-legend');
+    if(!legend){
+      legend=document.createElement('aside');
+      legend.className='color-legend';
+      layout.appendChild(legend);
+    }
     const html='<strong>'+title+'</strong>'+items.map(x=>`<span class="legend-item"><i class="legend-dot ${x[0]}"></i>${x[1]}</span>`).join('');
-    if(el.innerHTML!==html)el.innerHTML=html;
+    if(legend.innerHTML!==html)legend.innerHTML=html;
   }
+
   const launchItems=[['legend-blue','Liberado'],['legend-orange','Parado'],['legend-purple','Pronto'],['legend-green','Pronto entregue']];
   const serviceItems=[['legend-black','EM ABERTO'],['legend-green','Dinheiro'],['legend-blue','Cartão'],['legend-purple','Pix'],['legend-orange','Cheque'],['legend-brown','Carteira'],['legend-cyan','Boleto'],['legend-gray','Notinha']];
-  function addLegends(){legend('launchList','Cores dos cartões:',launchItems);legend('allServicesList','Cores dos cartões:',serviceItems)}
+  function addLegends(){
+    ensureLegendLayout('launchList','Cores dos cartões:',launchItems);
+    ensureLegendLayout('allServicesList','Cores dos cartões:',serviceItems);
+  }
+
   function syncExit(){
     const exit=$('exit'),rows=document.querySelectorAll('#rows .svc-row');if(!exit||!rows.length)return;
     const allDelivered=[...rows].every(r=>r.querySelector('.status')?.value==='Pronto entregue');
@@ -46,7 +119,7 @@
     injectCss();addLegends();installEnter();wrapEdit();wrapClear();bindStatus();
     const order=$('order');if(order&&!order.dataset.exitSubmitFixed){order.dataset.exitSubmitFixed='1';order.addEventListener('submit',function(){syncExit()},true)}
     const observer=new MutationObserver(()=>{addLegends();installEnter();wrapEdit();wrapClear();bindStatus()});observer.observe(document.body,{childList:true,subtree:true});
-    const exit=$('exit');if(exit)exit.removeAttribute('required');if(exit)exit.value='';
+    const exit=$('exit');if(exit)exit.removeAttribute('required');
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
