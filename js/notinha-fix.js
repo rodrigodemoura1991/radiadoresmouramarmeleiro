@@ -51,11 +51,17 @@
     patch();
     var exit=document.getElementById('exit');
     if(exit) exit.value='';
+    var fixExit=document.getElementById('fixExit');
+    if(fixExit) fixExit.removeAttribute('required');
     var clear=document.getElementById('clear');
     if(clear) clear.addEventListener('click',function(){setTimeout(function(){if(exit) exit.value='';},0)});
     var rows=document.getElementById('rows');
     if(rows) rows.addEventListener('change',function(e){
       if(e.target && e.target.classList.contains('status') && e.target.value==='Parado' && exit) exit.value='';
+    });
+    var fixRows=document.getElementById('fixRows');
+    if(fixRows) fixRows.addEventListener('change',function(e){
+      if(e.target && e.target.classList.contains('fst') && e.target.value==='Parado' && fixExit) fixExit.value='';
     });
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true}); else init();
