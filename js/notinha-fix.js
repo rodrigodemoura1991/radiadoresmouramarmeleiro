@@ -22,3 +22,41 @@
   new MutationObserver(ensure).observe(document.documentElement,{childList:true,subtree:true});
   window.ensureNotinhaPayment=ensure;
 })();
+
+/* Correção: saída pode ficar em branco quando o serviço ainda não foi entregue.
+   O PostgreSQL recebe NULL, nunca a string vazia. */
+(function(){
+  function normalize(data){
+    if(Array.isArray(data)) return data.map(normalize);
+    if(data && typeof data==='object' && Object.prototype.hasOwnProperty.call(data,'exit_date')){
+      return Object.assign({},data,{exit_date:data.exit_date ? data.exit_date : null});
+    }
+    return data;
+  }
+  function patch(){
+    if(!window.sb || window.__exitDatePatchApplied) return;
+    window.__exitDatePatchApplied=true;
+    var originalFrom=window.sb.from.bind(window.sb);
+    window.sb.from=function(table){
+      var builder=originalFrom(table);
+      if(table!=='orders') return builder;
+      var originalInsert=builder.insert.bind(builder);
+      var originalUpdate=builder.update.bind(builder);
+      builder.insert=function(data){ return originalInsert(normalize(data)); };
+      builder.update=function(data){ return originalUpdate(normalize(data)); };
+      return builder;
+    };
+  }
+  function init(){
+    patch();
+    var exit=document.getElementById('exit');
+    if(exit) exit.value='';
+    var clear=document.getElementById('clear');
+    if(clear) clear.addEventListener('click',function(){setTimeout(function(){if(exit) exit.value='';},0)});
+    var rows=document.getElementById('rows');
+    if(rows) rows.addEventListener('change',function(e){
+      if(e.target && e.target.classList.contains('status') && e.target.value==='Parado' && exit) exit.value='';
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true}); else init();
+})();
