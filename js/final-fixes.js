@@ -5,14 +5,18 @@
   function injectCss(){
     if(document.getElementById('final-fixes-css')) return;
     const s=document.createElement('style');s.id='final-fixes-css';s.textContent=`
-      .color-legend{position:sticky;top:76px;z-index:12;display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:0 0 10px;padding:7px 9px;background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 14px #17203312;font-size:10px}
-      .color-legend strong{font-size:10px;margin-right:3px}.legend-item{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;color:var(--muted);font-weight:800}.legend-dot{width:9px;height:9px;border-radius:50%;display:inline-block;border:1px solid #0002}
+      /* Legenda lateral: acompanha a rolagem e fica ao lado da lista. */
+      .launches,.all-services{display:grid;grid-template-columns:minmax(0,1fr) 138px;column-gap:12px;align-items:start}
+      .launches > .color-legend,.all-services > .color-legend{grid-column:2;grid-row:1;position:sticky;top:82px;z-index:12;display:flex;flex-direction:column;align-items:stretch;gap:7px;margin:0;padding:10px 9px;background:rgba(255,255,255,.98);border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 14px #17203312;font-size:10px}
+      .color-legend strong{font-size:10px;margin:0 0 3px;line-height:1.2}.legend-item{display:flex;align-items:center;gap:6px;white-space:nowrap;color:var(--muted);font-weight:800;line-height:1.25}.legend-dot{width:9px;height:9px;min-width:9px;border-radius:50%;display:inline-block;border:1px solid #0002}
       .legend-black{background:#111}.legend-green{background:#138a5b}.legend-blue{background:#2f80ed}.legend-purple{background:#7356c8}.legend-orange{background:#d97706}.legend-brown{background:#b7791f}.legend-cyan{background:#0891b2}.legend-gray{background:#64748b}
-      @media(max-width:700px){.color-legend{top:62px;font-size:9px}.legend-item{font-size:9px}}
+      .launches > :not(.color-legend),.all-services > :not(.color-legend){grid-column:1}
+      @media(max-width:900px){.launches,.all-services{grid-template-columns:minmax(0,1fr) 118px;column-gap:8px}.launches > .color-legend,.all-services > .color-legend{top:66px;padding:8px 7px}.color-legend{font-size:9px}.color-legend strong{font-size:9px}.legend-item{font-size:9px}}
+      @media(max-width:600px){.launches,.all-services{display:block}.launches > .color-legend,.all-services > .color-legend{position:sticky;top:60px;width:120px;margin:0 0 8px auto}.launches > :not(.color-legend),.all-services > :not(.color-legend){width:100%}}
     `;document.head.appendChild(s);
   }
-  function legend(id,title,items){
-    const host=$(id);if(!host)return;
+  function legend(hostId,title,items){
+    const host=$(hostId);if(!host)return;
     let el=host.querySelector(':scope > .color-legend');
     if(!el){el=document.createElement('div');el.className='color-legend';host.insertBefore(el,host.firstChild)}
     const html='<strong>'+title+'</strong>'+items.map(x=>`<span class="legend-item"><i class="legend-dot ${x[0]}"></i>${x[1]}</span>`).join('');
@@ -20,7 +24,7 @@
   }
   const launchItems=[['legend-blue','Liberado'],['legend-orange','Parado'],['legend-purple','Pronto'],['legend-green','Pronto entregue']];
   const serviceItems=[['legend-black','EM ABERTO'],['legend-green','Dinheiro'],['legend-blue','Cartão'],['legend-purple','Pix'],['legend-orange','Cheque'],['legend-brown','Carteira'],['legend-cyan','Boleto'],['legend-gray','Notinha']];
-  function addLegends(){legend('launch','Cores dos cartões:',launchItems);legend('services','Cores dos cartões:',serviceItems)}
+  function addLegends(){legend('launchList','Cores dos cartões:',launchItems);legend('allServicesList','Cores dos cartões:',serviceItems)}
   function syncExit(){
     const exit=$('exit'),rows=document.querySelectorAll('#rows .svc-row');if(!exit||!rows.length)return;
     const allDelivered=[...rows].every(r=>r.querySelector('.status')?.value==='Pronto entregue');
