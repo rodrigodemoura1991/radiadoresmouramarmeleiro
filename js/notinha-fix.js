@@ -34,10 +34,10 @@
     return data;
   }
   function patch(){
-    if(!window.sb || window.__exitDatePatchApplied) return;
+    if(typeof sb==='undefined' || window.__exitDatePatchApplied) return;
     window.__exitDatePatchApplied=true;
-    var originalFrom=window.sb.from.bind(window.sb);
-    window.sb.from=function(table){
+    var originalFrom=sb.from.bind(sb);
+    sb.from=function(table){
       var builder=originalFrom(table);
       if(table!=='orders') return builder;
       var originalInsert=builder.insert.bind(builder);
