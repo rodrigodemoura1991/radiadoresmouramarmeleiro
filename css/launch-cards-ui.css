@@ -1,0 +1,18 @@
+/* Cartões de lançamentos: compactos + estrela externa somente para EM ABERTO */
+.launches{gap:5px}
+.launch{position:relative;padding:6px 9px 6px 10px;border-radius:10px;min-height:0}
+.launch.payment-open::before{content:'★';position:absolute;left:-22px;top:50%;transform:translateY(-50%);font-size:14px;line-height:1;color:#111;font-weight:900}
+.launch .ltop{gap:6px;align-items:center}
+.launch .lname{font-size:13px;line-height:1.15}
+.launch .meta{font-size:10px;margin-top:1px;line-height:1.2}
+.launch .ltop>b{font-size:13px;white-space:nowrap}
+.launch .chips{gap:3px;margin-top:4px}
+.launch .chip{padding:2px 5px;font-size:9px;line-height:1.15}
+.launch .chip:first-child{margin-left:0}
+@media(max-width:700px){
+  .launch{padding:6px 8px 6px 9px}
+  .launch.payment-open::before{left:-18px;font-size:12px}
+  .launch .lname{font-size:12px}
+  .launch .meta{font-size:9px}
+  .launch .chip{font-size:8px;padding:2px 4px}
+}
