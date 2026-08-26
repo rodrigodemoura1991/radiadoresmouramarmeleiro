@@ -105,6 +105,7 @@
     const search=document.getElementById('allServicesSearch');if(search)search.placeholder='Buscar cliente, placa, pedido ou serviço';
     document.addEventListener('keydown',keyboardNavigate);
     window.renderAllServices=renderGroupedServices;renderGroupedServices();
+    if(!document.getElementById('services-enhancements-loader')){const s=document.createElement('script');s.id='services-enhancements-loader';s.src='js/services-enhancements.js?v=20260826-1705';document.body.appendChild(s)}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
