@@ -39,34 +39,33 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   window.calc=calcFreteMain;
 
-  // Reaplica o frete ao carregar um lançamento existente na tela principal.
   const oldEditOrder=window.editOrder;
   if(typeof oldEditOrder==='function'){
-    window.editOrder=async function(id){await oldEditOrder(id);setTimeout(()=>{const o=(window.orders||[]).find(x=>x.id===id);document.querySelectorAll('#rows .svc-row').forEach((r,i)=>decorateMainRow(r,o?.order_items?.[i]||{}));calcFreteMain();},80);};
+    window.editOrder=async function(id){await oldEditOrder(id);setTimeout(()=>{const o=(typeof orders!=='undefined'?orders:[]).find(x=>x.id===id);document.querySelectorAll('#rows .svc-row').forEach((r,i)=>decorateMainRow(r,o?.order_items?.[i]||{}));calcFreteMain();},80);};
   }
 
-  // Substitui o salvamento principal para persistir frete em orders e order_items.
   const order=$('order');
   if(order){
     order.onsubmit=async e=>{
       e.preventDefault();
-      if(!window.company)return toast('Escolha a empresa primeiro');
+      if(typeof company==='undefined'||!company)return toast('Escolha a empresa primeiro');
       const a=getMainItems(); if(!a.length)return toast('Adicione pelo menos um serviço ou produto');
       cloud('Salvando...');
-      let c=(window.clients||[]).find(x=>x.name.toLowerCase()===$('clientInput').value.trim().toLowerCase());
+      const clientList=typeof clients!=='undefined'?clients:[];
+      let c=clientList.find(x=>x.name.toLowerCase()===$('clientInput').value.trim().toLowerCase());
       if(!c&&$('clientInput').value.trim()){
         const cr=await sb.from('clients').insert({company_id:company.id,name:$('clientInput').value.trim()}).select().single();
-        if(cr.error){cloud('Erro ao salvar',false);return toast(cr.error.message)} c=cr.data; clients.unshift(c);
+        if(cr.error){cloud('Erro ao salvar',false);return toast(cr.error.message)} c=cr.data; if(typeof clients!=='undefined')clients.unshift(c);
       }
       const sale=a.reduce((s,x)=>s+x.sale_value,0),cost=a.reduce((s,x)=>s+x.cost_value,0),freight=a.reduce((s,x)=>s+x.freight_value,0),tax=a.reduce((s,x)=>s+x.sale_value*x.tax_rate/100,0);
       const p={company_id:company.id,client_id:c?.id||null,entry_date:$('entry').value,exit_date:$('exit').value||null,client_name:$('clientInput').value.trim(),vehicle_make_model:$('vehicle').value.trim(),plate:$('plate').value.trim(),pedido:$('pedido').value.trim(),payment_status:$('payment').value,total_sale:sale,total_cost:cost,total_freight:freight,total_tax:tax,net_profit:sale-cost-freight-tax};
-      const editingId=window.editing?.id||null;
+      const editingId=(typeof editing!=='undefined'&&editing)?editing.id:null;
       const r=editingId?await sb.from('orders').update(p).eq('id',editingId).select().single():await sb.from('orders').insert(p).select().single();
       if(r.error){cloud('Erro ao salvar',false);return toast(r.error.message)}
       if(editingId){const dr=await sb.from('order_items').delete().eq('order_id',editingId);if(dr.error){cloud('Erro ao salvar',false);return toast(dr.error.message)}}
       const ir=await sb.from('order_items').insert(a.map(x=>({...x,order_id:r.data.id})));if(ir.error){cloud('Erro ao salvar',false);return toast('Lançamento salvo, mas os itens falharam: '+ir.error.message)}
       if(typeof saveCatalog==='function')await saveCatalog(a);
-      window.editing=null; if(typeof clearOrder==='function')clearOrder(); await loadData(); toast('Lançamento salvo na nuvem');
+      if(typeof editing!=='undefined')editing=null; if(typeof clearOrder==='function')clearOrder(); await loadData(); toast('Lançamento salvo na nuvem');
     };
   }
 
@@ -78,7 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function decorateEditRows(){
     const box=$('fixRows'); if(!box)return;
-    const o=(window.orders||[]).find(x=>x.id===editId);
+    const orderList=typeof orders!=='undefined'?orders:[];
+    const o=orderList.find(x=>x.id===editId);
     [...box.querySelectorAll('.edit-svc-row')].forEach((r,i)=>{
       if(!r.querySelector('.ff')){
         const tax=r.querySelector('.ft');if(!tax)return;
@@ -97,11 +97,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if(fixForm){
     fixForm.onsubmit=async e=>{
       e.preventDefault();
-      if(!editId||!company)return;
+      if(!editId||typeof company==='undefined'||!company)return;
       const a=editItems();if(!a.length)return toast('Adicione pelo menos um serviço ou produto');
-      const old=(window.orders||[]).find(x=>x.id===editId);if(!old)return;
+      const orderList=typeof orders!=='undefined'?orders:[]; const old=orderList.find(x=>x.id===editId);if(!old)return;
       cloud('Salvando...');
-      let c=(window.clients||[]).find(x=>x.name.toLowerCase()===$('fixClient').value.trim().toLowerCase());
+      const clientList=typeof clients!=='undefined'?clients:[];
+      let c=clientList.find(x=>x.name.toLowerCase()===$('fixClient').value.trim().toLowerCase());
       if(!c&&$('fixClient').value.trim()){const cr=await sb.from('clients').insert({company_id:company.id,name:$('fixClient').value.trim()}).select().single();if(cr.error){cloud('Erro ao salvar',false);return toast(cr.error.message)}c=cr.data}
       const sale=a.reduce((s,x)=>s+x.sale_value,0),cost=a.reduce((s,x)=>s+x.cost_value,0),freight=a.reduce((s,x)=>s+x.freight_value,0),tax=a.reduce((s,x)=>s+x.sale_value*x.tax_rate/100,0);
       const p={company_id:company.id,client_id:c?.id||old.client_id||null,entry_date:$('fixEntry').value,exit_date:$('fixExit').value||null,client_name:$('fixClient').value.trim(),vehicle_make_model:$('fixVehicle').value.trim(),plate:$('fixPlate').value.trim(),pedido:$('fixPedido').value.trim(),payment_status:$('fixPayment').value,total_sale:sale,total_cost:cost,total_freight:freight,total_tax:tax,net_profit:sale-cost-freight-tax};
@@ -112,7 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // Cabeçalhos: FRETE imediatamente depois de CUSTO.
   const addHeader=sel=>{const h=document.querySelector(sel);if(h&&!h.querySelector('.freight-head')){const t=h.querySelectorAll('span')[2];const s=document.createElement('span');s.className='freight-head';s.textContent='Frete';t?.parentNode.insertBefore(s,t.nextSibling);}};
   addHeader('.svc-head'); addHeader('.edit-svc-head');
 });
