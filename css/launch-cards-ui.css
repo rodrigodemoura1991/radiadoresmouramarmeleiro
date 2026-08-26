@@ -1,6 +1,13 @@
-/* Cartões de lançamentos: compactos + estrela externa somente para EM ABERTO */
+/* Cartões de lançamentos: compactos + destaque para FALTA ACERTAR */
 .launches{gap:5px}
 .launch{position:relative;padding:6px 9px 6px 10px;border-radius:10px;min-height:0}
+/* FALTA ACERTAR: o cartão inteiro fica azul e todo o conteúdo tem contraste. */
+.launch.payment-falta-acertar{background:#2563eb!important;background-color:#2563eb!important;border:2px solid #1d4ed8!important;border-left-color:#1d4ed8!important;color:#fff!important;box-shadow:0 4px 14px rgba(37,99,235,.30)!important}
+.launch.payment-falta-acertar *{color:#fff!important}
+.launch.payment-falta-acertar .meta{color:#eaf2ff!important}
+.launch.payment-falta-acertar .chip{background:rgba(255,255,255,.18)!important;color:#fff!important;border:1px solid rgba(255,255,255,.35)!important}
+.launch.payment-falta-acertar .chip.payment-badge{background:#fff!important;color:#1d4ed8!important;border-color:#fff!important}
+.launch.payment-falta-acertar .service-actions-v2 button{background:#fff!important;color:#1d4ed8!important;border-color:#fff!important}
 .launch.payment-open::before{content:'★';position:absolute;left:-22px;top:50%;transform:translateY(-50%);font-size:14px;line-height:1;color:#111;font-weight:900}
 .launch .ltop{gap:6px;align-items:center}
 .launch .lname{font-size:13px;line-height:1.15}
