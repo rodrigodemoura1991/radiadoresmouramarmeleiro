@@ -28,6 +28,8 @@
 .grouped-payment .payment-badge{display:inline-block;padding:2px 5px;border-radius:6px;background:#eef2f7;font-size:9px;line-height:1.1;font-weight:900}
 .grouped-service .service-actions-v2{top:7px;right:8px;transform:none}
 .grouped-service .service-actions-v2 button{padding:5px 8px;font-size:11px}
+.grouped-service.keyboard-selected{outline:3px solid var(--brand2);outline-offset:2px;box-shadow:0 0 0 2px rgba(37,99,235,.12)!important;position:relative;z-index:2}
+.launch.keyboard-selected{outline:3px solid var(--brand2);outline-offset:2px;box-shadow:0 0 0 2px rgba(37,99,235,.12)!important;position:relative;z-index:2}
 @media(max-width:800px){
   .grouped-service.payment-pending::before{left:-18px;font-size:12px}
   .grouped-top{grid-template-columns:72px minmax(0,1fr) auto;padding-right:108px}
