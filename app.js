@@ -1,0 +1,104 @@
+
+const sb=supabase.createClient(SUPABASE_CONFIG.url,SUPABASE_CONFIG.key);
+const COMPANIES=[{id:'48f0eb3d-22ff-4506-9d9c-b6dd4455946b',name:'Radiadores Moura'},{id:'f3cd9d20-a341-41fe-87fe-c0726a19b65b',name:'Radiadores Moura Marmeleiro'}];
+let company=null,orders=[],clients=[],catalog=[],editing=null,period='day';
+const $=id=>document.getElementById(id),today=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)};
+const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));const slug=s=>String(s||'').replace(/\s+/g,'').replace('ç','c').replace('ã','a');
+function toast(t){$('toast').textContent=t;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),2500)}function cloud(t,ok=true){$('cloud').textContent=(ok?'● ':'⚠ ')+t;$('cloud').style.color=ok?'var(--green)':'#c43d3d'}function showAuth(){$('auth').classList.remove('hidden');$('app').classList.add('hidden')}
+async function showApp(){$('auth').classList.add('hidden');$('app').classList.remove('hidden');renderCompanies();const saved=sessionStorage.getItem('companyId');const found=COMPANIES.find(x=>x.id===saved);if(found)chooseCompany(found);else $('companyModal').classList.remove('hidden')}
+function renderCompanies(){$('companies').innerHTML=COMPANIES.map(c=>`<button class="companychoice" data-id="${c.id}"><b>${esc(c.name)}</b><small style="display:block;color:var(--muted);margin-top:4px">Abrir este banco</small></button>`).join('');$('companies').querySelectorAll('button').forEach(b=>b.onclick=()=>chooseCompany(COMPANIES.find(c=>c.id===b.dataset.id)))}
+async function chooseCompany(c){if(!c)return;company=c;sessionStorage.setItem('companyId',c.id);$('companyPill').textContent='Banco: '+c.name;$('companyModal').classList.add('hidden');await loadData()}$('switch').onclick=()=>$('companyModal').classList.remove('hidden');
+$('login').onsubmit=async e=>{e.preventDefault();$('authmsg').textContent='Entrando...';const r=await sb.auth.signInWithPassword({email:$('email').value,password:$('pass').value});$('authmsg').textContent=r.error?'Erro: '+r.error.message:''};$('signup').onclick=async()=>{const r=await sb.auth.signUp({email:$('email').value,password:$('pass').value});$('authmsg').textContent=r.error?'Erro: '+r.error.message:'Conta criada. Confirme o e-mail.'};$('logout').onclick=()=>sb.auth.signOut();sb.auth.onAuthStateChange((e,s)=>{if(s)showApp();else showAuth()});
+async function init(){const r=await sb.auth.getSession();$('entry').value=today();$('exit').value=today();$('balanceDate').value=today();addRow();if(r.data.session)showApp();else showAuth()}
+async function loadData(){if(!company)return;cloud('Sincronizando...');const [o,c,p]=await Promise.all([sb.from('orders').select('*,order_items(*)').eq('company_id',company.id).order('entry_date',{ascending:false}),sb.from('clients').select('*').eq('company_id',company.id).order('name'),sb.from('catalog_items').select('*').eq('company_id',company.id).order('description')]);if(o.error||c.error||p.error){cloud('Erro na nuvem',false);toast('Não foi possível carregar os dados desta empresa: '+(o.error?.message||c.error?.message||p.error?.message||''));return}orders=o.data||[];clients=c.data||[];catalog=p.data||[];cloud('Salvo na nuvem');renderAll()}
+function parseMoney(v){let s=String(v||'').replace('R$','').replace(/\s/g,'');if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');return Number(s)||0}
+function rowItems(){return [...document.querySelectorAll('.svc-row')].map(r=>({description:r.querySelector('.desc').value.trim(),sale_value:parseMoney(r.querySelector('.sale').value),cost_value:parseMoney(r.querySelector('.cost').value),tax_rate:Number(r.querySelector('.tax').value)||0,service_status:r.querySelector('.status').value})).filter(x=>x.description||x.sale_value||x.cost_value)}
+function calc(){const a=rowItems(),sale=a.reduce((s,x)=>s+x.sale_value,0),cost=a.reduce((s,x)=>s+x.cost_value,0),tax=a.reduce((s,x)=>s+x.sale_value*x.tax_rate/100,0);$('saleTotal').textContent=money(sale);$('costTotal').textContent=money(cost);$('taxTotal').textContent=money(tax);$('profitTotal').textContent=money(sale-cost-tax);$('grand').textContent=money(sale)}
+function addRow(item={}){const r=document.createElement('div');r.className='svc-row';r.innerHTML=`<input class="desc" list="catalogList" placeholder="Descrição serviço / produto" value="${esc(item.description||'')}"><input class="sale money" inputmode="decimal" placeholder="R$ 0,00" value="${item.sale_value?money(item.sale_value):''}"><input class="cost money" inputmode="decimal" placeholder="R$ 0,00" value="${item.cost_value?money(item.cost_value):''}"><input class="tax" type="number" min="0" step=".01" placeholder="%" value="${item.tax_rate??''}"><select class="status"><option>Liberado</option><option>Parado</option><option>Pronto</option><option>Pronto entregue</option></select><button type="button" class="btn">×</button>`;$('rows').appendChild(r);r.querySelector('.status').value=item.service_status||'Liberado';r.querySelector('button').onclick=()=>{r.remove();calc()};r.querySelectorAll('input,select').forEach(x=>x.oninput=calc);['sale','cost'].forEach(k=>{const x=r.querySelector('.'+k);x.onblur=()=>{const n=parseMoney(x.value);x.value=n?money(n):'';calc()}});calc()}
+$('add').onclick=()=>addRow();function updateCatalog(){let d=document.getElementById('catalogList');if(!d){d=document.createElement('datalist');d.id='catalogList';document.body.appendChild(d)}d.innerHTML=catalog.map(x=>`<option value="${esc(x.description)}"></option>`).join('')}
+$('clientInput').oninput=()=>{const q=$('clientInput').value.toLowerCase().trim();if(!q){$('clientSug').classList.add('hidden');return}const a=clients.filter(c=>c.name.toLowerCase().includes(q)).slice(0,8);$('clientSug').innerHTML=a.map(c=>`<button type="button" data-id="${c.id}"><b>${esc(c.name)}</b><small style="display:block;color:var(--muted)">${esc(c.phone||c.whatsapp||'')}</small></button>`).join('')||'<div style="padding:11px;color:var(--muted)">Nenhum cliente encontrado</div>';$('clientSug').classList.remove('hidden');$('clientSug').querySelectorAll('button').forEach(b=>b.onclick=()=>{$('clientInput').value=clients.find(c=>c.id===b.dataset.id).name;$('clientSug').classList.add('hidden')})};document.addEventListener('click',e=>{if(!e.target.closest('.search'))$('clientSug').classList.add('hidden')});
+$('order').onkeydown=e=>{if(e.key==='Enter'&&e.target.tagName!=='TEXTAREA'){e.preventDefault();const f=[...$('order').querySelectorAll('input,select,button')].filter(x=>!x.disabled);const i=f.indexOf(e.target);if(i>=0&&f[i+1])f[i+1].focus()}};
+async function saveCatalog(a){for(const x of a){if(!x.description||catalog.some(c=>c.description.toLowerCase()===x.description.toLowerCase()))continue;const r=await sb.from('catalog_items').insert({company_id:company.id,description:x.description,type:'servico'}).select().single();if(!r.error&&r.data)catalog.unshift(r.data)}updateCatalog()}
+$('order').onsubmit=async e=>{e.preventDefault();if(!company)return toast('Escolha a empresa primeiro');const a=rowItems();if(!a.length)return toast('Adicione pelo menos um serviço ou produto');cloud('Salvando...');let c=clients.find(x=>x.name.toLowerCase()===$('clientInput').value.trim().toLowerCase());if(!c&&$('clientInput').value.trim()){const r=await sb.from('clients').insert({company_id:company.id,name:$('clientInput').value.trim()}).select().single();if(r.error)return toast(r.error.message);c=r.data;clients.unshift(c)}const sale=a.reduce((s,x)=>s+x.sale_value,0),cost=a.reduce((s,x)=>s+x.cost_value,0),tax=a.reduce((s,x)=>s+x.sale_value*x.tax_rate/100,0);const p={company_id:company.id,client_id:c?.id||null,entry_date:$('entry').value,exit_date:$('exit').value,client_name:$('clientInput').value.trim(),vehicle_make_model:$('vehicle').value.trim(),plate:$('plate').value.trim(),pedido:$('pedido').value.trim(),payment_status:$('payment').value,total_sale:sale,total_cost:cost,total_tax:tax,net_profit:sale-cost-tax};let r=editing?await sb.from('orders').update(p).eq('id',editing.id).select().single():await sb.from('orders').insert(p).select().single();if(r.error){cloud('Erro ao salvar',false);return toast(r.error.message)}if(editing)await sb.from('order_items').delete().eq('order_id',editing.id);const ir=await sb.from('order_items').insert(a.map(x=>({...x,order_id:r.data.id})));if(ir.error)return toast('Lançamento salvo, mas os itens falharam: '+ir.error.message);await saveCatalog(a);editing=null;clearOrder();await loadData();toast('Lançamento salvo na nuvem')};
+function clearOrder(){editing=null;$('order').reset();$('entry').value=today();$('exit').value=today();$('rows').innerHTML='';addRow();$('payment').value=''}$('clear').onclick=clearOrder;
+function renderLaunches(){updateCatalog();const q=($('launchSearch').value||'').toLowerCase();const a=orders.filter(o=>[o.client_name,o.vehicle_make_model,o.plate,...(o.order_items||[]).map(i=>i.description)].join(' ').toLowerCase().includes(q));$('count').textContent=a.length+' lançamento(s)';$('launchList').innerHTML=a.map(o=>{const st=(o.order_items||[])[0]?.service_status||'Liberado',cl=slug(st);return `<article class="launch ${cl}" data-id="${o.id}"><div class="ltop"><div><div class="lname">${esc(o.client_name||'Sem cliente')}</div><div class="meta">${o.entry_date||''} • Saída ${o.exit_date||''}${o.vehicle_make_model?' • '+esc(o.vehicle_make_model):''}${o.plate?' • '+esc(o.plate):''}</div></div><b>${money(o.total_sale)}</b></div><div class="chips">${(o.order_items||[]).map(i=>`<span class="chip ${slug(i.service_status)}">${esc(i.description)} • ${esc(i.service_status)}</span>`).join('')}<span class="chip">${paymentFlag}${esc(o.payment_status||'EM ABERTO')}</span></div></article>`}).join('')||'<div class="empty">Nenhum lançamento encontrado.</div>';$('launchList').querySelectorAll('.launch').forEach(x=>x.onclick=()=>editOrder(x.dataset.id))}
+$('launchSearch').oninput=renderLaunches;async function editOrder(id){const o=orders.find(x=>x.id===id);if(!o)return;editing=o;$('entry').value=o.entry_date;$('exit').value=o.exit_date;$('clientInput').value=o.client_name||'';$('vehicle').value=o.vehicle_make_model||'';$('plate').value=o.plate||'';$('pedido').value=o.pedido||'';$('payment').value=o.payment_status||'';$('rows').innerHTML='';(o.order_items||[]).forEach(addRow);if(!o.order_items?.length)addRow();scrollTo({top:0,behavior:'smooth'})}
+function renderClients(){const q=($('clientSearch').value||'').toLowerCase();const a=clients.filter(c=>c.name.toLowerCase().includes(q));$('clientGrid').innerHTML=a.map(c=>`<div class="client" data-id="${c.id}"><b>${esc(c.name)}</b><small>${esc(c.phone||c.whatsapp||c.email||'Sem contato')}</small><small>${esc(c.city||'')}</small></div>`).join('')||'<div class="empty" style="grid-column:1/-1">Nenhum cliente cadastrado.</div>';$('clientGrid').querySelectorAll('.client').forEach(x=>x.onclick=()=>openClient(x.dataset.id))}$('clientSearch').oninput=renderClients;
+function openClient(id=''){const c=clients.find(x=>x.id===id);$('clientTitle').textContent=c?'Editar cliente':'Novo cliente';$('clientId').value=c?.id||'';$('clientName').value=c?.name||'';$('doc').value=c?.cpf_cnpj||'';$('phone').value=c?.phone||'';$('whatsapp').value=c?.whatsapp||'';$('mail').value=c?.email||'';$('address').value=c?.address||'';$('city').value=c?.city||'';$('uf').value=c?.uf||'';$('notes').value=c?.notes||'';$('clientModal').classList.remove('hidden')}$('newClient').onclick=()=>openClient();$('closeClient').onclick=$('cancelClient').onclick=()=>$('clientModal').classList.add('hidden');
+$('clientForm').onsubmit=async e=>{e.preventDefault();const p={company_id:company.id,name:$('clientName').value.trim(),cpf_cnpj:$('doc').value.trim(),phone:$('phone').value.trim(),whatsapp:$('whatsapp').value.trim(),email:$('mail').value.trim(),address:$('address').value.trim(),city:$('city').value.trim(),uf:$('uf').value.trim().toUpperCase(),notes:$('notes').value.trim()},id=$('clientId').value,r=id?await sb.from('clients').update(p).eq('id',id).select().single():await sb.from('clients').insert(p).select().single();if(r.error)return toast(r.error.message);$('clientModal').classList.add('hidden');await loadData();toast('Cliente salvo')};
+function inPeriod(o){const d=o.entry_date;if(!d)return false;const ref=new Date($('balanceDate').value+'T00:00:00'),x=new Date(d+'T00:00:00');if(period==='day')return d===$('balanceDate').value;if(period==='year')return x.getFullYear()===ref.getFullYear();const start=new Date(ref);start.setDate(start.getDate()-start.getDay());const end=new Date(start);end.setDate(start.getDate()+6);return x>=start&&x<=end}
+function renderBalance(){const a=orders.filter(inPeriod),sale=a.reduce((s,o)=>s+Number(o.total_sale),0),cost=a.reduce((s,o)=>s+Number(o.total_cost),0),tax=a.reduce((s,o)=>s+Number(o.total_tax),0),profit=a.reduce((s,o)=>s+Number(o.net_profit),0);$('balanceCards').innerHTML=[['Vendas',sale],['Custos',cost],['Impostos',tax],['Lucro líquido',profit]].map(x=>`<div class="bcard"><small>${x[0]}</small><b>${money(x[1])}</b></div>`).join('');const counts={'Liberado':0,'Parado':0,'Pronto':0,'Pronto entregue':0};a.forEach(o=>(o.order_items||[]).forEach(i=>counts[i.service_status]=(counts[i.service_status]||0)+1));$('breakdown').innerHTML=Object.entries(counts).map(([k,v])=>`<div style="display:grid;grid-template-columns:150px 1fr 40px;gap:10px;align-items:center;margin:9px 0"><b>${k}</b><div class="bar"><i style="width:${v/Math.max(1,...Object.values(counts))*100}%"></i></div><span>${v}</span></div>`).join('')}
+function renderAll(){renderLaunches();renderClients();calc();renderBalance()}$('balanceDate').onchange=renderBalance;document.querySelectorAll('.period').forEach(b=>b.onclick=()=>{document.querySelectorAll('.period').forEach(x=>x.classList.remove('active'));b.classList.add('active');period=b.dataset.p;renderBalance()});document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$(b.dataset.view).classList.add('active');if(b.dataset.view==='balance')renderBalance()});init();
+
+/* ===== Módulo de serviços e financeiro ===== */
+const paymentColors={
+  'EM ABERTO':'pending','Dinheiro':'cash','Cartão':'card','Pix':'pix',
+  'Cheque':'check','Carteira':'wallet','Boleto':'boleto','Notinha':'notinha'
+};
+function allServiceRows(){
+  return orders.flatMap(o=>(o.order_items||[]).map(i=>({...i,order:o})));
+}
+function renderAllServices(){
+  const q=($('allServicesSearch')?.value||'').toLowerCase().trim();
+  const pf=$('servicePaymentFilter')?.value||'';
+  const sf=$('serviceStatusFilter')?.value||'';
+  let a=allServiceRows().filter(x=>{
+    const text=[x.order.client_name,x.order.pedido,x.description,x.order.vehicle_make_model,x.order.plate].join(' ').toLowerCase();
+    return (!q||text.includes(q))&&(!pf||(x.order.payment_status||'EM ABERTO')===pf)&&(!sf||x.service_status===sf);
+  });
+  a.sort((x,y)=>String(y.order.exit_date||'').localeCompare(String(x.order.exit_date||'')));
+  $('allServicesList').innerHTML=a.map(x=>{
+    const pay=x.order.payment_status||'EM ABERTO';
+    const cls=paymentColors[pay]||'other';
+    const profit=Number(x.sale_value||0)-Number(x.cost_value||0)-(Number(x.sale_value||0)*Number(x.tax_rate||0)/100);
+    return `<article class="service-card payment-${cls}">
+      <div class="service-date"><b>${esc(x.order.exit_date||'—')}</b><small>Entrada ${esc(x.order.entry_date||'—')}</small></div>
+      <div class="service-main"><b>${esc(x.order.client_name||'Sem cliente')}</b><small>Pedido ${esc(x.order.pedido||'—')} ${x.order.vehicle_make_model?'• '+esc(x.order.vehicle_make_model):''}</small><div class="service-desc">${esc(x.description||'Sem descrição')}</div></div>
+      <div class="service-values"><span>Venda <b>${money(x.sale_value)}</b></span><span>Custo <b>${money(x.cost_value)}</b></span><span>Lucro <b>${money(profit)}</b></span></div>
+      <div class="service-badges"><span class="status-badge status-${slug(x.service_status)}">${esc(x.service_status||'—')}</span><span class="payment-badge">${pay==='EM ABERTO'||pay==='Carteira'?'★ ':''}${esc(pay)}</span></div>
+    </article>`;
+  }).join('')||'<div class="empty">Nenhum serviço encontrado.</div>';
+}
+function balancePeriodOrders(){
+  if(period==='custom'){
+    const a=$('balanceStart').value,b=$('balanceEnd').value;
+    return orders.filter(o=>o.entry_date&&(!a||o.entry_date>=a)&&(!b||o.entry_date<=b));
+  }
+  const ref=$('balanceDate').value;
+  if(!ref)return [];
+  const r=new Date(ref+'T00:00:00');
+  return orders.filter(o=>{
+    if(!o.entry_date)return false;
+    const x=new Date(o.entry_date+'T00:00:00');
+    if(period==='day')return o.entry_date===ref;
+    if(period==='year')return x.getFullYear()===r.getFullYear();
+    if(period==='month')return x.getFullYear()===r.getFullYear()&&x.getMonth()===r.getMonth();
+    const start=new Date(r);start.setDate(r.getDate()-r.getDay());
+    const end=new Date(start);end.setDate(start.getDate()+6);
+    return x>=start&&x<=end;
+  });
+}
+function renderAdvancedBalance(){
+  const a=balancePeriodOrders();
+  const sale=a.reduce((s,o)=>s+Number(o.total_sale||0),0);
+  const cost=a.reduce((s,o)=>s+Number(o.total_cost||0),0);
+  const tax=a.reduce((s,o)=>s+Number(o.total_tax||0),0);
+  const profit=a.reduce((s,o)=>s+Number(o.net_profit||0),0);
+  $('balanceCards').innerHTML=[['Vendas',sale],['Custos',cost],['Impostos',tax],['Lucro líquido',profit]].map(x=>`<div class="bcard"><small>${x[0]}</small><b>${money(x[1])}</b></div>`).join('');
+  const payments={}; a.forEach(o=>{const p=o.payment_status||'EM ABERTO';payments[p]=(payments[p]||0)+Number(o.total_sale||0)});
+  $('paymentBreakdown').innerHTML=Object.entries(payments).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="payment-row"><span>${esc(k)}</span><b>${money(v)}</b></div>`).join('')||'<div class="empty">Sem pagamentos no período.</div>';
+  const margin=sale?profit/sale*100:0, costPct=sale?cost/sale*100:0, taxPct=sale?tax/sale*100:0;
+  $('profitManagement').innerHTML=`<div class="profit-grid"><div><small>Margem líquida</small><b>${margin.toFixed(1)}%</b></div><div><small>Custos sobre vendas</small><b>${costPct.toFixed(1)}%</b></div><div><small>Impostos sobre vendas</small><b>${taxPct.toFixed(1)}%</b></div><div><small>Serviços</small><b>${a.reduce((n,o)=>n+(o.order_items||[]).length,0)}</b></div></div>`;
+  const counts={'Liberado':0,'Parado':0,'Pronto':0,'Pronto entregue':0};
+  a.forEach(o=>(o.order_items||[]).forEach(i=>counts[i.service_status]=(counts[i.service_status]||0)+1));
+  $('breakdown').innerHTML=Object.entries(counts).map(([k,v])=>`<div class="break-row"><b>${k}</b><div class="bar"><i style="width:${v/Math.max(1,...Object.values(counts))*100}%"></i></div><span>${v}</span></div>`).join('');
+}
+const _oldRenderAll=renderAll;
+renderAll=function(){_oldRenderAll();renderAllServices();renderAdvancedBalance()};
+document.querySelectorAll('.nav').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.view==='services')renderAllServices();if(b.dataset.view==='balance')renderAdvancedBalance()}));
+['allServicesSearch','servicePaymentFilter','serviceStatusFilter'].forEach(id=>$(id)?.addEventListener('input',renderAllServices));
+$('servicePaymentFilter')?.addEventListener('change',renderAllServices);
+$('serviceStatusFilter')?.addEventListener('change',renderAllServices);
+$('balanceDate')?.addEventListener('change',renderAdvancedBalance);
+document.querySelectorAll('.period').forEach(b=>b.addEventListener('click',()=>{period=b.dataset.p;renderAdvancedBalance()}));
+$('applyCustomBalance')?.addEventListener('click',()=>{period='custom';document.querySelectorAll('.period').forEach(x=>x.classList.remove('active'));renderAdvancedBalance()});
