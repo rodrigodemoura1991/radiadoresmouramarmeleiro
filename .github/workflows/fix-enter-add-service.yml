@@ -1,0 +1,37 @@
+name: Fix Enter no Adicionar Serviço
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ajustar comportamento do Enter
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('app.js')
+          s = p.read_text(encoding='utf-8')
+          old = "$('order').onkeydown=e=>{if(e.key==='Enter'&&e.target.tagName!=='TEXTAREA'){e.preventDefault();const f=[...$('order').querySelectorAll('input,select,button')].filter(x=>!x.disabled);const i=f.indexOf(e.target);if(i>=0&&f[i+1])f[i+1].focus()}};"
+          new = "$('order').onkeydown=e=>{if(e.key==='Enter'&&e.target.tagName!=='TEXTAREA'){if(e.target.id==='add'){e.preventDefault();addRow();requestAnimationFrame(()=>{const rows=document.querySelectorAll('#rows .svc-row');rows[rows.length-1]?.querySelector('.desc')?.focus()});return}e.preventDefault();const f=[...$('order').querySelectorAll('input,select,button')].filter(x=>!x.disabled);const i=f.indexOf(e.target);if(i>=0&&f[i+1])f[i+1].focus()}};"
+          if old not in s:
+              raise SystemExit('Trecho esperado do teclado nao foi encontrado; nenhuma alteracao feita.')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+
+      - name: Publicar correcao
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.js
+          git commit -m "Corrige Enter no Adicionar servico" || exit 0
+          git push
