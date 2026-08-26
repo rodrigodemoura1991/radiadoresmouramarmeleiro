@@ -16,3 +16,13 @@
   .launch .meta{font-size:9px}
   .launch .chip{font-size:8px;padding:2px 4px}
 }
+
+/* Todos os Serviços: estrela somente no lado esquerdo para EM ABERTO */
+.service-card.payment-pending .payment-badge{font-size:0}
+.service-card.payment-pending .payment-badge::after{content:'EM ABERTO';font-size:9px}
+.service-card.payment-wallet .payment-badge{font-size:0}
+.service-card.payment-wallet .payment-badge::after{content:'Carteira';font-size:9px}
+.service-card.payment-pending::before{content:'★';position:absolute;left:-21px;top:50%;transform:translateY(-50%);font-size:13px;line-height:1;color:#111;font-weight:900}
+.service-card.payment-wallet::before{content:none}
+@media(max-width:800px){.service-card.payment-pending::before{left:-17px;font-size:12px}}
+@media(max-width:520px){.service-card.payment-pending::before{left:-15px}}
