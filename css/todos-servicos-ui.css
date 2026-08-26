@@ -1,6 +1,14 @@
 /* Todos os Serviços: mesma linguagem visual dos Lançamentos recentes, agrupado por lançamento. */
 .all-services{display:grid;gap:6px;padding-left:0}
 .grouped-service{display:block!important;position:relative;padding:7px 10px 6px 10px!important;min-height:0!important;border-radius:10px!important;cursor:default!important}
+/* FALTA ACERTAR: cartão inteiro azul, com contraste forte para todas as informações. */
+.grouped-service.payment-falta-acertar{background:#2563eb!important;background-color:#2563eb!important;border:2px solid #1d4ed8!important;border-left-color:#1d4ed8!important;color:#fff!important;box-shadow:0 3px 10px rgba(37,99,235,.28)!important}
+.grouped-service.payment-falta-acertar *{color:#fff!important}
+.grouped-service.payment-falta-acertar .grouped-date small,.grouped-service.payment-falta-acertar .meta{color:#eaf2ff!important}
+.grouped-service.payment-falta-acertar .grouped-item{background:rgba(255,255,255,.18)!important;color:#fff!important;border:1px solid rgba(255,255,255,.28)}
+.grouped-service.payment-falta-acertar .grouped-item b{color:#fff!important}
+.grouped-service.payment-falta-acertar .payment-badge{background:#fff!important;color:#1d4ed8!important;border:1px solid #fff!important}
+.grouped-service.payment-falta-acertar .service-actions-v2 button{background:#fff!important;color:#1d4ed8!important;border-color:#fff!important}
 .grouped-service.payment-pending{border-left-color:#111!important}
 .grouped-service.payment-cash{border-left-color:var(--green)!important}
 .grouped-service.payment-card{border-left-color:var(--blue)!important}
