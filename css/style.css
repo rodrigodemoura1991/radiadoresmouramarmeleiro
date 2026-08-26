@@ -18,3 +18,15 @@
 .service-card.payment-pending::before{content:'★';position:absolute;left:-21px;top:50%;transform:translateY(-50%);font-size:13px;line-height:1;color:#111;font-weight:900}.service-card.payment-pending .payment-badge{font-weight:900}.service-card.payment-pending .payment-badge{background:#eef2f7}.service-card .payment-badge{padding-left:5px}.service-card .payment-badge{font-size:9px}
 @media(max-width:800px){.shell{grid-template-columns:1fr;padding:10px}.side{position:static;display:flex;overflow:auto;gap:4px}.nav{white-space:nowrap}.service-card{grid-template-columns:72px 1fr;padding:6px 8px}.service-values,.service-badges{grid-column:2;justify-content:flex-start}.service-card.payment-pending::before{left:-17px;font-size:12px}.profit-grid{grid-template-columns:1fr 1fr}.payment-breakdown{grid-template-columns:1fr}}
 @media(max-width:520px){.profit-grid{grid-template-columns:1fr}.service-card{grid-template-columns:1fr;padding:6px 8px}.service-values,.service-badges{grid-column:1}.service-card.payment-pending::before{left:-15px}.balance-options .field{min-width:100%}.service-toolbar input{min-width:100%}}
+
+/* FALTA ACERTAR: cartão azul com contraste total */
+.launch.payment-falta-acertar{background:#1976e8!important;border-color:#1266cf!important;color:#fff!important;box-shadow:0 8px 22px #1976e833}
+.launch.payment-falta-acertar .lname,.launch.payment-falta-acertar .meta,.launch.payment-falta-acertar .ltop>b{color:#fff!important}
+.launch.payment-falta-acertar .btn,.launch.payment-falta-acertar button{background:#fff!important;color:#173b67!important;border-color:#fff!important}
+.launch.payment-falta-acertar .chip{background:#fff;color:#173b67;border-color:#fff}
+.launch.payment-falta-acertar .chip.Liberado{background:#e8f2ff;color:#2364a9}
+.launch.payment-falta-acertar .chip.Parado{background:#fff3df;color:#9b5c00}
+.launch.payment-falta-acertar .chip.Pronto{background:#eee9ff;color:#6444ad}
+.launch.payment-falta-acertar .chip.Prontoentregue{background:#e6f7ef;color:#087249}
+.launch.payment-falta-acertar .chip:last-child{background:#fff;color:#1266cf;font-weight:950}
+.launch.payment-falta-acertar .edit,.launch.payment-falta-acertar .delete{color:#173b67!important;background:#fff!important}
