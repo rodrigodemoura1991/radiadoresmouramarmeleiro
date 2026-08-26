@@ -13,7 +13,7 @@
   }
   function ensureServicesCss(){
     if(document.getElementById('todos-servicos-ui-css'))return;
-    const link=document.createElement('link');link.id='todos-servicos-ui-css';link.rel='stylesheet';link.href='css/todos-servicos-ui.css?v=20260826-1635';document.head.appendChild(link);
+    const link=document.createElement('link');link.id='todos-servicos-ui-css';link.rel='stylesheet';link.href='css/todos-servicos-ui.css?v=20260826-1645';document.head.appendChild(link);
   }
   function removeOrder(id){
     if(!id)return;const o=(typeof orders!=='undefined'?orders:[]).find(x=>x.id===id);if(!o||!confirm('Excluir este lançamento? Esta ação não pode ser desfeita.'))return;
@@ -52,14 +52,33 @@
     const tag=(target.tagName||'').toLowerCase();
     return tag==='input'||tag==='textarea'||tag==='select'||tag==='button'||target.isContentEditable;
   }
+  function openSelectedCard(){
+    const servicesView=document.getElementById('services');
+    const launchView=document.getElementById('launch');
+    if(servicesView?.classList.contains('active')){
+      const card=document.querySelectorAll('#allServicesList .grouped-service')[selectedServiceIndex];
+      const id=card?.dataset.orderId;
+      if(id){editOrderFromServices(id);return true;}
+    }
+    if(launchView?.classList.contains('active')){
+      const card=document.querySelectorAll('#launchList .launch')[selectedLaunchIndex];
+      const id=card?.dataset.id;
+      if(id&&typeof window.editOrder==='function'){window.editOrder(id);return true;}
+    }
+    return false;
+  }
   function keyboardNavigate(e){
-    if(e.key!=='ArrowDown'&&e.key!=='ArrowUp')return;
     if(isEditableTarget(e.target))return;
     const servicesView=document.getElementById('services');
     const launchView=document.getElementById('launch');
     const servicesActive=servicesView?.classList.contains('active');
     const launchActive=launchView?.classList.contains('active');
     if(!servicesActive&&!launchActive)return;
+    if(e.key==='Enter'){
+      if(openSelectedCard())e.preventDefault();
+      return;
+    }
+    if(e.key!=='ArrowDown'&&e.key!=='ArrowUp')return;
     const direction=e.key==='ArrowDown'?1:-1;
     let handled=false;
     if(servicesActive){
