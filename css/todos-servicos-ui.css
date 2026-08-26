@@ -1,0 +1,43 @@
+/* Todos os Serviços: mesma linguagem visual dos Lançamentos recentes, agrupado por lançamento. */
+.all-services{display:grid;gap:6px;padding-left:0}
+.grouped-service{display:block!important;position:relative;padding:7px 10px 6px 10px!important;min-height:0!important;border-radius:10px!important;cursor:default!important}
+.grouped-service.payment-pending{border-left-color:#111!important}
+.grouped-service.payment-cash{border-left-color:var(--green)!important}
+.grouped-service.payment-card{border-left-color:var(--blue)!important}
+.grouped-service.payment-pix{border-left-color:var(--purple)!important}
+.grouped-service.payment-check{border-left-color:var(--orange)!important}
+.grouped-service.payment-wallet{border-left-color:#b7791f!important}
+.grouped-service.payment-boleto{border-left-color:#0891b2!important}
+.grouped-service.payment-notinha{border-left-color:#64748b!important}
+.grouped-service.payment-pending::before{content:'★';position:absolute;left:-22px;top:50%;transform:translateY(-50%);font-size:14px;line-height:1;color:#111;font-weight:900}
+.grouped-top{display:grid;grid-template-columns:82px minmax(0,1fr) auto;gap:8px;align-items:center;padding-right:112px}
+.grouped-date b{display:block;font-size:13px;line-height:1.15}
+.grouped-date small{display:block;color:var(--muted);font-size:10px;line-height:1.2;margin-top:1px}
+.grouped-main .lname{font-size:13px;line-height:1.15;font-weight:900}
+.grouped-main .meta{font-size:10px;line-height:1.2;margin-top:1px}
+.grouped-total{font-size:13px;white-space:nowrap}
+.grouped-star-inside{display:none}
+.grouped-items{display:grid;gap:2px;margin-top:4px}
+.grouped-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:2px 5px;border-radius:5px;font-size:9px;line-height:1.15;font-weight:800}
+.grouped-item b{font-size:9px;white-space:nowrap}
+.grouped-item.Liberado{background:#e8f2ff;color:#2364a9}
+.grouped-item.Parado{background:#fff3df;color:#9b5c00}
+.grouped-item.Pronto{background:#eee9ff;color:#6444ad}
+.grouped-item.Prontoentregue{background:#e6f7ef;color:#087249}
+.grouped-payment{margin-top:3px}
+.grouped-payment .payment-badge{display:inline-block;padding:2px 5px;border-radius:6px;background:#eef2f7;font-size:9px;line-height:1.1;font-weight:900}
+.grouped-service .service-actions-v2{top:7px;right:8px;transform:none}
+.grouped-service .service-actions-v2 button{padding:5px 8px;font-size:11px}
+@media(max-width:800px){
+  .grouped-service.payment-pending::before{left:-18px;font-size:12px}
+  .grouped-top{grid-template-columns:72px minmax(0,1fr) auto;padding-right:108px}
+}
+@media(max-width:520px){
+  .grouped-service{padding:6px 8px!important}
+  .grouped-top{grid-template-columns:1fr auto;padding-right:0}
+  .grouped-date{grid-column:1/-1}
+  .grouped-main{grid-column:1}
+  .grouped-total{grid-column:2;grid-row:2}
+  .grouped-service .service-actions-v2{position:absolute;top:6px;right:7px;margin:0}
+  .grouped-service.payment-pending::before{left:-15px}
+}
