@@ -1,25 +1,37 @@
-/* Correção definitiva do editor: garante que o ID do lançamento seja preservado. */
+/* Editor de lançamentos — captura robusta do ID e salvamento no Supabase. */
 (function(){
   'use strict';
   const $=id=>document.getElementById(id);
   const num=v=>{let s=String(v??'').replace('R$','').replace(/\s/g,'');if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');return Number(s)||0};
+  let busy=false;
 
-  function captureEditId(id){
-    if(id) window.__freteEditId=String(id);
+  function setId(id){
+    if(!id)return null;
+    const value=String(id);
+    window.__freteEditId=value;
     const modal=$('orderFixModal');
-    if(modal && window.__freteEditId) modal.dataset.orderId=window.__freteEditId;
     const form=$('fixEditForm');
-    if(form && window.__freteEditId) form.dataset.orderId=window.__freteEditId;
+    if(modal)modal.dataset.orderId=value;
+    if(form)form.dataset.orderId=value;
+    return value;
+  }
+
+  function captureFromElement(el){
+    if(!el)return null;
+    const node=el.closest('[data-order-id],[data-id],[data-edit],.launch,.service-card,.grouped-service');
+    if(!node)return null;
+    const id=node.dataset.orderId||node.dataset.id||node.dataset.edit;
+    return id?setId(id):null;
   }
 
   function wrapEditOrder(){
-    if(typeof window.editOrder!=='function' || window.editOrder.__idCaptureWrapped)return;
+    if(typeof window.editOrder!=='function'||window.editOrder.__idCaptureWrapped)return;
     const original=window.editOrder;
     const wrapped=function(id){
-      captureEditId(id);
+      setId(id);
       const result=original.apply(this,arguments);
-      setTimeout(()=>captureEditId(id),50);
-      setTimeout(()=>captureEditId(id),250);
+      setTimeout(()=>setId(id),20);
+      setTimeout(()=>setId(id),100);
       return result;
     };
     wrapped.__idCaptureWrapped=true;
@@ -27,9 +39,9 @@
   }
 
   function currentId(){
-    const modal=$('orderFixModal');
-    const form=$('fixEditForm');
-    return window.__freteEditId || modal?.dataset.orderId || form?.dataset.orderId || null;
+    const modal=$('orderFixModal'),form=$('fixEditForm');
+    const fromEditing=(typeof editing!=='undefined'&&editing)?editing.id:null;
+    return window.__freteEditId||modal?.dataset.orderId||form?.dataset.orderId||fromEditing||null;
   }
 
   function items(){
@@ -43,16 +55,15 @@
     })).filter(x=>x.description||x.sale_value||x.cost_value||x.freight_value);
   }
 
-  let busy=false;
   async function save(e){
-    if(e){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation()}
+    if(e){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();}
     if(busy)return;
     const id=currentId();
-    if(!id||typeof company==='undefined'||!company){toast('Nenhum lançamento selecionado. Abra novamente pelo botão Editar.');return}
+    if(!id||typeof company==='undefined'||!company){toast('Nenhum lançamento selecionado. Abra novamente pelo botão Editar.');return;}
     const a=items();
-    if(!a.length){toast('Adicione pelo menos um serviço ou produto.');return}
+    if(!a.length){toast('Adicione pelo menos um serviço ou produto.');return;}
     const old=(typeof orders!=='undefined'?orders:[]).find(x=>String(x.id)===String(id));
-    if(!old){toast('Lançamento não encontrado. Atualize a página e tente novamente.');return}
+    if(!old){toast('Lançamento não encontrado. Atualize a página e tente novamente.');return;}
     busy=true;cloud('Salvando alterações...');
     try{
       const clientName=$('fixClient')?.value.trim()||old.client_name||'';
@@ -63,22 +74,7 @@
         c=cr.data;clients.unshift(c);
       }
       const sale=a.reduce((t,x)=>t+x.sale_value,0),cost=a.reduce((t,x)=>t+x.cost_value,0),freight=a.reduce((t,x)=>t+x.freight_value,0),tax=a.reduce((t,x)=>t+x.sale_value*x.tax_rate/100,0);
-      const p={
-        company_id:company.id,
-        client_id:c?.id||old.client_id||null,
-        entry_date:$('fixEntry')?.value||null,
-        exit_date:$('fixExit')?.value||null,
-        client_name:clientName,
-        vehicle_make_model:$('fixVehicle')?.value.trim()||'',
-        plate:$('fixPlate')?.value.trim()||'',
-        pedido:$('fixPedido')?.value.trim()||'',
-        payment_status:($('fixPayment')?.value||'').trim()||null,
-        total_sale:sale,
-        total_cost:cost,
-        total_freight:freight,
-        total_tax:tax,
-        net_profit:sale-cost-freight-tax
-      };
+      const p={company_id:company.id,client_id:c?.id||old.client_id||null,entry_date:$('fixEntry')?.value||null,exit_date:$('fixExit')?.value||null,client_name:clientName,vehicle_make_model:$('fixVehicle')?.value.trim()||'',plate:$('fixPlate')?.value.trim()||'',pedido:$('fixPedido')?.value.trim()||'',payment_status:($('fixPayment')?.value||'').trim()||null,total_sale:sale,total_cost:cost,total_freight:freight,total_tax:tax,net_profit:sale-cost-freight-tax};
       const r=await sb.from('orders').update(p).eq('id',id).select().single();
       if(r.error)throw new Error('Erro ao atualizar lançamento: '+r.error.message);
       const dr=await sb.from('order_items').delete().eq('order_id',id);
@@ -94,16 +90,13 @@
       if(typeof loadData==='function')await loadData();
       cloud('Salvo na nuvem');toast('Alterações salvas com sucesso');
     }catch(err){cloud('Erro ao salvar',false);toast(err?.message||'Não foi possível salvar as alterações.');}
-    finally{busy=false}
+    finally{busy=false;}
   }
 
   function bind(){
     wrapEditOrder();
     const form=$('fixEditForm');
-    if(form&&!form.dataset.editSaveFix){
-      form.dataset.editSaveFix='1';
-      form.addEventListener('submit',save,true);
-    }
+    if(form&&!form.dataset.editSaveFix){form.dataset.editSaveFix='1';form.addEventListener('submit',save,true);}
     const modal=$('orderFixModal');
     if(modal&&!modal.dataset.editSaveFix){
       modal.dataset.editSaveFix='1';
@@ -113,16 +106,19 @@
         if((b.textContent||'').trim().toLowerCase()==='salvar alterações')save(e);
       },true);
     }
-    /* Alguns editores criam o modal depois do clique; captura o ID pelo card ativo. */
-    if(modal && !modal.dataset.idFallback){
-      modal.dataset.idFallback='1';
-      modal.addEventListener('input',()=>{
-        if(!window.__freteEditId && modal.dataset.orderId)window.__freteEditId=modal.dataset.orderId;
-      },true);
-    }
   }
 
+  /* Captura o ID ANTES de qualquer outro handler de Editar. */
+  document.addEventListener('click',e=>{
+    const target=e.target.closest('button,a,[role="button"],.launch,.service-card,.grouped-service');
+    if(!target)return;
+    const text=(target.textContent||'').trim().toLowerCase();
+    const looksEdit=text.includes('editar')||target.classList.contains('service-edit-btn')||target.classList.contains('edit-all-service')||target.dataset.edit;
+    if(!looksEdit)return;
+    captureFromElement(target);
+  },true);
+
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
-  const observer=new MutationObserver(()=>{wrapEditOrder();bind()});
+  const observer=new MutationObserver(()=>{wrapEditOrder();bind();});
   observer.observe(document.body,{childList:true,subtree:true});
 })();
