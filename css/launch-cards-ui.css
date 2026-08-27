@@ -1,14 +1,28 @@
-/* Cartões de lançamentos: compactos + destaque para FALTA ACERTAR */
+/* Cartões de lançamentos: compactos + destaques por pagamento */
 .launches{gap:5px}
 .launch{position:relative;padding:6px 9px 6px 10px;border-radius:10px;min-height:0}
-/* FALTA ACERTAR: o cartão inteiro fica azul e todo o conteúdo tem contraste. */
+
+/* FALTA ACERTAR: cartão azul com contraste total */
 .launch.payment-falta-acertar{background:#2563eb!important;background-color:#2563eb!important;border:2px solid #1d4ed8!important;border-left-color:#1d4ed8!important;color:#fff!important;box-shadow:0 4px 14px rgba(37,99,235,.30)!important}
-.launch.payment-falta-acertar *{color:#fff!important}
-.launch.payment-falta-acertar .meta{color:#eaf2ff!important}
+.launch.payment-falta-acertar .lname,.launch.payment-falta-acertar .meta,.launch.payment-falta-acertar .ltop>b{color:#fff!important}
+.launch.payment-falta-acertar .btn,.launch.payment-falta-acertar button{background:#fff!important;color:#1d4ed8!important;border-color:#fff!important}
 .launch.payment-falta-acertar .chip{background:rgba(255,255,255,.18)!important;color:#fff!important;border:1px solid rgba(255,255,255,.35)!important}
 .launch.payment-falta-acertar .chip.payment-badge{background:#fff!important;color:#1d4ed8!important;border-color:#fff!important}
-.launch.payment-falta-acertar .service-actions-v2 button{background:#fff!important;color:#1d4ed8!important;border-color:#fff!important}
-.launch.payment-open::before{content:'★';position:absolute;left:-22px;top:50%;transform:translateY(-50%);font-size:14px;line-height:1;color:#111;font-weight:900}
+/* Descrição dos serviços no cartão azul: PRETO, como solicitado */
+.launch.payment-falta-acertar .grouped-item,
+.launch.payment-falta-acertar .grouped-item span,
+.launch.payment-falta-acertar .grouped-item b{color:#111827!important}
+.launch.payment-falta-acertar .grouped-item{background:#fff!important;border-color:#dbe4ef!important}
+
+/* EM ABERTO: cartão inteiro amarelo, com texto escuro */
+.launch.payment-open{background:#f5c542!important;background-color:#f5c542!important;border:2px solid #d3a900!important;border-left-color:#d3a900!important;color:#172033!important;box-shadow:0 4px 14px rgba(211,169,0,.25)!important}
+.launch.payment-open .lname,.launch.payment-open .meta,.launch.payment-open .ltop>b{color:#172033!important}
+.launch.payment-open .btn,.launch.payment-open button{background:#fff!important;color:#173b67!important;border-color:#fff!important}
+.launch.payment-open .chip{background:#fff!important;color:#173b67!important;border-color:#fff!important}
+.launch.payment-open .chip.payment-badge{background:#fff!important;color:#173b67!important}
+/* Sem estrela no cartão EM ABERTO */
+.launch.payment-open::before{content:none!important;display:none!important}
+
 .launch .ltop{gap:6px;align-items:center}
 .launch .lname{font-size:13px;line-height:1.15}
 .launch .meta{font-size:10px;margin-top:1px;line-height:1.2}
@@ -16,20 +30,19 @@
 .launch .chips{gap:3px;margin-top:4px}
 .launch .chip{padding:2px 5px;font-size:9px;line-height:1.15}
 .launch .chip:first-child{margin-left:0}
-@media(max-width:700px){
-  .launch{padding:6px 8px 6px 9px}
-  .launch.payment-open::before{left:-18px;font-size:12px}
-  .launch .lname{font-size:12px}
-  .launch .meta{font-size:9px}
-  .launch .chip{font-size:8px;padding:2px 4px}
-}
 
-/* Todos os Serviços: estrela somente no lado esquerdo para EM ABERTO */
+/* Todos os Serviços: sem estrelas */
 .service-card.payment-pending .payment-badge{font-size:0}
 .service-card.payment-pending .payment-badge::after{content:'EM ABERTO';font-size:9px}
 .service-card.payment-wallet .payment-badge{font-size:0}
 .service-card.payment-wallet .payment-badge::after{content:'Carteira';font-size:9px}
-.service-card.payment-pending::before{content:'★';position:absolute;left:-21px;top:50%;transform:translateY(-50%);font-size:13px;line-height:1;color:#111;font-weight:900}
-.service-card.payment-wallet::before{content:none}
-@media(max-width:800px){.service-card.payment-pending::before{left:-17px;font-size:12px}}
-@media(max-width:520px){.service-card.payment-pending::before{left:-15px}}
+.service-card.payment-pending::before,.service-card.payment-wallet::before{content:none!important;display:none!important}
+
+@media(max-width:700px){
+  .launch{padding:6px 8px 6px 9px}
+  .launch .lname{font-size:12px}
+  .launch .meta{font-size:9px}
+  .launch .chip{font-size:8px;padding:2px 4px}
+}
+@media(max-width:800px){.service-card.payment-pending::before,.service-card.payment-wallet::before{content:none!important;display:none!important}}
+@media(max-width:520px){.service-card.payment-pending::before,.service-card.payment-wallet::before{content:none!important;display:none!important}}
