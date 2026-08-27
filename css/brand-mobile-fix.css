@@ -1,0 +1,32 @@
+/* Cabeçalho/logo: versão limpa e responsiva */
+.top{background:#fff!important;overflow:hidden!important}
+.topin{min-width:0!important}
+.brand{min-width:0!important;display:flex!important;align-items:center!important}
+.brand-logo{display:block!important;width:340px!important;height:auto!important;max-width:100%!important;max-height:78px!important;object-fit:contain!important;flex:0 1 auto!important}
+.brand-copy{display:none!important}
+@media(max-width:760px){
+  .top{position:relative!important}
+  .topin{width:100%!important;max-width:100%!important;min-width:0!important;padding:10px 10px!important;display:flex!important;justify-content:center!important;align-items:center!important;gap:7px!important;overflow:hidden!important}
+  .brand{width:auto!important;max-width:calc(100% - 112px)!important;flex:1 1 auto!important;justify-content:flex-start!important;min-width:0!important}
+  .brand-logo{width:100%!important;max-width:285px!important;height:auto!important;max-height:62px!important;flex:0 1 auto!important}
+  .actions{flex:0 0 auto!important;max-width:105px!important;min-width:0!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;overflow:hidden!important}
+  .actions .pill{display:none!important}
+  .actions .btn#switch{font-size:10px!important;padding:7px 8px!important;max-width:100px!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  .actions .btn#logout{display:none!important}
+  main,.shell,.view,.head,.card,.grid,.field{min-width:0!important;max-width:100%!important}
+  main{overflow-x:hidden!important}
+  .head p{white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;max-width:100%!important}
+  .field input,.field select,.field textarea{max-width:100%!important;min-width:0!important}
+}
+@media(max-width:520px){
+  .topin{padding:9px 8px!important}
+  .brand{max-width:calc(100% - 96px)!important}
+  .brand-logo{max-width:245px!important;max-height:56px!important}
+  .actions{max-width:92px!important}
+  .actions .btn#switch{font-size:9px!important;padding:6px 7px!important}
+}
+@media(max-width:390px){
+  .brand-logo{max-width:220px!important;max-height:52px!important}
+  .actions{max-width:82px!important}
+  .actions .btn#switch{font-size:9px!important;padding:6px!important}
+}
