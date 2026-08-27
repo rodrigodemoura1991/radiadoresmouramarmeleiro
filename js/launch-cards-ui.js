@@ -3,43 +3,37 @@
   let selectedServiceIndex=-1;
   let selectedLaunchIndex=-1;
   function ensureBlueStatusCss(){
-    if(document.getElementById('falta-acertar-blue-css'))return;
-    const s=document.createElement('style');s.id='falta-acertar-blue-css';s.textContent=`
+    const old=document.getElementById('falta-acertar-blue-css');if(old)old.remove();
+    if(document.getElementById('falta-acertar-blue-css-v2'))return;
+    const s=document.createElement('style');s.id='falta-acertar-blue-css-v2';s.textContent=`
       .launch.payment-falta-acertar,.grouped-service.payment-falta-acertar,.service-card.payment-falta-acertar{
         background:#1476e8!important;color:#fff!important;border:2px solid #075fc5!important;
         box-shadow:0 6px 18px rgba(20,118,232,.30)!important;
       }
-      .launch.payment-falta-acertar h1,.launch.payment-falta-acertar h2,.launch.payment-falta-acertar h3,
-      .launch.payment-falta-acertar b,.launch.payment-falta-acertar strong,.launch.payment-falta-acertar span,
-      .launch.payment-falta-acertar small,.launch.payment-falta-acertar div,
-      .grouped-service.payment-falta-acertar h1,.grouped-service.payment-falta-acertar h2,
-      .grouped-service.payment-falta-acertar h3,.grouped-service.payment-falta-acertar b,
-      .grouped-service.payment-falta-acertar strong,.grouped-service.payment-falta-acertar span,
-      .grouped-service.payment-falta-acertar small,.grouped-service.payment-falta-acertar div{
-        color:#fff!important;
+      /* No cartão azul: cabeçalho branco para contraste */
+      .launch.payment-falta-acertar .lname,.launch.payment-falta-acertar .meta,.launch.payment-falta-acertar .ltop>b{color:#fff!important}
+      /* Descrição, valor e situação dos serviços: PRETO */
+      .launch.payment-falta-acertar .chips .chip:not(:last-child),
+      .launch.payment-falta-acertar .chips .chip:not(:last-child) *{
+        color:#111827!important;-webkit-text-fill-color:#111827!important;text-shadow:none!important;
       }
-      /* Exceção final: descrição, valor e status do serviço no cartão azul são PRETOS. */
-      .launch.payment-falta-acertar .grouped-items .grouped-item,
-      .launch.payment-falta-acertar .grouped-items .grouped-item span,
-      .launch.payment-falta-acertar .grouped-items .grouped-item b,
+      .launch.payment-falta-acertar .chips .chip:not(:last-child){background:#e6f7ef!important;border-color:#d1eadf!important}
       .grouped-service.payment-falta-acertar .grouped-items .grouped-item,
-      .grouped-service.payment-falta-acertar .grouped-items .grouped-item span,
-      .grouped-service.payment-falta-acertar .grouped-items .grouped-item b{
-        color:#111827!important;
+      .grouped-service.payment-falta-acertar .grouped-items .grouped-item *{
+        color:#111827!important;-webkit-text-fill-color:#111827!important;text-shadow:none!important;
       }
-      .launch.payment-falta-acertar .grouped-item,
-      .grouped-service.payment-falta-acertar .grouped-item{
-        background:#fff!important;border-color:#dbe4ef!important;
-      }
+      .grouped-service.payment-falta-acertar .grouped-items .grouped-item{background:#fff!important;border-color:#dbe4ef!important}
       .payment-falta-acertar .payment-badge{background:#fff!important;color:#075fc5!important;border-color:#fff!important;font-weight:800!important}
-      .payment-falta-acertar .chip{background:#075fc5!important;color:#fff!important;border-color:#72b3ff!important}
       .payment-falta-acertar .keyboard-selected{outline:3px solid rgba(255,255,255,.85)!important}
     `;document.head.appendChild(s);
   }
   function forceBlueServiceTextBlack(card){
     if(!card?.classList.contains('payment-falta-acertar'))return;
-    card.querySelectorAll('.grouped-items .grouped-item, .grouped-items .grouped-item span, .grouped-items .grouped-item b').forEach(el=>{
-      el.style.setProperty('color','#111827','important');
+    card.querySelectorAll('.grouped-items .grouped-item, .grouped-items .grouped-item *').forEach(el=>{
+      el.style.setProperty('color','#111827','important');el.style.setProperty('-webkit-text-fill-color','#111827','important');
+    });
+    card.querySelectorAll('.chips .chip:not(:last-child), .chips .chip:not(:last-child) *').forEach(el=>{
+      el.style.setProperty('color','#111827','important');el.style.setProperty('-webkit-text-fill-color','#111827','important');
     });
   }
   function applyLaunches(){
