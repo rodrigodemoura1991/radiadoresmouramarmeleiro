@@ -64,13 +64,33 @@
   }
 
   addStyles();
-  render();
-  const listObserver=new MutationObserver(()=>requestAnimationFrame(render));
-  const start=()=>{
+
+  function start(){
     const list=document.getElementById('launchList');
-    if(list)listObserver.observe(list,{childList:true,subtree:true});
+    if(!list)return;
+
     render();
-  };
+
+    /*
+      Observa somente alterações reais nos cartões.
+      Alterações causadas pelo próprio campo de observação são ignoradas,
+      evitando o loop infinito que travava a abertura do aplicativo.
+    */
+    const listObserver=new MutationObserver(records=>{
+      const relevant=records.some(record=>
+        Array.from(record.addedNodes).concat(Array.from(record.removedNodes)).some(node=>{
+          if(node.nodeType!==1)return false;
+          return !node.classList.contains('launch-observation-card') &&
+            !node.closest?.('.launch-observation-card');
+        })
+      );
+      if(relevant)requestAnimationFrame(render);
+    });
+
+    listObserver.observe(list,{childList:true,subtree:true});
+    window.__observationsCardDisplayObserver=listObserver;
+  }
+
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
   else start();
 })();
