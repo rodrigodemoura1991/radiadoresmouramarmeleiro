@@ -1,4 +1,4 @@
-/* Correções finais: legenda lateral, saída opcional e status FALTA ACERTAR também no editor popup. */
+/* Correções finais: legenda lateral, saída opcional, observações e atalhos do editor. */
 (function(){
   const $=id=>document.getElementById(id);
   const today=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)};
@@ -21,10 +21,11 @@
       .order-notes-field textarea{width:100%!important;min-height:90px!important;resize:vertical!important;box-sizing:border-box!important;font:inherit!important;line-height:1.45!important}
       .order-notes-label{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important}
       .order-notes-hint{font-size:11px!important;font-weight:600!important;color:var(--muted)!important}
-      .launch-observation{margin-top:7px!important;padding:7px 9px!important;border-radius:8px!important;background:#fff9df!important;border:1px solid #eadc9c!important;color:#5f5220!important;font-size:11px!important;line-height:1.35!important;white-space:pre-wrap!important;word-break:break-word!important}
-      .launch-observation b{font-weight:900!important}
+      .launch-observation{display:block!important;margin-top:8px!important;padding:9px 11px!important;border-radius:9px!important;background:#fff9df!important;border:1px solid #eadc9c!important;color:#5f5220!important;font-size:12px!important;line-height:1.4!important;white-space:pre-wrap!important;word-break:break-word!important;box-sizing:border-box!important}
+      .launch-observation b{font-weight:900!important;color:#4b3f12!important}
+      .grouped-service .launch-observation{margin:8px 0 0!important}
       @media(max-width:1000px){.services-side-shell{grid-template-columns:minmax(0,1fr) 125px!important;gap:8px!important}.services-color-legend{width:125px!important}}
-      @media(max-width:700px){.services-side-shell{grid-template-columns:minmax(0,1fr) 105px!important;gap:6px!important}.services-color-legend{width:105px!important;top:65px!important;padding:7px 6px!important}.services-color-legend .legend-item,.services-color-legend strong{font-size:8px!important}.order-notes-field textarea{min-height:100px!important}.order-notes-hint{display:none!important}}
+      @media(max-width:700px){.services-side-shell{grid-template-columns:minmax(0,1fr) 105px!important;gap:6px!important}.services-color-legend{width:105px!important;top:65px!important;padding:7px 6px!important}.services-color-legend .legend-item,.services-color-legend strong{font-size:8px!important}.order-notes-field textarea{min-height:100px!important}.order-notes-hint{display:none!important}.launch-observation{font-size:11px!important}}
     `;
   }
 
@@ -59,7 +60,7 @@
     return box;
   }
   function setEditExitOption(){const box=ensureExitOption(),check=$('editExitBlank'),isEditing=typeof editing!=='undefined'&&!!editing;if(box)box.classList.toggle('visible',isEditing);if(check){check.checked=isEditing&&!$('exit')?.value;if(check.checked&&$('exit'))$('exit').value=''}}
-  function syncExit(){const exit=$('exit'),rows=document.querySelectorAll('#rows .svc-row');if(!exit)return;const check=$('editExitBlank');if(check?.checked){exit.value='';return}if(!rows.length)return;const allDelivered=[...rows].every(r=>r.querySelector('.status')?.value==='Pronto entregue');if(!allDelivered)exit.value='';else if(!exit.value)exit.value=today()}
+  function syncExit(){const exit=$('exit'),rows=document.querySelectorAll('#rows .svc-row');if(!exit)return;const check=$('editExitBlank');if(check?.checked){exit.value='';return}if(!rows.length)return;const allDelivered=[...rows].every(r=>r.querySelector('.status')?.value==='Pronto entregue');if(!exit.value&&allDelivered)exit.value=today();else if(!allDelivered)exit.value=''}
   function bindStatus(){document.querySelectorAll('#rows .status').forEach(s=>{if(s.dataset.exitBound)return;s.dataset.exitBound='1';s.addEventListener('change',syncExit)})}
   function installEnter(){const add=$('add');if(!add||add.dataset.enterFixed)return;add.dataset.enterFixed='1';add.addEventListener('keydown',function(e){if(e.key!=='Enter')return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();if(typeof addRow!=='function')return;addRow();requestAnimationFrame(()=>{const rows=document.querySelectorAll('#rows .svc-row');rows[rows.length-1]?.querySelector('.desc')?.focus();bindStatus()})},true);add.addEventListener('click',()=>requestAnimationFrame(bindStatus))}
   function wrapEdit(){if(typeof window.editOrder!=='function'||window.editOrder.__finalFixWrapped)return;const original=window.editOrder;const wrapped=function(){const r=original.apply(this,arguments);setTimeout(()=>{ensurePaymentOption();ensureExitOption();setEditExitOption();syncExit();bindStatus();ensureNotesField();ensureFixNotesField()},50);return r};wrapped.__finalFixWrapped=true;window.editOrder=wrapped}
@@ -69,71 +70,55 @@
   function ensureNotesField(){
     const order=$('order');if(!order)return;
     let field=$('orderNotesField');
-    if(!field){
-      field=document.createElement('div');field.id='orderNotesField';field.className='field g12 order-notes-field';
-      field.innerHTML='<label class="order-notes-label"><span>Observações</span><span class="order-notes-hint">Informações importantes deste lançamento</span></label><textarea id="orderNotes" placeholder="Ex.: peça com avaria, cliente solicitou retorno, aguardar aprovação, detalhes importantes..."></textarea>';
-      const section=order.querySelector('.section');
-      if(section) section.parentNode.insertBefore(field,section); else order.querySelector('.grid')?.appendChild(field);
-    }
-    if(field.parentElement?.classList.contains('grid'))return;
-    const grid=order.querySelector('.grid');if(grid)grid.appendChild(field);
+    if(!field){field=document.createElement('div');field.id='orderNotesField';field.className='field g12 order-notes-field';field.innerHTML='<label class="order-notes-label"><span>Observações</span><span class="order-notes-hint">Informações importantes deste lançamento</span></label><textarea id="orderNotes" placeholder="Ex.: peça com avaria, cliente solicitou retorno, aguardar aprovação, detalhes importantes..."></textarea>';const section=order.querySelector('.section');if(section)section.parentNode.insertBefore(field,section);else order.querySelector('.grid')?.appendChild(field)}
+    if(field.parentElement?.classList.contains('grid'))return;const grid=order.querySelector('.grid');if(grid)grid.appendChild(field);
   }
-
   function ensureFixNotesField(){
     const form=$('fixEditForm');if(!form)return;
     let field=$('fixNotesField');
-    if(!field){
-      field=document.createElement('div');field.id='fixNotesField';field.className='field g12 order-notes-field';
-      field.innerHTML='<label class="order-notes-label"><span>Observações</span><span class="order-notes-hint">Informações importantes deste lançamento</span></label><textarea id="fixNotes" placeholder="Ex.: peça com avaria, cliente solicitou retorno, aguardar aprovação, detalhes importantes..."></textarea>';
-      const totals=form.querySelector('.edit-totals');if(totals)totals.parentNode.insertBefore(field,totals);else form.appendChild(field);
-    }
+    if(!field){field=document.createElement('div');field.id='fixNotesField';field.className='field g12 order-notes-field';field.innerHTML='<label class="order-notes-label"><span>Observações</span><span class="order-notes-hint">Informações importantes deste lançamento</span></label><textarea id="fixNotes" placeholder="Ex.: peça com avaria, cliente solicitou retorno, aguardar aprovação, detalhes importantes..."></textarea>';const totals=form.querySelector('.edit-totals');if(totals)totals.parentNode.insertBefore(field,totals);else form.appendChild(field)}
   }
-
-  function getNotesClient(){
-    try{return window.supabase?.createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.key)||null}catch(e){return null}
-  }
-
-  async function persistNotes(snapshot,notes){
-    const client=getNotesClient();const companyId=sessionStorage.getItem('companyId');if(!client||!companyId)return;
-    const q=await client.from('orders').select('id,client_name,entry_date,vehicle_make_model,plate,pedido,created_at').eq('company_id',companyId).eq('entry_date',snapshot.entry).order('created_at',{ascending:false}).limit(20);
-    if(q.error||!q.data?.length)return;
-    const norm=s=>String(s||'').trim().toLowerCase();
-    let found=q.data.find(o=>norm(o.client_name)===norm(snapshot.client)&&norm(o.vehicle_make_model)===norm(snapshot.vehicle)&&norm(o.plate)===norm(snapshot.plate)&&norm(o.pedido)===norm(snapshot.pedido));
-    if(!found)found=q.data[0];
-    await client.from('orders').update({notes:String(notes||'').trim()}).eq('id',found.id);
-    showObservation(found.id,String(notes||'').trim());
-  }
-
-  function captureOrderSnapshot(){return {entry:$('entry')?.value||'',client:$('clientInput')?.value||'',vehicle:$('vehicle')?.value||'',plate:$('plate')?.value||'',pedido:$('pedido')?.value||''}}
-  function bindNotesPersistence(){
-    const order=$('order');if(!order||order.dataset.notesBound)return;order.dataset.notesBound='1';
-    order.addEventListener('submit',()=>{const snapshot=captureOrderSnapshot();const notes=$('orderNotes')?.value||'';setTimeout(()=>persistNotes(snapshot,notes),900)},true);
-  }
-
-  function bindFixNotesPersistence(){
-    const form=$('fixEditForm');if(!form||form.dataset.notesBound)return;form.dataset.notesBound='1';
-    form.addEventListener('submit',()=>{const snapshot={entry:$('fixEntry')?.value||'',client:$('fixClient')?.value||'',vehicle:$('fixVehicle')?.value||'',plate:$('fixPlate')?.value||'',pedido:$('fixPedido')?.value||''};const notes=$('fixNotes')?.value||'';setTimeout(()=>persistNotes(snapshot,notes),1000)},true);
-  }
+  function getNotesClient(){try{return window.supabase?.createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.key)||null}catch(e){return null}}
 
   function showObservation(id,notes){
-    if(!id)return;const card=document.querySelector('.launch[data-id="'+CSS.escape(id)+'"]');if(!card)return;
-    card.querySelector('.launch-observation')?.remove();if(!notes)return;
-    const el=document.createElement('div');el.className='launch-observation';el.innerHTML='<b>Observação:</b> '+String(notes).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-    card.appendChild(el);
+    if(!id)return;
+    const selectors=['.launch[data-id="'+CSS.escape(id)+'"]','.grouped-service[data-order-id="'+CSS.escape(id)+'"]'];
+    const cards=selectors.flatMap(sel=>[...document.querySelectorAll(sel)]);
+    cards.forEach(card=>{
+      card.querySelector('.launch-observation')?.remove();
+      if(!String(notes||'').trim())return;
+      const el=document.createElement('div');el.className='launch-observation';el.innerHTML='<b>Observação:</b> '+String(notes).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+      card.appendChild(el);
+    });
   }
 
   async function refreshObservations(){
     const client=getNotesClient(),companyId=sessionStorage.getItem('companyId');if(!client||!companyId)return;
-    const cards=[...document.querySelectorAll('.launch[data-id]')];if(!cards.length)return;
-    const ids=cards.map(x=>x.dataset.id);const r=await client.from('orders').select('id,notes').eq('company_id',companyId).in('id',ids);if(r.error)return;
-    (r.data||[]).forEach(o=>showObservation(o.id,o.notes||''));
+    const cards=[...document.querySelectorAll('.launch[data-id],.grouped-service[data-order-id]')];if(!cards.length)return;
+    const ids=[...new Set(cards.map(x=>x.dataset.id||x.dataset.orderId))];const r=await client.from('orders').select('id,notes').eq('company_id',companyId).in('id',ids);if(r.error)return;
+    const map=new Map((r.data||[]).map(o=>[String(o.id),o.notes||'']));ids.forEach(id=>showObservation(id,map.get(String(id))||''));
+  }
+
+  // ESC fecha somente o popup de edição, sem interferir em campos, selects ou outros modais.
+  function bindEscapeToEditPopup(){
+    if(document.documentElement.dataset.editPopupEscBound)return;
+    document.documentElement.dataset.editPopupEscBound='1';
+    document.addEventListener('keydown',function(e){
+      if(e.key!=='Escape')return;
+      const modal=$('orderFixModal');
+      if(!modal)return;
+      const hidden=modal.classList.contains('hidden')||getComputedStyle(modal).display==='none';
+      if(hidden)return;
+      e.preventDefault();e.stopPropagation();
+      const close=$('closeOrderFix')||modal.querySelector('[data-close]')||modal.querySelector('.close-modal')||modal.querySelector('.modal-close')||modal.querySelector('button[aria-label*="Fechar" i]');
+      if(close){close.click();return}
+      modal.classList.add('hidden');
+    },true);
   }
 
   function install(){
-    injectCss();unwrapOldLegendLayouts();addLegends();ensurePaymentOption();ensureExitOption();installEnter();wrapEdit();wrapClear();bindStatus();bindSubmit();ensureNotesField();ensureFixNotesField();bindNotesPersistence();bindFixNotesPersistence();const exit=$('exit');if(exit)exit.removeAttribute('required');setEditExitOption();setTimeout(refreshObservations,250);
+    injectCss();unwrapOldLegendLayouts();addLegends();ensurePaymentOption();ensureExitOption();installEnter();wrapEdit();wrapClear();bindStatus();bindSubmit();ensureNotesField();ensureFixNotesField();bindEscapeToEditPopup();const exit=$('exit');if(exit)exit.removeAttribute('required');setEditExitOption();setTimeout(refreshObservations,250);
   }
-  let timer=0;const observer=new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(()=>{injectCss();installEnter();wrapEdit();wrapClear();bindStatus();bindSubmit();ensureExitOption();ensurePaymentOption();ensureNotesField();ensureFixNotesField();bindNotesPersistence();bindFixNotesPersistence();setEditExitOption();if(!$('launchList')?.parentElement?.classList.contains('services-side-shell')||!$('launchList')?.parentElement?.querySelector('.services-color-legend')||!$('allServicesList')?.parentElement?.classList.contains('services-side-shell')||!$('allServicesList')?.parentElement?.querySelector('.services-color-legend'))addLegends();refreshObservations()},80)});observer.observe(document.body,{childList:true,subtree:true});
+  let timer=0;const observer=new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(()=>{injectCss();installEnter();wrapEdit();wrapClear();bindStatus();bindSubmit();ensureExitOption();ensurePaymentOption();ensureNotesField();ensureFixNotesField();bindEscapeToEditPopup();setEditExitOption();if(!$('launchList')?.parentElement?.classList.contains('services-side-shell')||!$('launchList')?.parentElement?.querySelector('.services-color-legend')||!$('allServicesList')?.parentElement?.classList.contains('services-side-shell')||!$('allServicesList')?.parentElement?.querySelector('.services-color-legend'))addLegends();refreshObservations()},80)});observer.observe(document.body,{childList:true,subtree:true});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
-
-// Observações dos lançamentos: campo livre, persistência na tabela orders.notes e exibição nos cartões.
