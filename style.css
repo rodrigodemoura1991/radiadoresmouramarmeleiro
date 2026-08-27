@@ -25,5 +25,22 @@
 /* remover completamente as estrelas de EM ABERTO */
 .service-card.payment-pending::before{content:none!important;display:none!important}.service-card.payment-pending{border-left-color:#d7a900!important}
 
-/* FALTA ACERTAR: descrições e status dos serviços em preto para leitura no cartão azul */
-.launch.payment-falta-acertar .chips .chip:not(:last-child){color:#111827!important;text-shadow:none!important}
+/* CORREÇÃO DEFINITIVA - SERVIÇOS DENTRO DO CARTÃO AZUL */
+.launch.payment-falta-acertar .chips > .chip:not(:last-child),
+.launch.payment-falta-acertar .chips > .chip:not(:last-child) *{
+  color:#111827!important;
+  -webkit-text-fill-color:#111827!important;
+  text-shadow:none!important;
+  opacity:1!important;
+}
+.launch.payment-falta-acertar .chips > .chip.Liberado:not(:last-child),
+.launch.payment-falta-acertar .chips > .chip.Parado:not(:last-child),
+.launch.payment-falta-acertar .chips > .chip.Pronto:not(:last-child),
+.launch.payment-falta-acertar .chips > .chip.Prontoentregue:not(:last-child){
+  background:#e6f7ef!important;
+  color:#111827!important;
+  -webkit-text-fill-color:#111827!important;
+}
+.launch.payment-falta-acertar .chips > .chip:not(:last-child)::first-letter{color:#111827!important;}
+.launch.payment-falta-acertar .chips > .chip:last-child{color:#1266cf!important;-webkit-text-fill-color:#1266cf!important;background:#fff!important;}
+.launch.payment-falta-acertar .chips > .chip:last-child *{color:#1266cf!important;-webkit-text-fill-color:#1266cf!important;}
