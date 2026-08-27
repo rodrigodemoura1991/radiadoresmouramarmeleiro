@@ -1,1 +1,26 @@
-{"name":"Radiadores Moura • Gestão","short_name":"Radiadores Moura","start_url":"./","display":"standalone","background_color":"#000000","theme_color":"#000000","description":"Gestão de serviços, clientes e financeiro da Radiadores Moura","icons":[{"src":"8857A320-4E57-4A00-933D-C76434BC6953.png","sizes":"any","type":"image/png","purpose":"any maskable"}]}
+{
+  "name": "Radiadores Moura • Gestão",
+  "short_name": "Radiadores Moura",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "portrait-primary",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "description": "Gestão de serviços, clientes e financeiro da Radiadores Moura",
+  "icons": [
+    {
+      "src": "8857A320-4E57-4A00-933D-C76434BC6953.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "8857A320-4E57-4A00-933D-C76434BC6953.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
