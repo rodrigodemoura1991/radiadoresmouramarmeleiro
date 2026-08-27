@@ -18,7 +18,7 @@
       .grouped-service.payment-falta-acertar small,.grouped-service.payment-falta-acertar div{
         color:#fff!important;
       }
-      /* Dentro do cartão azul, a descrição/valor de cada serviço fica preta para máxima leitura. */
+      /* Exceção final: descrição, valor e status do serviço no cartão azul são PRETOS. */
       .launch.payment-falta-acertar .grouped-items .grouped-item,
       .launch.payment-falta-acertar .grouped-items .grouped-item span,
       .launch.payment-falta-acertar .grouped-items .grouped-item b,
@@ -36,6 +36,12 @@
       .payment-falta-acertar .keyboard-selected{outline:3px solid rgba(255,255,255,.85)!important}
     `;document.head.appendChild(s);
   }
+  function forceBlueServiceTextBlack(card){
+    if(!card?.classList.contains('payment-falta-acertar'))return;
+    card.querySelectorAll('.grouped-items .grouped-item, .grouped-items .grouped-item span, .grouped-items .grouped-item b').forEach(el=>{
+      el.style.setProperty('color','#111827','important');
+    });
+  }
   function applyLaunches(){
     ensureBlueStatusCss();
     const list=document.getElementById('launchList');if(!list)return;
@@ -45,6 +51,7 @@
       card.classList.toggle('payment-open',payment==='EM ABERTO');
       card.classList.toggle('payment-falta-acertar',payment==='FALTA ACERTAR');
       card.querySelectorAll('.chip').forEach(chip=>{if(chip.textContent.trim().startsWith('★'))chip.textContent=chip.textContent.trim().replace(/^★\s*/,'')});
+      forceBlueServiceTextBlack(card);
     });
   }
   function ensureServicesCss(){
@@ -57,11 +64,11 @@
   function editOrderFromServices(id){document.querySelector('.nav[data-view="launch"]')?.click();setTimeout(()=>{if(typeof window.editOrder==='function')window.editOrder(id)},20)}
   function addActions(){
     const list=document.getElementById('allServicesList');if(!list)return;
-    list.querySelectorAll('.grouped-service').forEach(card=>{const id=card.dataset.orderId;if(!id)return;let actions=card.querySelector('.service-actions-v2');if(!actions){actions=document.createElement('div');actions.className='service-actions-v2';actions.innerHTML='<button type="button" class="service-edit-btn">Editar</button><button type="button" class="service-delete-btn">Excluir</button>';card.appendChild(actions)}actions.querySelector('.service-edit-btn').onclick=e=>{e.preventDefault();e.stopPropagation();editOrderFromServices(id)};actions.querySelector('.service-delete-btn').onclick=e=>{e.preventDefault();e.stopPropagation();removeOrder(id)}});
+    list.querySelectorAll('.grouped-service').forEach(card=>{const id=card.dataset.orderId;if(!id)return;let actions=card.querySelector('.service-actions-v2');if(!actions){actions=document.createElement('div');actions.className='service-actions-v2';actions.innerHTML='<button type="button" class="service-edit-btn">Editar</button><button type="button" class="service-delete-btn">Excluir</button>';card.appendChild(actions)}actions.querySelector('.service-edit-btn').onclick=e=>{e.preventDefault();e.stopPropagation();editOrderFromServices(id)};actions.querySelector('.service-delete-btn').onclick=e=>{e.preventDefault();e.stopPropagation();removeOrder(id)};forceBlueServiceTextBlack(card)});
   }
   function clearServiceSelection(){const list=document.getElementById('allServicesList');if(!list)return;list.querySelectorAll('.grouped-service.keyboard-selected').forEach(card=>{card.classList.remove('keyboard-selected');card.removeAttribute('aria-selected')})}
   function selectServiceCard(index,scroll=true){const list=document.getElementById('allServicesList');if(!list)return false;const cards=[...list.querySelectorAll('.grouped-service')];if(!cards.length)return false;if(index<0)index=cards.length-1;if(index>=cards.length)index=0;selectedServiceIndex=index;clearServiceSelection();const card=cards[index];card.classList.add('keyboard-selected');card.setAttribute('aria-selected','true');card.setAttribute('tabindex','-1');if(scroll)card.scrollIntoView({behavior:'smooth',block:'center'});return true}
-  function selectLaunchCard(index,scroll=true){const list=document.getElementById('launchList');if(!list)return false;const cards=[...list.querySelectorAll('.launch')];if(!cards.length)return false;if(index<0)index=cards.length-1;if(index>=cards.length)index=0;selectedLaunchIndex=index;cards.forEach(card=>{card.classList.remove('keyboard-selected');card.removeAttribute('aria-selected')});const card=cards[index];card.classList.add('keyboard-selected');card.setAttribute('aria-selected','true');card.setAttribute('tabindex','-1');if(scroll)card.scrollIntoView({behavior:'smooth',block:'center'});return true}
+  function selectLaunchCard(index,scroll=true){const list=document.getElementById('launchList');if(!list)return false;if(!list)return false;const cards=[...list.querySelectorAll('.launch')];if(!cards.length)return false;if(index<0)index=cards.length-1;if(index>=cards.length)index=0;selectedLaunchIndex=index;cards.forEach(card=>{card.classList.remove('keyboard-selected');card.removeAttribute('aria-selected')});const card=cards[index];card.classList.add('keyboard-selected');card.setAttribute('aria-selected','true');card.setAttribute('tabindex','-1');if(scroll)card.scrollIntoView({behavior:'smooth',block:'center'});return true}
   function isEditableTarget(target){if(!target)return false;const tag=(target.tagName||'').toLowerCase();return tag==='input'||tag==='textarea'||tag==='select'||tag==='button'||target.isContentEditable}
   function openSelectedCard(){const servicesView=document.getElementById('services'),launchView=document.getElementById('launch');if(servicesView?.classList.contains('active')){const card=document.querySelectorAll('#allServicesList .grouped-service')[selectedServiceIndex],id=card?.dataset.orderId;if(id){editOrderFromServices(id);return true}}if(launchView?.classList.contains('active')){const card=document.querySelectorAll('#launchList .launch')[selectedLaunchIndex],id=card?.dataset.id;if(id&&typeof window.editOrder==='function'){window.editOrder(id);return true}}return false}
   function keyboardNavigate(e){if(isEditableTarget(e.target))return;const servicesView=document.getElementById('services'),launchView=document.getElementById('launch'),servicesActive=servicesView?.classList.contains('active'),launchActive=launchView?.classList.contains('active');if(!servicesActive&&!launchActive)return;if(e.key==='Enter'){if(openSelectedCard())e.preventDefault();return}if(e.key!=='ArrowDown'&&e.key!=='ArrowUp')return;const direction=e.key==='ArrowDown'?1:-1;let handled=false;if(servicesActive)handled=selectServiceCard(selectedServiceIndex<0?(direction>0?0:-1):selectedServiceIndex+direction);else if(launchActive)handled=selectLaunchCard(selectedLaunchIndex<0?(direction>0?0:-1):selectedLaunchIndex+direction);if(handled)e.preventDefault()}
