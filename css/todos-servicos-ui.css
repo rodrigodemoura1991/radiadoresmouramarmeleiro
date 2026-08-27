@@ -5,8 +5,10 @@
 .grouped-service.payment-falta-acertar{background:#2563eb!important;background-color:#2563eb!important;border:2px solid #1d4ed8!important;border-left-color:#1d4ed8!important;color:#fff!important;box-shadow:0 3px 10px rgba(37,99,235,.28)!important}
 .grouped-service.payment-falta-acertar *{color:#fff!important}
 .grouped-service.payment-falta-acertar .grouped-date small,.grouped-service.payment-falta-acertar .meta{color:#eaf2ff!important}
-.grouped-service.payment-falta-acertar .grouped-item{background:rgba(255,255,255,.18)!important;color:#fff!important;border:1px solid rgba(255,255,255,.28)}
-.grouped-service.payment-falta-acertar .grouped-item b{color:#fff!important}
+.grouped-service.payment-falta-acertar .grouped-item{background:#fff!important;color:#111827!important;border:1px solid #dbe4ef!important}
+.grouped-service.payment-falta-acertar .grouped-item *,
+.grouped-service.payment-falta-acertar .grouped-items .grouped-item span,
+.grouped-service.payment-falta-acertar .grouped-items .grouped-item b{color:#111827!important;-webkit-text-fill-color:#111827!important;text-shadow:none!important}
 .grouped-service.payment-falta-acertar .payment-badge{background:#fff!important;color:#1d4ed8!important;border:1px solid #fff!important}
 .grouped-service.payment-falta-acertar .service-actions-v2 button{background:#fff!important;color:#1d4ed8!important;border-color:#fff!important}
 .grouped-service.payment-pending{border-left-color:#111!important}
@@ -38,6 +40,17 @@
 .grouped-service .service-actions-v2 button{padding:5px 8px;font-size:11px}
 .grouped-service.keyboard-selected{outline:3px solid var(--brand2);outline-offset:2px;box-shadow:0 0 0 2px rgba(37,99,235,.12)!important;position:relative;z-index:2}
 .launch.keyboard-selected{outline:3px solid var(--brand2);outline-offset:2px;box-shadow:0 0 0 2px rgba(37,99,235,.12)!important;position:relative;z-index:2}
+
+/* CORREÇÃO DEFINITIVA: no cartão azul, nenhum estilo global pode deixar a descrição branca. */
+article.grouped-service.launch.payment-falta-acertar div.grouped-items div.grouped-item span,
+article.grouped-service.launch.payment-falta-acertar div.grouped-items div.grouped-item b,
+article.grouped-service.launch.payment-falta-acertar div.grouped-items div.grouped-item span::before,
+article.grouped-service.launch.payment-falta-acertar div.grouped-items div.grouped-item span::after{
+  color:#111827!important;
+  -webkit-text-fill-color:#111827!important;
+  text-shadow:none!important;
+}
+
 @media(max-width:800px){
   .grouped-service.payment-pending::before{left:-18px;font-size:12px}
   .grouped-top{grid-template-columns:72px minmax(0,1fr) auto;padding-right:108px}
