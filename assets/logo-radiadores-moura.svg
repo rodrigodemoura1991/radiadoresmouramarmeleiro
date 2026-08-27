@@ -1,3 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 243" role="img" aria-label="Radiadores Moura">
-<image href="data:image/png;base64,REPLACE_ME" x="0" y="0" width="1000" height="243" preserveAspectRatio="xMidYMid meet"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 243" role="img" aria-label="Radiadores Moura"><rect width="1000" height="243" rx="18" fill="#000"/><g fill="#fff" font-family="Arial Black,Arial,sans-serif" font-weight="900"><text x="70" y="178" font-size="185" letter-spacing="-18">RM</text><text x="385" y="91" font-size="64" letter-spacing="1">RADIADORES</text><text x="385" y="178" font-size="88" letter-spacing="2">MOURA</text></g><path d="M120 55h105c38 0 62 20 62 50 0 19-10 35-29 44l39 49h-64l-30-42h-30v42h-53V55zm53 41v20h47c9 0 14-4 14-10s-5-10-14-10h-47z" fill="#8c8c8c" opacity=".95"/></svg>
