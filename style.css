@@ -24,3 +24,6 @@
 .launch.payment-em-aberto{background:#f5c542!important;border-color:#d7a900!important;color:#172033!important;box-shadow:0 8px 22px #d7a90033}.launch.payment-em-aberto .lname,.launch.payment-em-aberto .meta,.launch.payment-em-aberto .ltop>b{color:#172033!important}.launch.payment-em-aberto .btn,.launch.payment-em-aberto button{background:#fff!important;color:#173b67!important;border-color:#fff!important}.launch.payment-em-aberto .chip{background:#fff;color:#173b67;border-color:#fff}.launch.payment-em-aberto .chip:last-child{background:#fff;color:#173b67;font-weight:950}.launch.payment-em-aberto .edit,.launch.payment-em-aberto .delete{color:#173b67!important;background:#fff!important}
 /* remover completamente as estrelas de EM ABERTO */
 .service-card.payment-pending::before{content:none!important;display:none!important}.service-card.payment-pending{border-left-color:#d7a900!important}
+
+/* FALTA ACERTAR: descrições e status dos serviços em preto para leitura no cartão azul */
+.launch.payment-falta-acertar .chips .chip:not(:last-child){color:#111827!important;text-shadow:none!important}
