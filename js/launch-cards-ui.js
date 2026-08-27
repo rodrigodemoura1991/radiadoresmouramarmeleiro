@@ -18,7 +18,19 @@
       .grouped-service.payment-falta-acertar small,.grouped-service.payment-falta-acertar div{
         color:#fff!important;
       }
-      .payment-falta-acertar .grouped-item{background:rgba(255,255,255,.14)!important;border-color:rgba(255,255,255,.30)!important}
+      /* Dentro do cartão azul, a descrição/valor de cada serviço fica preta para máxima leitura. */
+      .launch.payment-falta-acertar .grouped-items .grouped-item,
+      .launch.payment-falta-acertar .grouped-items .grouped-item span,
+      .launch.payment-falta-acertar .grouped-items .grouped-item b,
+      .grouped-service.payment-falta-acertar .grouped-items .grouped-item,
+      .grouped-service.payment-falta-acertar .grouped-items .grouped-item span,
+      .grouped-service.payment-falta-acertar .grouped-items .grouped-item b{
+        color:#111827!important;
+      }
+      .launch.payment-falta-acertar .grouped-item,
+      .grouped-service.payment-falta-acertar .grouped-item{
+        background:#fff!important;border-color:#dbe4ef!important;
+      }
       .payment-falta-acertar .payment-badge{background:#fff!important;color:#075fc5!important;border-color:#fff!important;font-weight:800!important}
       .payment-falta-acertar .chip{background:#075fc5!important;color:#fff!important;border-color:#72b3ff!important}
       .payment-falta-acertar .keyboard-selected{outline:3px solid rgba(255,255,255,.85)!important}
