@@ -73,3 +73,10 @@ main{overflow-x:hidden!important}
 .actions{max-width:78px!important}
 .actions .btn#switch{font-size:8px!important;padding:5px!important}
 }
+
+/* Modal de escolha da empresa: deve ficar acima do menu inferior no celular */
+@media(max-width:760px){
+  #companyModal{z-index:20000!important;isolation:isolate!important;}
+  #companyModal .modalbox{position:relative!important;z-index:20001!important;max-height:calc(100vh - 14px)!important;overflow-y:auto!important;}
+  #companyModal .companychoice{min-height:72px!important;touch-action:manipulation!important;}
+}
