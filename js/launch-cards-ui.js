@@ -36,12 +36,12 @@
     let lastDay='';
     [...list.querySelectorAll(':scope > .launch')].forEach(card=>{
       const id=card.dataset.id;
-      const order=(typeof orders!=='undefined'?orders:[]).find(o=>o.id===id);
-      const day=String(order?.entry_date||order?.exit_date||'').slice(0,10);
+      const order=(typeof orders!=='undefined'?orders:[]).find(o=>String(o.id)===String(id));
+      const day=String(order?.exit_date||'').slice(0,10);
       if(day!==lastDay){
         const sep=document.createElement('div');
         sep.className='launch-day-separator';
-        sep.innerHTML='<span>'+esc(fmtDateFull(day))+'</span>';
+        sep.innerHTML='<span>Saída: '+esc(fmtDateFull(day))+'</span>';
         card.before(sep);
         lastDay=day;
       }
