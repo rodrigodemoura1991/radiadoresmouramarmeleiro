@@ -1,6 +1,6 @@
 /* Cartões de lançamentos: compactos + destaques por pagamento */
-.launches{gap:4px}
-.launch{position:relative;padding:4px 8px 4px 9px;border-radius:9px;min-height:0}
+.launches{gap:3px}
+.launch{position:relative;padding:3px 7px 3px 8px;border-radius:9px;min-height:0}
 
 /* FALTA ACERTAR: cartão azul com contraste total */
 .launch.payment-falta-acertar{background:#2563eb!important;background-color:#2563eb!important;border:2px solid #1d4ed8!important;border-left-color:#1d4ed8!important;color:#fff!important;box-shadow:0 3px 10px rgba(37,99,235,.25)!important}
@@ -19,13 +19,13 @@
 .launch.payment-open .chip.payment-badge{background:#fff!important;color:#173b67!important}
 .launch.payment-open::before{content:none!important;display:none!important}
 
-.launch .ltop{gap:5px;align-items:center}
-.launch .lname{font-size:13px;line-height:1.1;font-weight:800}
-/* Datas, número do pedido e demais dados principais em negrito */
-.launch .meta{font-size:10px;margin-top:0;line-height:1.1;font-weight:800}
+.launch .ltop{gap:4px;align-items:center}
+.launch .lname{font-size:13px;line-height:1.05;font-weight:800}
+/* Dados principais: data, pedido, entrada/saída e marca/modelo no mesmo tamanho */
+.launch .meta{font-size:13px;margin-top:0;line-height:1.05;font-weight:800}
 .launch .ltop>b{font-size:13px;white-space:nowrap;font-weight:800}
-.launch .chips{gap:2px;margin-top:3px}
-.launch .chip{padding:1px 4px;font-size:8px;line-height:1.1}
+.launch .chips{gap:2px;margin-top:2px}
+.launch .chip{padding:1px 4px;font-size:8px;line-height:1.05}
 .launch .chip:first-child{margin-left:0}
 
 /* Todos os Serviços: sem estrelas */
@@ -36,9 +36,10 @@
 .service-card.payment-pending::before,.service-card.payment-wallet::before{content:none!important;display:none!important}
 
 @media(max-width:700px){
-  .launch{padding:4px 7px 4px 8px}
+  .launch{padding:3px 6px 3px 7px}
   .launch .lname{font-size:12px;font-weight:800}
-  .launch .meta{font-size:9px;font-weight:800}
+  .launch .meta{font-size:12px;font-weight:800}
+  .launch .ltop>b{font-size:12px;font-weight:800}
   .launch .chip{font-size:7px;padding:1px 3px}
 }
 @media(max-width:800px){.service-card.payment-pending::before,.service-card.payment-wallet::before{content:none!important;display:none!important}}
