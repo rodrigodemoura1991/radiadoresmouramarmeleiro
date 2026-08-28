@@ -119,6 +119,14 @@
   function install(){
     injectCss();unwrapOldLegendLayouts();addLegends();ensurePaymentOption();ensureExitOption();installEnter();wrapEdit();wrapClear();bindStatus();bindSubmit();ensureNotesField();ensureFixNotesField();bindEscapeToEditPopup();const exit=$('exit');if(exit)exit.removeAttribute('required');setEditExitOption();setTimeout(refreshObservations,250);
   }
-  let timer=0;const observer=new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(()=>{injectCss();installEnter();wrapEdit();wrapClear();bindStatus();bindSubmit();ensureExitOption();ensurePaymentOption();ensureNotesField();ensureFixNotesField();bindEscapeToEditPopup();setEditExitOption();if(!$('launchList')?.parentElement?.classList.contains('services-side-shell')||!$('launchList')?.parentElement?.querySelector('.services-color-legend')||!$('allServicesList')?.parentElement?.classList.contains('services-side-shell')||!$('allServicesList')?.parentElement?.querySelector('.services-color-legend'))addLegends();refreshObservations()},80)});observer.observe(document.body,{childList:true,subtree:true});
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+  let timer=0;
+  const observer=new MutationObserver(()=>{
+    clearTimeout(timer);
+    timer=setTimeout(()=>{
+      observer.disconnect();
+      try{install()}finally{observer.observe(document.body,{childList:true,subtree:true});}
+    },80);
+  });
+  function startObserver(){observer.observe(document.body,{childList:true,subtree:true});}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{install();startObserver()},{once:true});else{install();startObserver()}
 })();
