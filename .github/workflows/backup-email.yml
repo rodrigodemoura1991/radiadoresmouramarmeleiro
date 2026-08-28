@@ -10,35 +10,108 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Baixar dados do Supabase
+      - name: Baixar dados e gerar planilha Excel
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           set -e
-          mkdir -p backup
+          python3 -m pip install --quiet requests openpyxl
 
-          for table in companies clients catalog_items orders order_items finance_backups; do
-            echo "Baixando $table..."
-            curl -fsS \
-              -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-              -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-              "${SUPABASE_URL}/rest/v1/${table}?select=*" \
-              -o "backup/${table}.json"
-          done
+          python3 <<'PY'
+          import os
+          import json
+          import requests
+          from openpyxl import Workbook
+          from openpyxl.utils import get_column_letter
+          from datetime import datetime, timezone
 
-          date -u +%Y-%m-%dT%H:%M:%SZ > backup/backup_timestamp.txt
+          supabase_url = os.environ["SUPABASE_URL"].rstrip("/")
+          service_key = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
 
-      - name: Compactar backup
-        run: |
-          zip -r "radiadores-moura-backup-$(date -u +%Y-%m-%d).zip" backup
+          tables = [
+              "companies",
+              "clients",
+              "catalog_items",
+              "orders",
+              "order_items",
+              "finance_backups",
+          ]
 
-      - name: Enviar backup por e-mail
+          headers = {
+              "apikey": service_key,
+              "Authorization": f"Bearer {service_key}",
+          }
+
+          wb = Workbook()
+          wb.remove(wb.active)
+
+          for table in tables:
+              print(f"Baixando {table}...")
+              response = requests.get(
+                  f"{supabase_url}/rest/v1/{table}",
+                  params={"select": "*"},
+                  headers=headers,
+                  timeout=60,
+              )
+              response.raise_for_status()
+              rows = response.json()
+
+              ws = wb.create_sheet(title=table[:31])
+
+              if not rows:
+                  ws.append(["Sem registros"])
+                  continue
+
+              columns = []
+              for row in rows:
+                  for key in row.keys():
+                      if key not in columns:
+                          columns.append(key)
+
+              ws.append(columns)
+
+              for row in rows:
+                  values = []
+                  for column in columns:
+                      value = row.get(column)
+                      if isinstance(value, (dict, list)):
+                          value = json.dumps(value, ensure_ascii=False)
+                      values.append(value)
+                  ws.append(values)
+
+              ws.freeze_panes = "A2"
+              ws.auto_filter.ref = ws.dimensions
+
+              for cell in ws[1]:
+                  cell.font = cell.font.copy(bold=True)
+
+              for column_cells in ws.columns:
+                  max_length = 0
+                  for cell in column_cells:
+                      value = "" if cell.value is None else str(cell.value)
+                      max_length = max(max_length, len(value))
+                  width = min(max(max_length + 2, 10), 50)
+                  ws.column_dimensions[get_column_letter(column_cells[0].column)].width = width
+
+          timestamp = datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M:%S UTC")
+          ws = wb.create_sheet(title="Backup Info")
+          ws.append(["Informação", "Valor"])
+          ws.append(["Data do backup", timestamp])
+          ws.append(["Projeto", "Radiadores Moura"])
+          ws.append(["Destino", "radiadoresmoura@gmail.com"])
+
+          filename = f"radiadores-moura-backup-{datetime.now(timezone.utc):%Y-%m-%d}.xlsx"
+          wb.save(filename)
+          print(f"Planilha criada: {filename}")
+          PY
+
+      - name: Enviar planilha por e-mail
         env:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
         run: |
-          python3 - <<'PY'
+          python3 <<'PY'
           import os
           import smtplib
           from email.message import EmailMessage
@@ -49,9 +122,9 @@ jobs:
           password = os.environ["SMTP_PASSWORD"]
           recipient = "radiadoresmoura@gmail.com"
 
-          files = sorted(Path(".").glob("radiadores-moura-backup-*.zip"))
+          files = sorted(Path(".").glob("radiadores-moura-backup-*.xlsx"))
           if not files:
-              raise SystemExit("Backup não encontrado")
+              raise SystemExit("Planilha de backup não encontrada")
 
           attachment = files[-1]
 
@@ -59,28 +132,28 @@ jobs:
           msg["Subject"] = f"Backup Radiadores Moura - {datetime.now(timezone.utc):%d/%m/%Y}"
           msg["From"] = user
           msg["To"] = recipient
-
           msg.set_content(
               "Backup automático do sistema Radiadores Moura.\n\n"
-              "O arquivo ZIP está anexado a este e-mail."
+              "A planilha Excel com os dados do sistema está anexada a este e-mail."
           )
 
           msg.add_attachment(
               attachment.read_bytes(),
               maintype="application",
-              subtype="zip",
-              filename=attachment.name
+              subtype="vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              filename=attachment.name,
           )
 
           with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
               smtp.login(user, password)
               smtp.send_message(msg)
 
-          print("Backup enviado com sucesso.")
+          print("Backup Excel enviado com sucesso.")
+          PY
 
-      - name: Guardar backup no GitHub
+      - name: Guardar planilha no GitHub
         uses: actions/upload-artifact@v4
         with:
           name: radiadores-moura-backup-${{ github.run_number }}
-          path: radiadores-moura-backup-*.zip
+          path: radiadores-moura-backup-*.xlsx
           retention-days: 30
