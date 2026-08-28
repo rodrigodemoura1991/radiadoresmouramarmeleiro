@@ -1,5 +1,16 @@
 /* Ações estáveis da aba Todos os Serviços. */
 (function(){
+  function visibleRows(){
+    const q=(document.getElementById('allServicesSearch')?.value||'').toLowerCase().trim();
+    const pf=document.getElementById('servicePaymentFilter')?.value||'';
+    const sf=document.getElementById('serviceStatusFilter')?.value||'';
+    const rows=typeof allServiceRows==='function'?allServiceRows():[];
+    return rows.filter(x=>{
+      const text=[x.order?.client_name,x.order?.pedido,x.description,x.order?.vehicle_make_model,x.order?.plate].join(' ').toLowerCase();
+      return (!q||text.includes(q))&&(!pf||(x.order?.payment_status||'EM ABERTO')===pf)&&(!sf||x.service_status===sf);
+    }).sort((a,b)=>String(b.order?.exit_date||'').localeCompare(String(a.order?.exit_date||'')));
+  }
+
   function removeOrder(id){
     if(!id) return;
     const o=(window.orders||[]).find(x=>x.id===id);
@@ -15,6 +26,7 @@
       if(typeof toast==='function')toast('Lançamento excluído com sucesso');
     })();
   }
+
   function openEditor(id){
     const launchNav=document.querySelector('.nav[data-view="launch"]');
     if(launchNav)launchNav.click();
@@ -23,12 +35,16 @@
       else if(typeof editOrder==='function')editOrder(id);
     },20);
   }
+
   function decorate(){
     const list=document.getElementById('allServicesList');
     if(!list)return;
-    list.querySelectorAll('.service-card').forEach(card=>{
-      const id=card.dataset.orderId;
+    const data=visibleRows();
+    list.querySelectorAll('.service-card').forEach((card,index)=>{
+      const item=data[index];
+      const id=card.dataset.orderId||item?.order?.id;
       if(!id)return;
+      card.dataset.orderId=id;
       let actions=card.querySelector('.service-actions-v2');
       if(!actions){
         actions=document.createElement('div');
@@ -42,6 +58,7 @@
       del.onclick=e=>{e.preventDefault();e.stopPropagation();removeOrder(id)};
     });
   }
+
   function install(){
     const list=document.getElementById('allServicesList');
     if(!list)return;
@@ -54,6 +71,7 @@
     new MutationObserver(()=>requestAnimationFrame(decorate)).observe(list,{childList:true,subtree:true});
     decorate();
   }
+
   window.removeServiceOrder=removeOrder;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
   else install();
