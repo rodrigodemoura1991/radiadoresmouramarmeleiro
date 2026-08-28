@@ -3,6 +3,7 @@
   let selectedServiceIndex=-1;
   let selectedLaunchIndex=-1;
   const fmtDate=(v)=>{const s=String(v||'').trim();const m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[3]}/${m[2]}`:s};
+  const fmtDateFull=(v)=>{const s=String(v||'').trim();const m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[3]}/${m[2]}/${m[1]}`:s||'Sem data'};
   const displayStatus=(v)=>String(v||'—').trim().toLowerCase()==='pronto entregue'?'PRONTO/ENTREGUE':String(v||'—');
   function ensureBlueStatusCss(){
     const old=document.getElementById('falta-acertar-blue-css');if(old)old.remove();
@@ -18,12 +19,33 @@
       .payment-falta-acertar .payment-badge{background:#fff!important;color:#075fc5!important;-webkit-text-fill-color:#075fc5!important;border-color:#fff!important;font-weight:800!important}
       .payment-falta-acertar .keyboard-selected{outline:3px solid rgba(255,255,255,.85)!important}
       #launchList .launch .launch-vehicle,#allServicesList .grouped-service .grouped-vehicle{font-weight:950!important}
+      #launchList .launch-day-separator{display:flex;align-items:center;gap:12px;margin:18px 0 10px;padding:0 6px;color:#17324d;font-weight:900}
+      #launchList .launch-day-separator::before,#launchList .launch-day-separator::after{content:"";height:2px;background:#cbd8e6;flex:1;border-radius:2px}
+      #launchList .launch-day-separator span{background:#eef4fa;border:1px solid #d5e0eb;border-radius:999px;padding:6px 14px;white-space:nowrap;font-size:13px;letter-spacing:.2px}
+      #launchList .launch-day-separator:first-child{margin-top:4px}
     `;document.head.appendChild(s);
   }
   function forceBlueServiceTextBlack(card){if(!card?.classList.contains('payment-falta-acertar'))return;card.querySelectorAll('.grouped-items .grouped-item,.grouped-items .grouped-item *, .chips .chip,.chips .chip *').forEach(el=>{el.style.setProperty('color','#111827','important');el.style.setProperty('-webkit-text-fill-color','#111827','important');el.style.setProperty('text-shadow','none','important')})}
   function applyLaunches(){
     ensureBlueStatusCss();const list=document.getElementById('launchList');if(!list)return;
     list.querySelectorAll('.launch').forEach(card=>{const id=card.dataset.id;const order=(typeof orders!=='undefined'?orders:[]).find(o=>o.id===id);const payment=String(order?.payment_status||'').trim().toUpperCase();card.classList.toggle('payment-open',payment==='EM ABERTO');card.classList.toggle('payment-falta-acertar',payment==='FALTA ACERTAR');card.querySelectorAll('.chip').forEach(chip=>{if(chip.textContent.trim().startsWith('★'))chip.textContent=chip.textContent.trim().replace(/^★\s*/,'')});forceBlueServiceTextBlack(card)});
+  }
+  function addLaunchDaySeparators(){
+    const list=document.getElementById('launchList');if(!list)return;
+    list.querySelectorAll('.launch-day-separator').forEach(x=>x.remove());
+    let lastDay='';
+    [...list.querySelectorAll(':scope > .launch')].forEach(card=>{
+      const id=card.dataset.id;
+      const order=(typeof orders!=='undefined'?orders:[]).find(o=>o.id===id);
+      const day=String(order?.entry_date||order?.exit_date||'').slice(0,10);
+      if(day!==lastDay){
+        const sep=document.createElement('div');
+        sep.className='launch-day-separator';
+        sep.innerHTML='<span>'+esc(fmtDateFull(day))+'</span>';
+        card.before(sep);
+        lastDay=day;
+      }
+    });
   }
   function ensureServicesCss(){const link=document.getElementById('todos-servicos-ui-css');if(link){link.href='css/todos-servicos-ui.css?v=20260826-2245';return}const l=document.createElement('link');l.id='todos-servicos-ui-css';l.rel='stylesheet';l.href='css/todos-servicos-ui.css?v=20260826-2245';document.head.appendChild(l)}
   function removeOrder(id){if(!id)return;const o=(typeof orders!=='undefined'?orders:[]).find(x=>x.id===id);if(!o||!confirm('Excluir este lançamento? Esta ação não pode ser desfeita.'))return;(async()=>{cloud('Excluindo...');const a=await sb.from('order_items').delete().eq('order_id',id);if(a.error){toast('Erro ao excluir serviços: '+a.error.message);cloud('Erro ao excluir',false);return}const r=await sb.from('orders').delete().eq('id',id);if(r.error){toast('Erro ao excluir lançamento: '+r.error.message);cloud('Erro ao excluir',false);return}await loadData();toast('Lançamento excluído com sucesso')})()}
@@ -43,6 +65,6 @@
     list.innerHTML=grouped.map(g=>{const o=g.order,pay=o.payment_status||'EM ABERTO',open=pay==='EM ABERTO',blue=String(pay).trim().toUpperCase()==='FALTA ACERTAR',statusClass=slug(g.items[0]?.service_status||'Liberado');const vehicle=o.vehicle_make_model?`<span class="grouped-vehicle">${esc(o.vehicle_make_model)}</span>`:'';const pedido=o.pedido?`<span>${esc(o.pedido)}</span>`:'';const placa=o.plate?`<span> • ${esc(o.plate)}</span>`:'';return `<article class="service-card launch grouped-service ${statusClass} ${open?'payment-pending':'payment-'+slug(pay)} ${blue?'payment-falta-acertar':''}" data-order-id="${esc(o.id)}" aria-selected="false"><div class="grouped-top"><div class="grouped-date"><b>${esc(fmtDate(o.exit_date)||'—')}</b><small>Entrada ${esc(fmtDate(o.entry_date)||'—')}</small></div><div class="grouped-main"><div class="lname">${esc(o.client_name||'Sem cliente')}</div><div class="meta">${pedido}${vehicle?' • '+vehicle:''}${placa}</div></div><b class="grouped-total">${money(o.total_sale)}</b></div><div class="grouped-items">${g.items.map(i=>`<div class="grouped-item ${slug(i.service_status)}"><span>${esc(i.description||'Sem descrição')} • ${money(i.sale_value)}</span><b>${esc(displayStatus(i.service_status))}</b></div>`).join('')}</div><div class="grouped-payment"><span class="payment-badge">${esc(pay)}</span></div></article>`}).join('')||'<div class="empty">Nenhum serviço encontrado.</div>';
     if(selectedServiceIndex>=grouped.length)selectedServiceIndex=grouped.length-1;requestAnimationFrame(()=>{addActions();if(selectedServiceIndex>=0&&list.querySelectorAll('.grouped-service').length)selectServiceCard(selectedServiceIndex,false)});
   }
-  function install(){ensureBlueStatusCss();ensureServicesCss();applyLaunches();const serviceList=document.getElementById('allServicesList');if(serviceList)addActions();const search=document.getElementById('allServicesSearch');if(search)search.placeholder='Buscar cliente, placa, pedido ou serviço';document.addEventListener('keydown',keyboardNavigate);window.renderAllServices=renderGroupedServices;renderGroupedServices()}
+  function install(){ensureBlueStatusCss();ensureServicesCss();applyLaunches();addLaunchDaySeparators();const serviceList=document.getElementById('allServicesList');if(serviceList)addActions();const search=document.getElementById('allServicesSearch');if(search)search.placeholder='Buscar cliente, placa, pedido ou serviço';document.addEventListener('keydown',keyboardNavigate);window.renderAllServices=renderGroupedServices;renderGroupedServices();if(typeof window.renderLaunches==='function'&&!window.renderLaunches.__daySeparatorFixed){const original=window.renderLaunches;const wrapped=function(){const result=original.apply(this,arguments);requestAnimationFrame(()=>{applyLaunches();addLaunchDaySeparators()});return result};wrapped.__daySeparatorFixed=true;window.renderLaunches=wrapped}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
