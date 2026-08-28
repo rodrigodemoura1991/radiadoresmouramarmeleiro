@@ -44,15 +44,3 @@
   function install(){ensureBlueStatusCss();ensureServicesCss();applyLaunches();const launchList=document.getElementById('launchList');if(launchList)new MutationObserver(()=>{selectedLaunchIndex=-1;requestAnimationFrame(applyLaunches)}).observe(launchList,{childList:true,subtree:true});const serviceList=document.getElementById('allServicesList');if(serviceList)new MutationObserver(()=>requestAnimationFrame(addActions)).observe(serviceList,{childList:true,subtree:true});const search=document.getElementById('allServicesSearch');if(search)search.placeholder='Buscar cliente, placa, pedido ou serviço';document.addEventListener('keydown',keyboardNavigate);window.renderAllServices=renderGroupedServices;renderGroupedServices();if(!document.getElementById('services-enhancements-loader')){const s=document.createElement('script');s.id='services-enhancements-loader';s.src='js/services-enhancements.js?v=20260826-2245';document.body.appendChild(s)}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
-
-/* Exibição brasileira das datas + texto do status */
-(function(){
-  const brDate=v=>{const s=String(v||'').trim();if(!s)return '';const m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[3]}/${m[2]}/${m[1]}`:s};
-  const fix=()=>{
-    document.querySelectorAll('#launchList .meta').forEach(el=>{el.textContent=el.textContent.replace(/(\d{4})-(\d{2})-(\d{2})/g,(_,y,m,d)=>`${d}/${m}/${y}`)});
-    document.querySelectorAll('#allServicesList .grouped-date b,#allServicesList .grouped-date small').forEach(el=>{el.textContent=el.textContent.replace(/(\d{4})-(\d{2})-(\d{2})/g,(_,y,m,d)=>`${d}/${m}/${y}`)});
-    document.querySelectorAll('#launchList .chip,#allServicesList .grouped-item b,#allServicesList .payment-badge').forEach(el=>{if(el.textContent.trim()==='Pronto entregue')el.textContent='PRONTO/ENTREGUE';});
-  };
-  const start=()=>{fix();const launch=document.getElementById('launchList');if(launch)new MutationObserver(()=>fix()).observe(launch,{childList:true,subtree:true});const services=document.getElementById('allServicesList');if(services)new MutationObserver(()=>fix()).observe(services,{childList:true,subtree:true});};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
-})();
