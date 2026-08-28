@@ -99,7 +99,6 @@
     const map=new Map((r.data||[]).map(o=>[String(o.id),o.notes||'']));ids.forEach(id=>showObservation(id,map.get(String(id))||''));
   }
 
-  // ESC fecha somente o popup de edição, sem interferir em campos, selects ou outros modais.
   function bindEscapeToEditPopup(){
     if(document.documentElement.dataset.editPopupEscBound)return;
     document.documentElement.dataset.editPopupEscBound='1';
@@ -119,14 +118,5 @@
   function install(){
     injectCss();unwrapOldLegendLayouts();addLegends();ensurePaymentOption();ensureExitOption();installEnter();wrapEdit();wrapClear();bindStatus();bindSubmit();ensureNotesField();ensureFixNotesField();bindEscapeToEditPopup();const exit=$('exit');if(exit)exit.removeAttribute('required');setEditExitOption();setTimeout(refreshObservations,250);
   }
-  let timer=0;
-  const observer=new MutationObserver(()=>{
-    clearTimeout(timer);
-    timer=setTimeout(()=>{
-      observer.disconnect();
-      try{install()}finally{observer.observe(document.body,{childList:true,subtree:true});}
-    },80);
-  });
-  function startObserver(){observer.observe(document.body,{childList:true,subtree:true});}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{install();startObserver()},{once:true});else{install();startObserver()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
