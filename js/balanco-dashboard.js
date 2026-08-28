@@ -1,27 +1,70 @@
-/* BALANÇO GERAL — somente itens PRONTO ENTREGUE, pela DATA DE SAÍDA. */
+/* BALANÇO FINAL — itens PRONTO/ENTREGUE pela DATA DE SAÍDA */
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
 const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
-const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const READY='pronto entregue';
-const css=`.balance{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:14px 0}.balance .bcard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px 16px;box-shadow:0 3px 12px #1720330b}.balance .bcard small{display:block;color:var(--muted);font-weight:700;font-size:12px;margin-bottom:6px}.balance .bcard b{font-size:20px;color:var(--ink)}.balance .bcard .green{color:#138a5b}.balance .bcard .red{color:#b43b3b}.balance .bcard .orange{color:#b36b16}.balance .bcard .blue{color:#245a91}.balance-extra{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}.balance-panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px}.balance-panel h3{margin:0 0 12px}.rank-row{display:grid;grid-template-columns:1fr auto;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}.rank-row:last-child{border-bottom:0}.rank-row small{color:var(--muted)}.summary-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}.summary-mini{padding:12px;border:1px solid var(--line);border-radius:10px;background:#fafbfd}.summary-mini small{display:block;color:var(--muted);font-weight:700}.summary-mini b{display:block;margin-top:4px;font-size:17px}.balance-chart{margin-top:14px}.chart-wrap{height:260px;border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;overflow:hidden}.chart-wrap svg{width:100%;height:100%;display:block}.chart-grid{stroke:#dfe5ec;stroke-width:1}.chart-axis{fill:#687386;font-size:10px;font-weight:700}.chart-area{fill:#245a9120}.chart-line{fill:none;stroke:#245a91;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.chart-dot{fill:#fff;stroke:#245a91;stroke-width:2}@media(max-width:1050px){.balance{grid-template-columns:repeat(3,1fr)}}@media(max-width:700px){.balance{grid-template-columns:repeat(2,1fr)}.balance-extra,.summary-strip{grid-template-columns:1fr}}@media(max-width:450px){.balance{grid-template-columns:1fr}}`;
-function inject(){if($('balance-general-css'))return;const s=document.createElement('style');s.id='balance-general-css';s.textContent=css;document.head.appendChild(s)}
-function parseDate(v){const s=String(v||'').slice(0,10),m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?new Date(+m[1],+m[2]-1,+m[3]):null}
-function getOrders(){try{return typeof orders!=='undefined'&&Array.isArray(orders)?orders:[]}catch(e){return []}}
-function activePeriod(){return document.querySelector('.period.active')?.dataset.p||window.__balancePeriod||'all'}
-function bounds(){const mode=activePeriod(),ref=parseDate($('balanceDate')?.value)||new Date(),cs=$('balanceStart')?.value,ce=$('balanceEnd')?.value;if(mode==='custom'&&cs&&ce){const s=parseDate(cs),e=parseDate(ce);if(s&&e){s.setHours(0,0,0,0);e.setHours(23,59,59,999);return{s,e}}}if(mode==='all')return{all:true};let s,e;if(mode==='day'){s=new Date(ref);e=new Date(ref)}else if(mode==='week'){const day=ref.getDay();s=new Date(ref);s.setDate(ref.getDate()-(day===0?6:day-1));e=new Date(s);e.setDate(s.getDate()+6)}else if(mode==='month'){s=new Date(ref.getFullYear(),ref.getMonth(),1);e=new Date(ref.getFullYear(),ref.getMonth()+1,0)}else{s=new Date(ref.getFullYear(),0,1);e=new Date(ref.getFullYear(),11,31)}s.setHours(0,0,0,0);e.setHours(23,59,59,999);return{s,e}}
-function readyItems(o){return Array.isArray(o?.order_items)?o.order_items.filter(i=>String(i?.service_status||'').trim().toLowerCase()===READY):[]}
-function selected(){const b=bounds();return getOrders().filter(o=>{const items=readyItems(o);if(!items.length)return false;const d=parseDate(o.exit_date);if(!d)return false;return b.all|| (d>=b.s&&d<=b.e)})}
-function getData(){const os=selected();let sale=0,cost=0,freight=0,tax=0,count=0;const clients=new Map(),services=new Map();os.forEach(o=>{let clientTotal=0;readyItems(o).forEach(i=>{const s=Number(i.sale_value)||0,c=Number(i.cost_value)||0,f=Number(i.freight_value)||0,t=s*(Number(i.tax_rate)||0)/100;sale+=s;cost+=c;freight+=f;tax+=t;count++;clientTotal+=s;const n=i.description||'Sem descrição';services.set(n,(services.get(n)||0)+s)});if(o.client_name)clients.set(o.client_name,(clients.get(o.client_name)||0)+clientTotal)});const profit=sale-cost-freight-tax;return{orders:os,sale,cost,freight,tax,profit,count,clients,services,margin:sale?profit/sale*100:0,bounds:b}}
-function renderMain(d){const h=$('balanceCards');if(!h)return;h.innerHTML=`<div class="bcard"><small>Vendas</small><b class="blue">${money(d.sale)}</b></div><div class="bcard"><small>Custo de peças</small><b class="red">${money(d.cost)}</b></div><div class="bcard"><small>Fretes</small><b class="orange">${money(d.freight)}</b></div><div class="bcard"><small>Impostos</small><b class="red">${money(d.tax)}</b></div><div class="bcard"><small>Lucro líquido</small><b class="green">${money(d.profit)}</b></div><div class="bcard"><small>Margem líquida</small><b class="green">${d.margin.toFixed(1)}%</b></div><div class="bcard"><small>Serviços entregues</small><b>${d.count}</b></div><div class="bcard"><small>Lançamentos com entrega</small><b>${d.orders.length}</b></div>`}
-function renderProfit(d){const h=$('profitManagement');if(!h)return;h.innerHTML=`<div class="summary-strip"><div class="summary-mini"><small>Vendas</small><b>${money(d.sale)}</b></div><div class="summary-mini"><small>Custos de peças + fretes</small><b>${money(d.cost+d.freight)}</b></div><div class="summary-mini"><small>Impostos</small><b>${money(d.tax)}</b></div><div class="summary-mini"><small>Lucro líquido</small><b>${money(d.profit)} (${d.margin.toFixed(1)}%)</b></div></div><p style="margin:12px 0 0;color:var(--muted);font-size:13px">Somente itens <b>PRONTO/ENTREGUE</b>, pela data de saída.</p>`}
-function renderBreakdown(d){const h=$('breakdown');if(!h)return;h.innerHTML=`<div class="rank-row"><span><b>PRONTO/ENTREGUE</b><br><small>Itens considerados no balanço</small></span><b>${d.count}</b></div>`}
-function renderPayments(){const h=$('paymentBreakdown');if(h)h.innerHTML='';const c=h?.closest('.card');if(c)c.style.display='none'}
-function renderExtras(d){let h=$('balanceExtras');if(!h){h=document.createElement('div');h.id='balanceExtras';h.className='balance-extra';$('balance')?.appendChild(h)}const cs=[...d.clients.entries()].sort((a,b)=>b[1]-a[1]).slice(0,8),ss=[...d.services.entries()].sort((a,b)=>b[1]-a[1]).slice(0,8);h.innerHTML=`<div class="balance-panel"><h3>Maiores clientes</h3>${cs.length?cs.map((x,i)=>`<div class="rank-row"><span><b>${i+1}. ${esc(x[0])}</b></span><b>${money(x[1])}</b></div>`).join(''):'<small>Nenhum cliente no período.</small>'}</div><div class="balance-panel"><h3>Serviços / produtos entregues</h3>${ss.length?ss.map((x,i)=>`<div class="rank-row"><span><b>${i+1}. ${esc(x[0])}</b></span><b>${money(x[1])}</b></div>`).join(''):'<small>Nenhum item no período.</small>'}</div>`}
-function renderChart(d){let h=$('balanceChart');if(!h){h=document.createElement('div');h.id='balanceChart';h.className='card balance-chart';$('balance')?.appendChild(h)}const map=new Map();d.orders.forEach(o=>{const k=String(o.exit_date||'').slice(0,7)||'sem-data';const v=readyItems(o).reduce((z,i)=>z+(Number(i.sale_value)||0),0);map.set(k,(map.get(k)||0)+v)});const keys=[...map.keys()].filter(k=>k!=='sem-data').sort();let labels=keys.map(k=>{const [y,m]=k.split('-');return m+'/'+y.slice(2)}),vals=keys.map(k=>map.get(k)||0);if(!labels.length){labels=['Sem dados'];vals=[0]}const W=900,H=250,L=48,R=18,T=20,B=38,iw=W-L-R,ih=H-T-B,max=Math.max(...vals,1),pts=vals.map((v,i)=>[L+(labels.length===1?iw/2:i*iw/Math.max(1,labels.length-1)),T+ih-v/max*ih]),path=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' '),area=path+` L ${pts[pts.length-1][0]} ${T+ih} L ${pts[0][0]} ${T+ih} Z`;h.innerHTML=`<div class="sectiontitle"><h3>Vendas de serviços entregues</h3><span>${d.count} serviço(s)</span></div><div class="chart-wrap"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${[0,.25,.5,.75,1].map(r=>{const y=T+ih-r*ih;return `<line class="chart-grid" x1="${L}" x2="${W-R}" y1="${y}" y2="${y}"/><text class="chart-axis" x="${L-7}" y="${y+3}" text-anchor="end">${money(max*r).replace(',00','')}</text>`}).join('')}<path class="chart-area" d="${area}"/><path class="chart-line" d="${path}"/>${pts.map((p,i)=>vals[i]?`<circle class="chart-dot" cx="${p[0]}" cy="${p[1]}" r="4"><title>${esc(labels[i])}: ${money(vals[i])}</title></circle>`:'').join('')}${labels.map((l,i)=>i%Math.max(1,Math.ceil(labels.length/8))===0?`<text class="chart-axis" x="${pts[i][0]}" y="${H-12}" text-anchor="middle">${esc(l)}</text>`:'').join('')}</svg></div>`}
-function render(){inject();const d=getData();renderMain(d);renderProfit(d);renderBreakdown(d);renderPayments();renderExtras(d);renderChart(d)}
-function setMode(m){window.__balancePeriod=m;document.querySelectorAll('.period').forEach(b=>b.classList.toggle('active',b.dataset.p===m));render()}
-function install(){document.querySelectorAll('.period').forEach(b=>{if(b.dataset.bgBound)return;b.dataset.bgBound='1';b.addEventListener('click',()=>setMode(b.dataset.p))});const apply=$('applyCustomBalance');if(apply&&!apply.dataset.bgBound){apply.dataset.bgBound='1';apply.addEventListener('click',()=>{window.__balancePeriod='custom';document.querySelectorAll('.period').forEach(b=>b.classList.remove('active'));render()})}['balanceDate','balanceStart','balanceEnd'].forEach(id=>$(id)?.addEventListener('change',render));if(!window.__balancePeriod)window.__balancePeriod='all';if(!window.__balanceLoadWrapped&&typeof loadData==='function'){const original=loadData;window.__balanceLoadWrapped=true;window.loadData=async function(){const r=await original.apply(this,arguments);requestAnimationFrame(render);return r}}render()}
-let n=0;const timer=setInterval(()=>{install();if(++n>60)clearInterval(timer)},250);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+const norm=s=>String(s??'').trim().toLowerCase().replace(/[\/_-]+/g,' ').replace(/\s+/g,' ');
+const ready=i=>norm(i?.service_status)==='pronto entregue';
+const dateOnly=v=>String(v||'').slice(0,10);
+const parseDate=v=>{const s=dateOnly(v),m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?new Date(+m[1],+m[2]-1,+m[3]):null};
+function allOrders(){try{return Array.isArray(orders)?orders:[]}catch(e){return[]}}
+function mode(){return window.__finalBalanceMode||'all'}
+function periodBounds(){
+  const m=mode(), ref=parseDate($('balanceDate')?.value)||new Date();
+  if(m==='all')return null;
+  if(m==='custom'){const s=parseDate($('balanceStart')?.value),e=parseDate($('balanceEnd')?.value);if(s&&e){e.setHours(23,59,59,999);return[s,e]}return null}
+  let s,e;
+  if(m==='day'){s=new Date(ref);e=new Date(ref)}
+  else if(m==='week'){s=new Date(ref);s.setDate(ref.getDate()-(ref.getDay()||7)+1);e=new Date(s);e.setDate(s.getDate()+6)}
+  else if(m==='month'){s=new Date(ref.getFullYear(),ref.getMonth(),1);e=new Date(ref.getFullYear(),ref.getMonth()+1,0)}
+  else {s=new Date(ref.getFullYear(),0,1);e=new Date(ref.getFullYear(),11,31)}
+  s.setHours(0,0,0,0);e.setHours(23,59,59,999);return[s,e];
+}
+function selected(){
+  const b=periodBounds();
+  return allOrders().filter(o=>{
+    const items=Array.isArray(o.order_items)?o.order_items.filter(ready):[];
+    if(!items.length)return false;
+    const d=parseDate(o.exit_date);if(!d)return false;
+    return !b || (d>=b[0]&&d<=b[1]);
+  });
+}
+function data(){
+  const os=selected();let sale=0,cost=0,freight=0,tax=0,count=0;
+  os.forEach(o=>{
+    const items=Array.isArray(o.order_items)?o.order_items.filter(ready):[];
+    const all=Array.isArray(o.order_items)?o.order_items:[];
+    const hasItemFreight=items.some(i=>Number(i?.freight_value)||0);
+    items.forEach(i=>{
+      const s=Number(i?.sale_value)||0,c=Number(i?.cost_value)||0,f=Number(i?.freight_value)||0,t=s*(Number(i?.tax_rate)||0)/100;
+      sale+=s;cost+=c;freight+=f;tax+=t;count++;
+    });
+    if(!hasItemFreight && all.length && items.length===all.length)freight+=Number(o.total_freight)||0;
+  });
+  const profit=sale-cost-freight-tax;
+  return {os,sale,cost,freight,tax,profit,count,margin:sale?profit/sale*100:0};
+}
+function render(){
+  const d=data();
+  const cards=$('balanceCards');
+  if(cards)cards.innerHTML=`<div class="bcard"><small>Vendas</small><b>${money(d.sale)}</b></div><div class="bcard"><small>Custo de peças</small><b>${money(d.cost)}</b></div><div class="bcard"><small>Fretes</small><b>${money(d.freight)}</b></div><div class="bcard"><small>Impostos</small><b>${money(d.tax)}</b></div><div class="bcard"><small>Lucro líquido</small><b>${money(d.profit)}</b></div><div class="bcard"><small>Margem líquida</small><b>${d.margin.toFixed(1)}%</b></div><div class="bcard"><small>Serviços entregues</small><b>${d.count}</b></div><div class="bcard"><small>Lançamentos</small><b>${d.os.length}</b></div>`;
+  const p=$('profitManagement');if(p)p.innerHTML=`<div class="profit-grid"><div><small>Vendas</small><b>${money(d.sale)}</b></div><div><small>Custo de peças + fretes</small><b>${money(d.cost+d.freight)}</b></div><div><small>Impostos</small><b>${money(d.tax)}</b></div><div><small>Lucro líquido</small><b>${money(d.profit)}</b></div></div><p style="margin:12px 0 0;color:var(--muted);font-size:13px">Somente serviços PRONTO/ENTREGUE, pela data de saída.</p>`;
+  const br=$('breakdown');if(br)br.innerHTML=`<div class="break-row"><b>PRONTO/ENTREGUE</b><div class="bar"><i style="width:${d.count?100:0}%"></i></div><span>${d.count}</span></div>`;
+  const pay=$('paymentBreakdown');if(pay){pay.innerHTML='';const card=pay.closest('.card');if(card)card.style.display='none';}
+}
+function setMode(m){window.__finalBalanceMode=m;document.querySelectorAll('.period').forEach(b=>b.classList.toggle('active',b.dataset.p===m));render();}
+function bind(){
+  document.querySelectorAll('.period').forEach(b=>{if(b.dataset.finalBound)return;b.dataset.finalBound='1';b.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();setMode(b.dataset.p)},true)});
+  const apply=$('applyCustomBalance');if(apply&&!apply.dataset.finalBound){apply.dataset.finalBound='1';apply.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();setMode('custom')},true)}
+  const bd=$('balanceDate');if(bd&&!bd.dataset.finalBound){bd.dataset.finalBound='1';bd.addEventListener('change',e=>{e.stopImmediatePropagation();render()},true)}
+  const bs=$('balanceStart');if(bs&&!bs.dataset.finalBound){bs.dataset.finalBound='1';bs.addEventListener('change',e=>{e.stopImmediatePropagation();if(mode()==='custom')render()},true)}
+  const be=$('balanceEnd');if(be&&!be.dataset.finalBound){be.dataset.finalBound='1';be.addEventListener('change',e=>{e.stopImmediatePropagation();if(mode()==='custom')render()},true)}
+  document.querySelectorAll('.nav').forEach(b=>{if(b.dataset.finalNavBound)return;b.dataset.finalNavBound='1';b.addEventListener('click',()=>{if(b.dataset.view==='balance')setTimeout(render,0)},true)});
+  if(!window.__finalBalanceMode)window.__finalBalanceMode='all';
+  document.querySelectorAll('.period').forEach(b=>b.classList.toggle('active',b.dataset.p==='all'));
+  render();
+}
+window.renderBalance=render;window.renderAdvancedBalance=render;
+let tries=0;const t=setInterval(()=>{bind();if(++tries>80)clearInterval(t)},250);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
