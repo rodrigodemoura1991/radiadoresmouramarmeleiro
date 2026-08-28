@@ -30,10 +30,13 @@
   }
   function start(){
     apply();
-    const list=document.getElementById('launchList');
-    if(list) new MutationObserver(()=>requestAnimationFrame(apply)).observe(list,{childList:true,subtree:true});
+    if(typeof window.renderLaunches==='function' && !window.renderLaunches.__pedidoFormat){
+      const original=window.renderLaunches;
+      const wrapped=function(){const r=original.apply(this,arguments);apply();return r};
+      wrapped.__pedidoFormat=true;
+      window.renderLaunches=wrapped;
+    }
     setTimeout(apply,300);
-    setTimeout(apply,1000);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
