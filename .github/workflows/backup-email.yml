@@ -1,0 +1,86 @@
+name: Backup diário por e-mail
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 2 * * *'
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar dados do Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          set -e
+          mkdir -p backup
+
+          for table in companies clients catalog_items orders order_items finance_backups; do
+            echo "Baixando $table..."
+            curl -fsS \
+              -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+              -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+              "${SUPABASE_URL}/rest/v1/${table}?select=*" \
+              -o "backup/${table}.json"
+          done
+
+          date -u +%Y-%m-%dT%H:%M:%SZ > backup/backup_timestamp.txt
+
+      - name: Compactar backup
+        run: |
+          zip -r "radiadores-moura-backup-$(date -u +%Y-%m-%d).zip" backup
+
+      - name: Enviar backup por e-mail
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import smtplib
+          from email.message import EmailMessage
+          from pathlib import Path
+          from datetime import datetime, timezone
+
+          user = os.environ["SMTP_USER"]
+          password = os.environ["SMTP_PASSWORD"]
+          recipient = "radiadoresmoura@gmail.com"
+
+          files = sorted(Path(".").glob("radiadores-moura-backup-*.zip"))
+          if not files:
+              raise SystemExit("Backup não encontrado")
+
+          attachment = files[-1]
+
+          msg = EmailMessage()
+          msg["Subject"] = f"Backup Radiadores Moura - {datetime.now(timezone.utc):%d/%m/%Y}"
+          msg["From"] = user
+          msg["To"] = recipient
+
+          msg.set_content(
+              "Backup automático do sistema Radiadores Moura.\n\n"
+              "O arquivo ZIP está anexado a este e-mail."
+          )
+
+          msg.add_attachment(
+              attachment.read_bytes(),
+              maintype="application",
+              subtype="zip",
+              filename=attachment.name
+          )
+
+          with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+              smtp.login(user, password)
+              smtp.send_message(msg)
+
+          print("Backup enviado com sucesso.")
+
+      - name: Guardar backup no GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: radiadores-moura-backup-${{ github.run_number }}
+          path: radiadores-moura-backup-*.zip
+          retention-days: 30
