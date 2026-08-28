@@ -24,9 +24,10 @@
 .launch.payment-open::before{content:none!important;display:none!important}
 
 .launch .ltop{gap:6px;align-items:center}
-.launch .lname{font-size:13px;line-height:1.15}
-.launch .meta{font-size:10px;margin-top:1px;line-height:1.2}
-.launch .ltop>b{font-size:13px;white-space:nowrap}
+.launch .lname{font-size:13px;line-height:1.15;font-weight:800}
+/* Datas, número do pedido e demais dados principais em negrito */
+.launch .meta{font-size:10px;margin-top:1px;line-height:1.2;font-weight:800}
+.launch .ltop>b{font-size:13px;white-space:nowrap;font-weight:800}
 .launch .chips{gap:3px;margin-top:4px}
 .launch .chip{padding:2px 5px;font-size:9px;line-height:1.15}
 .launch .chip:first-child{margin-left:0}
@@ -40,8 +41,8 @@
 
 @media(max-width:700px){
   .launch{padding:6px 8px 6px 9px}
-  .launch .lname{font-size:12px}
-  .launch .meta{font-size:9px}
+  .launch .lname{font-size:12px;font-weight:800}
+  .launch .meta{font-size:9px;font-weight:800}
   .launch .chip{font-size:8px;padding:2px 4px}
 }
 @media(max-width:800px){.service-card.payment-pending::before,.service-card.payment-wallet::before{content:none!important;display:none!important}}
