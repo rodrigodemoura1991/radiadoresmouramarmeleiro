@@ -1,0 +1,31 @@
+/* Layout final dos cartões de lançamentos no celular. Preserva todos os dados. */
+@media (max-width:600px){
+#launchList .launch-card-v3{width:100%!important;max-width:100%!important;min-width:0!important;padding:14px!important;border-radius:18px!important;overflow:hidden!important;box-sizing:border-box!important}
+#launchList .launch-card-v3 .launch-head{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:8px!important;width:100%!important}
+#launchList .launch-card-v3 .launch-client-row{display:flex!important;align-items:flex-start!important;gap:8px!important;width:100%!important;min-width:0!important}
+#launchList .launch-card-v3 .launch-no{flex:0 0 auto!important;font-size:14px!important;padding:6px 9px!important}
+#launchList .launch-card-v3 .launch-client{flex:1 1 auto!important;min-width:0!important;width:auto!important;font-size:20px!important;line-height:1.12!important;font-weight:950!important;white-space:normal!important;word-break:normal!important;overflow-wrap:anywhere!important}
+#launchList .launch-card-v3 .launch-total{display:block!important;width:100%!important;font-size:18px!important;line-height:1.2!important;text-align:left!important;white-space:nowrap!important;margin:0!important}
+#launchList .launch-card-v3 .launch-info{display:flex!important;width:100%!important;min-width:0!important;margin-top:5px!important;padding:0!important;gap:4px!important;font-size:13px!important;line-height:1.35!important}
+#launchList .launch-card-v3 .launch-info>div{width:100%!important;min-width:0!important;overflow-wrap:anywhere!important}
+#launchList .launch-card-v3 .launch-services{width:100%!important;min-width:0!important;margin-top:12px!important;gap:8px!important}
+#launchList .launch-card-v3 .launch-service{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto auto!important;gap:5px 8px!important;width:100%!important;min-width:0!important;padding:10px 11px!important;box-sizing:border-box!important}
+#launchList .launch-card-v3 .launch-service-name{grid-column:1/-1!important;grid-row:1!important;width:100%!important;min-width:0!important;font-size:15px!important;line-height:1.2!important;white-space:normal!important;overflow-wrap:anywhere!important}
+#launchList .launch-card-v3 .launch-service-status{grid-column:2!important;grid-row:2!important;justify-self:end!important;align-self:center!important;font-size:12px!important;white-space:nowrap!important}
+#launchList .launch-card-v3 .launch-service-value{grid-column:1!important;grid-row:2!important;justify-self:start!important;align-self:center!important;font-size:14px!important;white-space:nowrap!important}
+#launchList .launch-card-v3 .launch-dates{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:7px!important;width:100%!important;min-width:0!important}
+#launchList .launch-card-v3 .launch-date{display:block!important;width:100%!important;min-width:0!important;padding:7px 8px!important;font-size:11px!important;line-height:1.2!important;white-space:normal!important;overflow-wrap:anywhere!important;text-align:center!important;box-sizing:border-box!important}
+#launchList .launch-card-v3 .launch-payment{align-self:flex-start!important;margin-top:10px!important;font-size:12px!important;padding:7px 11px!important}
+#launchList .launch-card-v3 .launch-actions{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:8px!important;width:100%!important;margin-top:11px!important}
+#launchList .launch-card-v3 .launch-actions .launch-action-btn{width:100%!important;min-width:0!important;padding:9px 8px!important;font-size:14px!important}
+#launchList .launch-card-v3 .launch-actions .launch-card-total{grid-column:1/-1!important;margin:1px 0 0!important;width:100%!important;text-align:right!important;font-size:17px!important;white-space:nowrap!important}
+}
+@media (max-width:390px){
+#launchList .launch-card-v3{padding:12px!important}
+#launchList .launch-card-v3 .launch-client{font-size:18px!important}
+#launchList .launch-card-v3 .launch-no{font-size:13px!important;padding:5px 8px!important}
+#launchList .launch-card-v3 .launch-total{font-size:17px!important}
+#launchList .launch-card-v3 .launch-service-name{font-size:14px!important}
+#launchList .launch-card-v3 .launch-service-status{font-size:11px!important}
+#launchList .launch-card-v3 .launch-date{font-size:10px!important;padding:7px 5px!important}
+}
