@@ -1,0 +1,1 @@
+// Módulo de referência do Balanço. A implementação ativa está em app.js para compatibilidade.
