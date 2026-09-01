@@ -1,0 +1,10 @@
+Radiadores Moura - Cronograma - Etapa 4
+
+PASS - Todos os arquivos JS restantes passam em node --check.
+PASS - Não há segundo handler de submit para #fixEditForm.
+PASS - js/edit-save-fix.js removido.
+PASS - js/frete-fix.js removido.
+PASS - Edição salva total_freight, freight_value, net_profit e notes.
+PASS - Modal de edição possui campo fixNotes e carrega notes do lançamento.
+PASS - index.html não carrega os handlers antigos.
+PASS - Versão de cache atualizada.

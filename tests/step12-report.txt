@@ -1,0 +1,9 @@
+Radiadores Moura - Cronograma - Etapa 12
+
+PASS - js/edit-save-fix.js não está presente.
+PASS - index.html não carrega edit-save-fix.js.
+PASS - #fixEditForm possui um único handler ativo em freight.js.
+PASS - freight.js contém o fluxo canônico saveEdit.
+PASS - saveEdit preserva frete, lucro líquido e observações.
+PASS - supabase-config.js não possui handler concorrente de salvamento.
+PASS - JavaScript principal validado com node --check.

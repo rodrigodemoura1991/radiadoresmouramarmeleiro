@@ -44,3 +44,62 @@
 .launch.payment-falta-acertar .chips > .chip:not(:last-child)::first-letter{color:#111827!important;}
 .launch.payment-falta-acertar .chips > .chip:last-child{color:#1266cf!important;-webkit-text-fill-color:#1266cf!important;background:#fff!important;}
 .launch.payment-falta-acertar .chips > .chip:last-child *{color:#1266cf!important;-webkit-text-fill-color:#1266cf!important;}
+
+.order-notes-field{grid-column:1/-1}.order-notes-field textarea{width:100%;min-height:90px;padding:10px;border:1px solid var(--line);border-radius:10px;resize:vertical;font:inherit;box-sizing:border-box}
+.launch-observation-card{margin-top:8px;padding:9px 11px;border-radius:9px;background:#fff9df;border:1px solid #eadc9c;color:#5f5220;font-size:12px;line-height:1.4;white-space:pre-wrap;word-break:break-word}.launch-observation-card span{font-weight:900;color:#4b3f12}
+
+
+/* V21 — OS, datas abreviadas e destaque de marca/modelo */
+#launchList .launch .launch-card-top{display:grid!important;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;align-items:center!important;gap:6px!important}
+#launchList .launch .launch-client-block{min-width:0!important}
+#launchList .launch .launch-os{justify-self:center!important;align-self:start!important;font-size:14px!important;line-height:1.1!important;font-weight:1000!important;letter-spacing:.3px!important;white-space:nowrap!important;padding:3px 9px!important;border-radius:7px!important;background:rgba(255,255,255,.78)!important;color:#172033!important;border:1px solid rgba(23,32,51,.14)!important}
+#launchList .launch.payment-falta-acertar .launch-os{color:#172033!important}
+#launchList .launch .launch-vehicle-highlight{margin:5px auto 3px!important;text-align:center!important;font-size:14px!important;line-height:1.15!important;font-weight:1000!important;letter-spacing:.15px!important;overflow-wrap:anywhere!important}
+#launchList .launch .launch-dates{display:flex!important;justify-content:center!important;align-items:center!important;gap:14px!important;flex-wrap:wrap!important;margin:2px 0 3px!important;font-size:13px!important;line-height:1.15!important;font-weight:800!important}
+#launchList .launch .launch-dates b{font-size:14px!important;font-weight:1000!important;letter-spacing:.15px!important}
+#launchList .launch .services-under-client{justify-content:center!important;margin-top:3px!important}
+@media(max-width:700px){
+  #launchList .launch .launch-card-top{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;gap:4px!important}
+  #launchList .launch .launch-os{font-size:12px!important;padding:3px 7px!important}
+  #launchList .launch .launch-vehicle-highlight{font-size:13px!important;margin-top:4px!important}
+  #launchList .launch .launch-dates{font-size:11px!important;gap:9px!important}
+  #launchList .launch .launch-dates b{font-size:12px!important}
+}
+
+/* V24 — topo realmente centralizado e informações maiores */
+#launchList .launch{position:relative!important;overflow:hidden!important}
+#launchList .launch .launch-card-top{display:block!important;position:relative!important;min-height:74px!important;padding:0!important}
+#launchList .launch .launch-card-left{position:absolute!important;left:0!important;top:1px!important;width:32%!important;min-width:190px!important;text-align:left!important;z-index:2!important}
+#launchList .launch .launch-pedido{font-size:14px!important;line-height:1.2!important;font-weight:800!important;margin-bottom:5px!important}
+#launchList .launch .launch-pedido span{font-weight:900!important;margin-right:4px!important}
+#launchList .launch .launch-dates{display:flex!important;justify-content:flex-start!important;align-items:flex-start!important;gap:12px!important;flex-wrap:wrap!important;margin:0!important;font-size:14px!important;line-height:1.25!important;font-weight:900!important}
+#launchList .launch .launch-dates span{white-space:nowrap!important}
+#launchList .launch .launch-dates b{font-size:15px!important;font-weight:1000!important;letter-spacing:.2px!important}
+#launchList .launch .launch-card-center{position:absolute!important;left:50%!important;top:0!important;transform:translateX(-50%)!important;width:min(38%,420px)!important;text-align:center!important;z-index:3!important}
+#launchList .launch .launch-os{display:table!important;margin:0 auto 3px!important;font-size:15px!important;line-height:1.15!important;font-weight:1000!important;letter-spacing:.3px!important;white-space:nowrap!important;padding:3px 10px!important}
+#launchList .launch .launch-card-center .lname{font-size:16px!important;line-height:1.15!important;font-weight:1000!important;text-align:center!important;white-space:normal!important;overflow-wrap:anywhere!important}
+#launchList .launch .launch-vehicle-highlight{margin:3px auto 0!important;font-size:15px!important;line-height:1.15!important;font-weight:1000!important;text-align:center!important;overflow-wrap:anywhere!important}
+#launchList .launch .launch-actions{position:absolute!important;right:0!important;top:0!important;display:flex!important;align-items:flex-start!important;justify-content:flex-end!important;gap:4px!important;z-index:4!important}
+#launchList .launch .launch-actions .launch-values{margin-right:1px!important}
+#launchList .launch .services-under-client{margin-top:3px!important}
+@media(max-width:800px){
+  #launchList .launch .launch-card-top{min-height:0!important;padding-bottom:2px!important}
+  #launchList .launch .launch-card-left{position:static!important;width:100%!important;min-width:0!important;padding-right:120px!important}
+  #launchList .launch .launch-card-center{position:static!important;transform:none!important;width:100%!important;margin:6px auto 0!important;padding:0 12px!important}
+  #launchList .launch .launch-actions{top:0!important;right:0!important}
+  #launchList .launch .launch-pedido{font-size:13px!important}
+  #launchList .launch .launch-dates{font-size:13px!important;gap:8px!important}
+  #launchList .launch .launch-dates b{font-size:14px!important}
+}
+
+
+/* Navegação por teclado — cartão atualmente selecionado */
+#launchList .launch.keyboard-selected{
+  outline:3px solid var(--brand,#173b67)!important;
+  outline-offset:2px!important;
+  scroll-margin:18px!important;
+}
+#launchList .launch:focus-visible{
+  outline:3px solid var(--brand,#173b67)!important;
+  outline-offset:2px!important;
+}

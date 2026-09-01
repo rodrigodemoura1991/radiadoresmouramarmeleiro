@@ -19,7 +19,6 @@
 .grouped-service.payment-wallet{border-left-color:#b7791f!important}
 .grouped-service.payment-boleto{border-left-color:#0891b2!important}
 .grouped-service.payment-notinha{border-left-color:#64748b!important}
-.grouped-service.payment-pending::before{content:'★';position:absolute;left:-22px;top:50%;transform:translateY(-50%);font-size:14px;line-height:1;color:#111;font-weight:900}
 .grouped-top{display:grid;grid-template-columns:82px minmax(0,1fr) auto;gap:8px;align-items:center;padding-right:112px}
 .grouped-date b{display:block;font-size:13px;line-height:1.15}
 .grouped-date small{display:block;color:var(--muted);font-size:10px;line-height:1.2;margin-top:1px}

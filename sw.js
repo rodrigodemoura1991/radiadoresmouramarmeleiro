@@ -1,14 +1,57 @@
-// Service Worker desativado durante a estabilização do aplicativo.
+const CACHE_NAME = 'radiadores-moura-v34';
+const APP_SHELL = [
+  './',
+  './index.html',
+  './css/style.css?v=stable2',
+  './css/payments.css?v=payments1',
+  './css/layout-consolidated.css?v=layout1',
+  './app.js?v=stable7',
+  './auth-fix.js?v=auth3',
+  './stability.js?v=stable2',
+  './freight.js?v=freight8',
+  './freight-ui.js?v=freight8',
+  './tenant-fix.js?v=tenant3',
+  './supabase-config.js?v=stable5',
+  './assets/logo-radiadores-moura.svg',
+  './manifest.webmanifest',
+  './8857A320-4E57-4A00-933D-C76434BC6953.png'
+];
+
 self.addEventListener('install', event => {
-  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.map(key => caches.delete(key))))
-      .then(() => self.clients.matchAll({ type: 'window' }))
-      .then(clients => clients.forEach(client => client.navigate(client.url)))
-      .then(() => self.registration.unregister())
+      .then(keys => Promise.all(
+        keys
+          .filter(key => key !== CACHE_NAME)
+          .map(key => caches.delete(key))
+      ))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  const url = new URL(request.url);
+
+  if (request.method !== 'GET' || url.origin !== self.location.origin) return;
+
+  event.respondWith(
+    fetch(request)
+      .then(response => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+        }
+        return response;
+      })
+      .catch(() => caches.match(request).then(cached => cached || caches.match('./index.html')))
   );
 });

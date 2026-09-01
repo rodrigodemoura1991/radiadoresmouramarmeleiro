@@ -45,7 +45,11 @@
   }
 
   function patchNewRows(){
-    document.querySelectorAll('#rows .svc-row').forEach(r=>freightInput(r,r.dataset.freightValue));
+    document.querySelectorAll('#rows .svc-row').forEach(r=>{
+      const existing=r.querySelector('.freight');
+      if(existing) return;
+      freightInput(r,r.dataset.freightValue ?? 0);
+    });
     header();
   }
 
@@ -108,6 +112,8 @@
     if($('fixProfit'))$('fixProfit').textContent=money(t.net);
   }
 
+  window.__radiadoresCalcEdit=calcEdit;
+
   async function saveNew(e){
     e.preventDefault();
     if(e.stopImmediatePropagation) e.stopImmediatePropagation();
@@ -121,7 +127,7 @@
       if(cr.error){cloud('Erro ao salvar',false);return toast(cr.error.message)} c=cr.data; clients.unshift(c);
     }
     const t=totals(a), payment=String($('payment').value||'').trim();
-    const p={company_id:company.id,client_id:c?.id||null,entry_date:$('entry').value||null,exit_date:$('exit').value||null,client_name:$('clientInput').value.trim(),vehicle_make_model:$('vehicle').value.trim(),plate:$('plate').value.trim(),pedido:$('pedido').value.trim(),payment_status:payment||null,total_sale:t.sale,total_cost:t.cost+t.freight,total_freight:t.freight,total_tax:t.tax,net_profit:t.net};
+    const p=sanitizeDates({company_id:company.id,client_id:c?.id||null,entry_date:$('entry').value||null,exit_date:$('notDelivered')?.checked?null:($('exit').value||null),client_name:$('clientInput').value.trim(),vehicle_make_model:$('vehicle').value.trim(),plate:$('plate').value.trim(),pedido:$('pedido').value.trim(),payment_status:payment||null,total_sale:t.sale,total_cost:t.cost+t.freight,total_freight:t.freight,total_tax:t.tax,net_profit:t.net,notes:$('orderNotes')?.value.trim()||''});
     const r=editing?await sb.from('orders').update(p).eq('id',editing.id).select().single():await sb.from('orders').insert(p).select().single();
     if(r.error){cloud('Erro ao salvar',false);return toast('Erro ao salvar lançamento: '+r.error.message)}
     if(editing){const dr=await sb.from('order_items').delete().eq('order_id',editing.id);if(dr.error){cloud('Erro ao salvar',false);return toast('Erro ao atualizar serviços: '+dr.error.message)}}
@@ -132,7 +138,11 @@
   }
 
   function patchEditRows(){
-    document.querySelectorAll('#fixRows .edit-svc-row').forEach(r=>freightInput(r,r.dataset.freightValue??0));
+    document.querySelectorAll('#fixRows .edit-svc-row').forEach(r=>{
+      const existing=r.querySelector('.freight');
+      if(existing) return;
+      freightInput(r, r.dataset.freightValue ?? 0);
+    });
     header(); calcEdit();
   }
 
@@ -162,7 +172,7 @@
       if(cr.error){cloud('Erro ao salvar',false);return toast(cr.error.message)} c=cr.data;
     }
     const t=totals(a);
-    const p={company_id:company.id,client_id:c?.id||old.client_id||null,entry_date:$('fixEntry').value,exit_date:$('fixExit').value,client_name:$('fixClient').value.trim(),vehicle_make_model:$('fixVehicle').value.trim(),plate:$('fixPlate').value.trim(),pedido:$('fixPedido').value.trim(),payment_status:$('fixPayment').value,total_sale:t.sale,total_cost:t.cost+t.freight,total_freight:t.freight,total_tax:t.tax,net_profit:t.net};
+    const p=sanitizeDates({company_id:company.id,client_id:c?.id||old.client_id||null,entry_date:$('fixEntry').value,exit_date:$('fixNotDelivered')?.checked?null:$('fixExit').value,client_name:$('fixClient').value.trim(),vehicle_make_model:$('fixVehicle').value.trim(),plate:$('fixPlate').value.trim(),pedido:$('fixPedido').value.trim(),payment_status:$('fixPayment').value,total_sale:t.sale,total_cost:t.cost+t.freight,total_freight:t.freight,total_tax:t.tax,net_profit:t.net,notes:$('fixNotes')?.value.trim()||''});
     const r=await sb.from('orders').update(p).eq('id',id).select().single();
     if(r.error){cloud('Erro ao salvar',false);return toast('Erro ao salvar: '+r.error.message)}
     const dr=await sb.from('order_items').delete().eq('order_id',id);
@@ -174,13 +184,21 @@
   }
 
   function observeClicks(){
+    if(window.__radiadoresFreightClicksBound) return;
+    window.__radiadoresFreightClicksBound=true;
     document.addEventListener('click',e=>{
       const edit=e.target.closest?.('[data-edit]');
-      const launch=e.target.closest?.('.launch[data-id]');
-      if(edit) currentEditId=edit.dataset.edit;
-      else if(launch) currentEditId=launch.dataset.id;
-      if(e.target.closest?.('#fixAdd')) requestAnimationFrame(()=>{patchEditRows()});
-      requestAnimationFrame(()=>{patchNewRows();patchEditRows();loadEditFreight()});
+      const launch=e.target.closest?.('.launch[data-id],.launch[data-order-id]');
+      const add=e.target.closest?.('#fixAdd');
+      let opened=false;
+      if(edit){ currentEditId=edit.dataset.edit; opened=true; }
+      else if(launch){ currentEditId=launch.dataset.id || launch.dataset.orderId; opened=true; }
+      if(add){ requestAnimationFrame(()=>{patchEditRows();calcEdit()}); return; }
+      requestAnimationFrame(()=>{
+        patchNewRows();
+        patchEditRows();
+        if(opened) loadEditFreight();
+      });
     },true);
   }
 

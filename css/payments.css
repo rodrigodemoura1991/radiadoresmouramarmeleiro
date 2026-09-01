@@ -1,0 +1,41 @@
+/* Etapa 5 — cores de pagamento consolidadas.
+   Única fonte para os estados EM ABERTO e FALTA ACERTAR. */
+/* FALTA ACERTAR: cartão azul com contraste total */
+.launch.payment-falta-acertar{background:#1976e8!important;border-color:#1266cf!important;color:#fff!important;box-shadow:0 8px 22px #1976e833}.launch.payment-falta-acertar .lname,.launch.payment-falta-acertar .meta,.launch.payment-falta-acertar .ltop>b{color:#fff!important}.launch.payment-falta-acertar .btn,.launch.payment-falta-acertar button{background:#fff!important;color:#173b67!important;border-color:#fff!important}.launch.payment-falta-acertar .chip{background:#fff;color:#173b67;border-color:#fff}.launch.payment-falta-acertar .chip.Liberado{background:#e8f2ff;color:#2364a9}.launch.payment-falta-acertar .chip.Parado{background:#fff3df;color:#9b5c00}.launch.payment-falta-acertar .chip.Pronto{background:#eee9ff;color:#6444ad}.launch.payment-falta-acertar .chip.Prontoentregue{background:#e6f7ef;color:#087249}.launch.payment-falta-acertar .chip:last-child{background:#fff;color:#1266cf;font-weight:950}.launch.payment-falta-acertar .edit,.launch.payment-falta-acertar .delete{color:#173b67!important;background:#fff!important}
+
+/* EM ABERTO: cartão amarelo com texto escuro e alto contraste */
+.launch.payment-em-aberto{background:#f5c542!important;border-color:#d7a900!important;color:#172033!important;box-shadow:0 8px 22px #d7a90033}.launch.payment-em-aberto .lname,.launch.payment-em-aberto .meta,.launch.payment-em-aberto .ltop>b{color:#172033!important}.launch.payment-em-aberto .btn,.launch.payment-em-aberto button{background:#fff!important;color:#173b67!important;border-color:#fff!important}.launch.payment-em-aberto .chip{background:#fff;color:#173b67;border-color:#fff}.launch.payment-em-aberto .chip:last-child{background:#fff;color:#173b67;font-weight:950}.launch.payment-em-aberto .edit,.launch.payment-em-aberto .delete{color:#173b67!important;background:#fff!important}
+/* remover completamente as estrelas de EM ABERTO */
+.service-card.payment-pending::before{content:none!important;display:none!important}.service-card.payment-pending{border-left-color:#d7a900!important}
+
+/* CORREÇÃO DEFINITIVA - SERVIÇOS DENTRO DO CARTÃO AZUL */
+.launch.payment-falta-acertar .chips > .chip:not(:last-child),
+.launch.payment-falta-acertar .chips > .chip:not(:last-child) *{
+  color:#111827!important;
+  -webkit-text-fill-color:#111827!important;
+  text-shadow:none!important;
+  opacity:1!important;
+}
+.launch.payment-falta-acertar .chips > .chip.Liberado:not(:last-child),
+.launch.payment-falta-acertar .chips > .chip.Parado:not(:last-child),
+.launch.payment-falta-acertar .chips > .chip.Pronto:not(:last-child),
+.launch.payment-falta-acertar .chips > .chip.Prontoentregue:not(:last-child){
+  background:#e6f7ef!important;
+  color:#111827!important;
+  -webkit-text-fill-color:#111827!important;
+}
+.launch.payment-falta-acertar .chips > .chip:not(:last-child)::first-letter{color:#111827!important;}
+.launch.payment-falta-acertar .chips > .chip:last-child{color:#1266cf!important;-webkit-text-fill-color:#1266cf!important;background:#fff!important;}
+.launch.payment-falta-acertar .chips > .chip:last-child *{color:#1266cf!important;-webkit-text-fill-color:#1266cf!important;}
+
+/* Contraste do indicador Bruto/Líquido no cartão azul. */
+.launch.payment-falta-acertar .launch-values>small,.launch.payment-falta-acertar .launch-values>em{color:rgba(255,255,255,.75)}
+/* Mesmas cores dos cartões de Lançamentos aplicadas à lista Serviços. */
+.service-card.payment-pending{background:#f5c542!important;border-color:#d7a900!important;border-left-color:#d7a900!important;color:#172033!important;box-shadow:0 8px 22px #d7a90033}
+.service-card.payment-pending .service-date b,.service-card.payment-pending .service-main>b,.service-card.payment-pending .service-desc,.service-card.payment-pending .service-values b{color:#172033!important}
+.service-card.payment-pending .service-date small,.service-card.payment-pending .service-main small,.service-card.payment-pending .service-values span{color:#3d4655!important}
+.service-card.payment-pending .payment-badge{background:#fff!important;color:#173b67!important;border-color:#fff!important}
+.service-card.payment-falta-acertar{background:#1976e8!important;border-color:#1266cf!important;border-left-color:#1266cf!important;color:#fff!important;box-shadow:0 8px 22px #1976e833}
+.service-card.payment-falta-acertar .service-date b,.service-card.payment-falta-acertar .service-main>b,.service-card.payment-falta-acertar .service-desc,.service-card.payment-falta-acertar .service-values b{color:#fff!important}
+.service-card.payment-falta-acertar .service-date small,.service-card.payment-falta-acertar .service-main small,.service-card.payment-falta-acertar .service-values span{color:rgba(255,255,255,.82)!important}
+.service-card.payment-falta-acertar .payment-badge{background:#fff!important;color:#1266cf!important;border-color:#fff!important}

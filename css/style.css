@@ -17,30 +17,128 @@
 @media(max-width:800px){.shell{grid-template-columns:1fr;padding:10px}.side{position:static;display:flex;overflow:auto;gap:4px}.nav{white-space:nowrap}.service-card{grid-template-columns:72px 1fr;padding:6px 8px}.service-values,.service-badges{grid-column:2;justify-content:flex-start}.profit-grid{grid-template-columns:1fr 1fr}.payment-breakdown{grid-template-columns:1fr}}
 @media(max-width:520px){.profit-grid{grid-template-columns:1fr}.service-card{grid-template-columns:1fr;padding:6px 8px}.service-values,.service-badges{grid-column:1}.balance-options .field{min-width:100%}.service-toolbar input{min-width:100%}}
 
-/* FALTA ACERTAR: cartão azul com contraste total */
-.launch.payment-falta-acertar{background:#1976e8!important;border-color:#1266cf!important;color:#fff!important;box-shadow:0 8px 22px #1976e833}.launch.payment-falta-acertar .lname,.launch.payment-falta-acertar .meta,.launch.payment-falta-acertar .ltop>b{color:#fff!important}.launch.payment-falta-acertar .btn,.launch.payment-falta-acertar button{background:#fff!important;color:#173b67!important;border-color:#fff!important}.launch.payment-falta-acertar .chip{background:#fff;color:#173b67;border-color:#fff}.launch.payment-falta-acertar .chip.Liberado{background:#e8f2ff;color:#2364a9}.launch.payment-falta-acertar .chip.Parado{background:#fff3df;color:#9b5c00}.launch.payment-falta-acertar .chip.Pronto{background:#eee9ff;color:#6444ad}.launch.payment-falta-acertar .chip.Prontoentregue{background:#e6f7ef;color:#087249}.launch.payment-falta-acertar .chip:last-child{background:#fff;color:#1266cf;font-weight:950}.launch.payment-falta-acertar .edit,.launch.payment-falta-acertar .delete{color:#173b67!important;background:#fff!important}
+/* Valor bruto e líquido nos cartões de lançamentos */
+.launch-values{display:flex;flex-direction:column;align-items:flex-end;line-height:1.05;min-width:92px}
+.launch-values>b{font-size:18px;font-weight:900}
+.launch-values>small{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-top:2px}
+.launch-values>span{font-size:13px;font-weight:800;margin-top:5px}
+.launch-values>em{font-size:8px;color:var(--muted);font-style:normal;font-weight:700;text-transform:uppercase}
+@media(max-width:700px){.launch-values{min-width:78px}.launch-values>b{font-size:16px}.launch-values>span{font-size:12px}}
+.launch-observation-card{display:block;margin-top:6px;padding:6px 9px;border:1px solid #e7c75f;border-left:4px solid #d99b00;border-radius:7px;background:#fff8d9;color:#27364d;font-size:10px;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere;box-sizing:border-box}.launch-observation-card span{font-weight:800;color:#8a5a00;margin-right:3px}.launch.payment-falta-acertar .launch-observation-card{background:#fff8d9;border-color:#e7c75f;border-left-color:#d99b00;color:#27364d}.launch.payment-falta-acertar .launch-observation-card span{color:#8a5a00}
 
-/* EM ABERTO: cartão amarelo com texto escuro e alto contraste */
-.launch.payment-em-aberto{background:#f5c542!important;border-color:#d7a900!important;color:#172033!important;box-shadow:0 8px 22px #d7a90033}.launch.payment-em-aberto .lname,.launch.payment-em-aberto .meta,.launch.payment-em-aberto .ltop>b{color:#172033!important}.launch.payment-em-aberto .btn,.launch.payment-em-aberto button{background:#fff!important;color:#173b67!important;border-color:#fff!important}.launch.payment-em-aberto .chip{background:#fff;color:#173b67;border-color:#fff}.launch.payment-em-aberto .chip:last-child{background:#fff;color:#173b67;font-weight:950}.launch.payment-em-aberto .edit,.launch.payment-em-aberto .delete{color:#173b67!important;background:#fff!important}
-/* remover completamente as estrelas de EM ABERTO */
-.service-card.payment-pending::before{content:none!important;display:none!important}.service-card.payment-pending{border-left-color:#d7a900!important}
+/* V13 — cartões de lançamentos compactos, próximos ao tamanho dos cartões da aba Serviços */
+#launchList .launch{
+  padding:6px 8px!important;
+  margin:0!important;
+  border-radius:9px!important;
+  min-height:0!important;
+  box-sizing:border-box!important;
+}
+#launchList .launches{gap:4px!important}
+#launchList .launch .ltop{gap:5px!important;align-items:center!important}
+#launchList .launch .lname{font-size:13px!important;line-height:1.1!important}
+#launchList .launch .meta{font-size:10px!important;line-height:1.2!important;margin-top:1px!important}
+#launchList .launch .launch-actions{gap:3px!important}
+#launchList .launch .launch-action{padding:4px 6px!important;font-size:9px!important;line-height:1.1!important}
+#launchList .launch .launch-values{min-width:88px!important;line-height:1!important}
+#launchList .launch .launch-values>b{font-size:16px!important;line-height:1!important}
+#launchList .launch .launch-values>span{font-size:12px!important;margin-top:3px!important;line-height:1!important}
+#launchList .launch .launch-values>em{font-size:7px!important;margin-top:1px!important;line-height:1!important}
+#launchList .launch .launch-services{gap:2px!important;margin-top:2px!important}
+#launchList .launch .service-line{padding:3px 6px!important;border-radius:6px!important;font-size:9px!important;line-height:1.1!important;min-height:0!important}
+#launchList .launch .service-line b{font-size:9px!important}
+#launchList .launch .chips{gap:2px!important;margin-top:3px!important}
+#launchList .launch .chip{padding:2px 5px!important;font-size:8px!important;line-height:1.05!important}
+#launchList .launch .launch-observation-card{margin-top:3px!important;padding:5px 7px!important;border-radius:6px!important;font-size:9px!important;line-height:1.25!important}
 
-/* CORREÇÃO DEFINITIVA - SERVIÇOS DENTRO DO CARTÃO AZUL */
-.launch.payment-falta-acertar .chips > .chip:not(:last-child),
-.launch.payment-falta-acertar .chips > .chip:not(:last-child) *{
-  color:#111827!important;
-  -webkit-text-fill-color:#111827!important;
-  text-shadow:none!important;
-  opacity:1!important;
+@media(max-width:700px){
+  #launchList .launch{padding:6px 7px!important}
+  #launchList .launch .lname{font-size:12px!important}
+  #launchList .launch .meta{font-size:9px!important}
+  #launchList .launch .launch-values>b{font-size:15px!important}
+  #launchList .launch .launch-values>span{font-size:11px!important}
+  #launchList .launch .service-line{padding:3px 5px!important}
+  #launchList .launch .launch-observation-card{font-size:9px!important}
 }
-.launch.payment-falta-acertar .chips > .chip.Liberado:not(:last-child),
-.launch.payment-falta-acertar .chips > .chip.Parado:not(:last-child),
-.launch.payment-falta-acertar .chips > .chip.Pronto:not(:last-child),
-.launch.payment-falta-acertar .chips > .chip.Prontoentregue:not(:last-child){
-  background:#e6f7ef!important;
-  color:#111827!important;
-  -webkit-text-fill-color:#111827!important;
+
+
+/* V15 — densidade visual alinhada aos cartões da aba Serviços */
+#launchList .launch-card-v3{padding:5px 7px!important;border-radius:8px!important;min-height:0!important}
+#launchList .launch-card-v3 .grouped-top{gap:5px!important}
+#launchList .launch-card-v3 .grouped-items{gap:2px!important;margin-top:2px!important}
+#launchList .launch-card-v3 .grouped-item{padding:2.5px 5px!important}
+#launchList .launch-card-v3 .grouped-payment{margin-top:2px!important}
+#launchList .launch-card-v3 .service-actions-v2{gap:2px!important}
+#launchList .launch-card-v3 .service-actions-v2 button{padding:2px 6px!important}
+@media(max-width:700px){#launchList .launch-card-v3{padding:5px 6px!important}}
+@media(max-width:390px){#launchList .launch-card-v3{padding:4px 5px!important}}
+
+/* V23 - cabeçalho dos lançamentos harmonizado: centro real + pedido/datas à esquerda */
+#launchList .launch{position:relative!important;overflow:hidden!important;padding:5px 7px!important}
+#launchList .launch .launch-card-top{position:relative!important;display:grid!important;grid-template-columns:190px minmax(0,1fr) 235px!important;align-items:start!important;gap:6px!important;min-height:54px!important;padding:0!important;box-sizing:border-box!important}
+#launchList .launch .launch-card-left{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:flex-start!important;align-self:center!important;min-width:0!important;padding-top:2px!important;text-align:left!important}
+#launchList .launch .launch-card-center{width:100%!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:0!important;text-align:center!important;min-width:0!important}
+#launchList .launch .launch-os{display:block!important;font-size:13px!important;line-height:1.05!important;font-weight:1000!important;letter-spacing:.35px!important;color:inherit!important;margin:0 0 2px!important;white-space:nowrap!important;text-align:center!important}
+#launchList .launch .lname{font-size:15px!important;line-height:1.08!important;font-weight:1000!important;text-align:center!important;white-space:normal!important;margin:0!important;overflow-wrap:anywhere!important}
+#launchList .launch .launch-vehicle-highlight{margin:1px 0 0!important;text-align:center!important;font-size:12px!important;line-height:1.12!important;font-weight:900!important;letter-spacing:.12px!important;overflow-wrap:anywhere!important}
+#launchList .launch .launch-pedido{font-size:10px!important;line-height:1.1!important;font-weight:800!important;margin:0 0 2px!important;text-align:left!important;white-space:nowrap!important}
+#launchList .launch .launch-pedido span{font-size:9px!important;font-weight:700!important;opacity:.72!important;margin-right:3px!important}
+#launchList .launch .launch-pedido b{font-size:10px!important;font-weight:1000!important}
+#launchList .launch .launch-dates{display:flex!important;justify-content:flex-start!important;align-items:flex-start!important;gap:7px!important;flex-wrap:wrap!important;margin:0!important;font-size:10px!important;line-height:1.15!important;font-weight:800!important;text-align:left!important}
+#launchList .launch .launch-dates b{font-size:11px!important;font-weight:1000!important;letter-spacing:.1px!important}
+#launchList .launch .launch-actions{display:flex!important;align-items:flex-start!important;justify-content:flex-end!important;gap:3px!important;min-width:0!important}
+#launchList .launch .launch-values{min-width:88px!important;line-height:1!important;text-align:right!important}
+#launchList .launch .launch-values>b{font-size:16px!important;line-height:1!important}
+#launchList .launch .launch-values>span{font-size:12px!important;margin-top:3px!important;line-height:1!important}
+#launchList .launch .launch-values>em{font-size:7px!important;margin-top:1px!important;line-height:1!important}
+#launchList .launch .launch-action{padding:4px 6px!important;font-size:9px!important;line-height:1.1!important}
+#launchList .launch .services-under-client{justify-content:center!important;margin-top:4px!important}
+#launchList .launch .launch-services{margin-top:2px!important}
+@media(max-width:900px){
+  #launchList .launch .launch-card-top{grid-template-columns:150px minmax(0,1fr) 205px!important}
 }
-.launch.payment-falta-acertar .chips > .chip:not(:last-child)::first-letter{color:#111827!important;}
-.launch.payment-falta-acertar .chips > .chip:last-child{color:#1266cf!important;-webkit-text-fill-color:#1266cf!important;background:#fff!important;}
-.launch.payment-falta-acertar .chips > .chip:last-child *{color:#1266cf!important;-webkit-text-fill-color:#1266cf!important;}
+@media(max-width:700px){
+  #launchList .launch .launch-card-top{display:grid!important;grid-template-columns:1fr!important;gap:4px!important;min-height:0!important}
+  #launchList .launch .launch-card-center{grid-row:1!important;grid-column:1!important;padding:0 2px!important}
+  #launchList .launch .launch-card-left{grid-row:2!important;grid-column:1!important;align-items:center!important;text-align:center!important;padding:0!important}
+  #launchList .launch .launch-pedido,#launchList .launch .launch-dates{text-align:center!important;justify-content:center!important}
+  #launchList .launch .launch-actions{grid-row:3!important;grid-column:1!important;justify-content:flex-end!important;width:100%!important;margin-top:2px!important}
+  #launchList .launch .launch-values{margin-left:auto!important}
+  #launchList .launch .lname{font-size:14px!important}
+  #launchList .launch .launch-vehicle-highlight{font-size:11px!important}
+  #launchList .launch .launch-dates{font-size:10px!important;gap:8px!important}
+  #launchList .launch .launch-dates b{font-size:11px!important}
+}
+
+/* V24.1 — centro geométrico real do cartão e destaque maior para pedido/datas */
+#launchList .launch .launch-card-top{display:block!important;position:relative!important;min-height:78px!important;padding:0!important}
+#launchList .launch .launch-card-left{position:absolute!important;left:0!important;top:50%!important;transform:translateY(-50%)!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;padding:0!important;margin:0!important;text-align:left!important;z-index:1!important}
+#launchList .launch .launch-card-center{position:absolute!important;left:50%!important;top:0!important;transform:translateX(-50%)!important;width:max-content!important;max-width:48%!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;text-align:center!important;padding:0!important;margin:0!important;z-index:2!important}
+#launchList .launch .launch-os{font-size:14px!important;line-height:1.05!important;font-weight:1000!important;margin:0 0 2px!important;text-align:center!important}
+#launchList .launch .lname{font-size:15px!important;line-height:1.08!important;font-weight:1000!important;margin:0!important;text-align:center!important}
+#launchList .launch .launch-vehicle-highlight{font-size:12px!important;line-height:1.12!important;font-weight:900!important;margin:3px 0 0!important;text-align:center!important}
+#launchList .launch .launch-actions{position:absolute!important;right:0!important;top:0!important;display:flex!important;align-items:flex-start!important;justify-content:flex-end!important;gap:3px!important;z-index:3!important}
+#launchList .launch .launch-pedido{font-size:13px!important;line-height:1.15!important;font-weight:900!important;margin:0 0 6px!important;text-align:left!important;white-space:nowrap!important}
+#launchList .launch .launch-pedido span{font-size:11px!important;font-weight:800!important;opacity:.8!important;margin-right:3px!important}
+#launchList .launch .launch-pedido b{font-size:14px!important;font-weight:1000!important}
+#launchList .launch .launch-dates{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:4px!important;margin:0!important;font-size:12px!important;line-height:1.15!important;font-weight:900!important;text-align:left!important}
+#launchList .launch .launch-dates b{font-size:14px!important;font-weight:1000!important;letter-spacing:.1px!important}
+#launchList .launch .services-under-client{justify-content:center!important;margin-top:4px!important}
+@media(max-width:700px){
+  #launchList .launch .launch-card-top{min-height:0!important;padding-top:0!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:4px!important}
+  #launchList .launch .launch-card-center{position:static!important;transform:none!important;width:100%!important;max-width:none!important;order:1!important}
+  #launchList .launch .launch-card-left{position:static!important;transform:none!important;order:2!important;align-items:center!important;text-align:center!important}
+  #launchList .launch .launch-actions{position:static!important;order:3!important;justify-content:flex-end!important}
+  #launchList .launch .launch-pedido,#launchList .launch .launch-dates{text-align:center!important;align-items:center!important}
+}
+
+/* V26 — reduzir altura sem perder as informações do cartão */
+#launchList .launch{padding:4px 7px!important}
+#launchList .launch .launch-card-top{min-height:58px!important}
+#launchList .launch .launch-os{margin-bottom:1px!important}
+#launchList .launch .launch-vehicle-highlight{margin-top:1px!important}
+#launchList .launch .launch-pedido{margin-bottom:3px!important}
+#launchList .launch .launch-dates{gap:2px!important}
+#launchList .launch .services-under-client{margin-top:2px!important}
+#launchList .launch .launch-services{margin-top:2px!important}
+#launchList .launch .launch-observation-card{margin-top:2px!important}
