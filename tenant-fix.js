@@ -126,4 +126,39 @@
     $('applyCustomBalance')?.addEventListener('click',()=>{window.__balanceCustom=true;setTimeout(renderBalanceServices,20)});
     setTimeout(renderBalanceServices,250);
   });
+
+  /* ===== Compactação extra dos cartões de lançamentos ===== */
+  document.addEventListener('DOMContentLoaded',()=>{
+    const style=document.createElement('style');
+    style.textContent=`
+      html body #launchList .launch-card-v3{padding:2px 4px!important;border-radius:5px!important}
+      html body #launchList .launch-card-v3 .grouped-top{grid-template-columns:54px minmax(0,1fr) auto!important;gap:2px!important}
+      html body #launchList .launch-card-v3 .grouped-date b{font-size:8px!important;line-height:1!important}
+      html body #launchList .launch-card-v3 .grouped-date small{font-size:6.5px!important;line-height:1!important;margin:0!important}
+      html body #launchList .launch-card-v3 .grouped-main .lname{font-size:9px!important;line-height:1!important}
+      html body #launchList .launch-card-v3 .grouped-main .meta{font-size:6.5px!important;line-height:1!important;margin:0!important}
+      html body #launchList .launch-card-v3 .grouped-total{font-size:8px!important;line-height:1!important}
+      html body #launchList .launch-card-v3 .launch-number{font-size:6.5px!important;padding:1px 3px!important;margin-right:2px!important}
+      html body #launchList .launch-card-v3 .grouped-items{gap:1px!important;margin-top:1px!important}
+      html body #launchList .launch-card-v3 .grouped-item{gap:2px!important;padding:1px 3px!important;border-radius:2px!important;font-size:6.5px!important;line-height:1!important}
+      html body #launchList .launch-card-v3 .grouped-item b{font-size:6.5px!important;line-height:1!important}
+      html body #launchList .launch-card-v3 .grouped-payment{gap:2px!important;margin-top:1px!important}
+      html body #launchList .launch-card-v3 .payment-badge{padding:1px 3px!important;border-radius:3px!important;font-size:6.5px!important;line-height:1!important}
+      html body #launchList .launch-card-v3 .service-actions-v2{gap:2px!important}
+      html body #launchList .launch-card-v3 .service-actions-v2 button{padding:1px 3px!important;font-size:6.5px!important;border-radius:3px!important;line-height:1!important}
+      @media(max-width:700px){
+        html body #launchList .launch-card-v3{padding:1px 3px!important}
+        html body #launchList .launch-card-v3 .grouped-top{grid-template-columns:50px minmax(0,1fr) auto!important;gap:2px!important}
+        html body #launchList .launch-card-v3 .grouped-date b{font-size:7.5px!important}
+        html body #launchList .launch-card-v3 .grouped-date small{font-size:6px!important}
+        html body #launchList .launch-card-v3 .grouped-main .lname{font-size:8.5px!important}
+        html body #launchList .launch-card-v3 .grouped-main .meta{font-size:6px!important}
+        html body #launchList .launch-card-v3 .grouped-total{font-size:7.5px!important}
+        html body #launchList .launch-card-v3 .grouped-item{font-size:6px!important;padding:1px 2px!important}
+        html body #launchList .launch-card-v3 .grouped-item b{font-size:6px!important}
+        html body #launchList .launch-card-v3 .payment-badge{font-size:6px!important}
+      }
+    `;
+    document.head.appendChild(style);
+  });
 })();
