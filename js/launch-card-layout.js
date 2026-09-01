@@ -5,35 +5,35 @@
   const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
   const esc=s=>String(s??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
   const slug=s=>String(s||'').replace(/\s+/g,'').replace('ç','c').replace('ã','a');
-  const fmtDate=v=>{const s=String(v||'').trim(),m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[3]}/${m[2]}`:(s||'—')};
+  const fmtDate=v=>{const s=String(v||'').trim(),m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[3]}/${m[2]}/${m[1]}`:(s||'—')};
   const displayStatus=v=>String(v||'—').trim().toLowerCase()==='pronto entregue'?'PRONTO/ENTREGUE':String(v||'—');
 
   function injectCss(){
     let s=document.getElementById('launch-card-layout-css');
     if(!s){s=document.createElement('style');s.id='launch-card-layout-css';document.head.appendChild(s)}
     s.textContent=`
-      /* Compacto como Todos os Serviços, sem esconder nenhum dado. */
+      /* Mesmo padrão compacto de Todos os Serviços, sem perder dados. */
       #launchList{display:grid!important;gap:5px!important;padding-left:0!important}
-      #launchList .launch-card-v3{display:block!important;position:relative!important;box-sizing:border-box!important;width:100%!important;min-height:0!important;padding:5px 7px 5px!important;border-radius:8px!important;overflow:visible!important;cursor:default!important}
-      #launchList .launch-card-v3 .grouped-top{display:grid!important;grid-template-columns:55px minmax(0,1fr) auto!important;gap:6px!important;align-items:center!important;padding-right:0!important}
-      #launchList .launch-card-v3 .grouped-date b{display:block!important;font-size:10px!important;line-height:1.05!important;font-weight:900!important}
-      #launchList .launch-card-v3 .grouped-date small{display:block!important;color:var(--muted)!important;font-size:8px!important;line-height:1.05!important;margin-top:1px!important;white-space:nowrap!important}
+      #launchList .launch-card-v3{display:block!important;position:relative!important;box-sizing:border-box!important;width:100%!important;min-height:0!important;padding:5px 7px!important;border-radius:8px!important;overflow:visible!important;cursor:default!important}
+      #launchList .launch-card-v3 .grouped-top{display:grid!important;grid-template-columns:55px minmax(0,1fr) auto!important;gap:6px!important;align-items:start!important;padding-right:0!important}
+      #launchList .launch-card-v3 .grouped-date b{display:block!important;font-size:9px!important;line-height:1.05!important;font-weight:1000!important;color:#17324d!important;white-space:nowrap!important}
+      #launchList .launch-card-v3 .grouped-date small{display:block!important;color:#17324d!important;font-size:7.5px!important;line-height:1.05!important;margin-top:1px!important;font-weight:900!important;white-space:nowrap!important}
       #launchList .launch-card-v3 .grouped-main{min-width:0!important}
-      #launchList .launch-card-v3 .grouped-main .lname{font-size:11px!important;line-height:1.05!important;font-weight:950!important;white-space:normal!important;word-break:break-word!important}
-      #launchList .launch-card-v3 .grouped-main .meta{font-size:8px!important;line-height:1.05!important;margin-top:1px!important;white-space:normal!important;word-break:break-word!important;color:var(--muted)!important}
-      #launchList .launch-card-v3 .grouped-total{font-size:10px!important;line-height:1!important;white-space:nowrap!important;align-self:start!important;margin-top:1px!important}
+      #launchList .launch-card-v3 .grouped-main .lname{font-size:10px!important;line-height:1.05!important;font-weight:1000!important;white-space:normal!important;word-break:break-word!important;color:#111827!important}
+      #launchList .launch-card-v3 .grouped-main .meta{font-size:7.5px!important;line-height:1.08!important;margin-top:2px!important;white-space:normal!important;word-break:break-word!important;color:#17324d!important;font-weight:900!important}
+      #launchList .launch-card-v3 .grouped-vehicle{font-weight:1000!important;color:#111827!important}
+      #launchList .launch-card-v3 .grouped-total{font-size:9px!important;line-height:1!important;white-space:nowrap!important;align-self:start!important;margin-top:1px!important;font-weight:1000!important;color:#111827!important}
       #launchList .launch-card-v3 .launch-number{display:inline-flex!important;align-items:center!important;justify-content:center!important;margin-right:4px!important;padding:2px 4px!important;border-radius:5px!important;background:#111827!important;color:#fff!important;font-size:8px!important;font-weight:950!important;line-height:1!important;vertical-align:middle!important;white-space:nowrap!important}
       #launchList .launch-card-v3 .grouped-items{display:grid!important;gap:2px!important;margin-top:3px!important}
       #launchList .launch-card-v3 .grouped-item{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:6px!important;min-height:0!important;padding:2px 4px!important;border-radius:4px!important;font-size:8px!important;line-height:1.05!important;font-weight:800!important}
       #launchList .launch-card-v3 .grouped-item span{min-width:0!important;overflow-wrap:anywhere!important}
-      #launchList .launch-card-v3 .grouped-item b{font-size:8px!important;line-height:1!important;white-space:nowrap!important;text-align:right!important}
+      #launchList .launch-card-v3 .grouped-item b{font-size:8px!important;line-height:1!important;white-space:nowrap!important;text-align:right!important;font-weight:1000!important}
       #launchList .launch-card-v3 .grouped-item.Liberado{background:#e8f2ff!important;color:#2364a9!important}
       #launchList .launch-card-v3 .grouped-item.Parado{background:#fff3df!important;color:#9b5c00!important}
       #launchList .launch-card-v3 .grouped-item.Pronto{background:#eee9ff!important;color:#6444ad!important}
       #launchList .launch-card-v3 .grouped-item.Prontoentregue{background:#e6f7ef!important;color:#087249!important}
       #launchList .launch-card-v3 .grouped-payment{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:6px!important;margin-top:3px!important;min-height:0!important}
-      #launchList .launch-card-v3 .payment-badge{display:inline-block!important;padding:2px 4px!important;border-radius:5px!important;background:#eef2f7!important;font-size:8px!important;line-height:1!important;font-weight:900!important;white-space:nowrap!important}
-      /* Botões compactos no rodapé, sem sobrepor cliente/valor. */
+      #launchList .launch-card-v3 .payment-badge{display:inline-block!important;padding:2px 4px!important;border-radius:5px!important;background:#eef2f7!important;font-size:8px!important;line-height:1!important;font-weight:1000!important;white-space:nowrap!important}
       #launchList .launch-card-v3 .service-actions-v2{position:static!important;display:flex!important;gap:3px!important;transform:none!important;margin-left:auto!important}
       #launchList .launch-card-v3 .service-actions-v2 button{padding:3px 6px!important;font-size:8px!important;line-height:1!important;border-radius:5px!important;min-height:0!important}
       #launchList .launch-card-v3.payment-pending{border-left-color:#111!important}
@@ -45,7 +45,7 @@
       #launchList .launch-card-v3.payment-boleto{border-left-color:#0891b2!important}
       #launchList .launch-card-v3.payment-notinha{border-left-color:#64748b!important}
       #launchList .launch-card-v3.payment-falta-acertar{background:#2563eb!important;background-color:#2563eb!important;border:2px solid #1d4ed8!important;color:#fff!important;box-shadow:0 2px 6px rgba(37,99,235,.22)!important}
-      #launchList .launch-card-v3.payment-falta-acertar .grouped-date small,#launchList .launch-card-v3.payment-falta-acertar .meta{color:#eaf2ff!important}
+      #launchList .launch-card-v3.payment-falta-acertar .grouped-date b,#launchList .launch-card-v3.payment-falta-acertar .grouped-date small,#launchList .launch-card-v3.payment-falta-acertar .grouped-main .lname,#launchList .launch-card-v3.payment-falta-acertar .meta,#launchList .launch-card-v3.payment-falta-acertar .grouped-vehicle,#launchList .launch-card-v3.payment-falta-acertar .grouped-total{color:#fff!important;-webkit-text-fill-color:#fff!important}
       #launchList .launch-card-v3.payment-falta-acertar .grouped-item{background:#fff!important;color:#111827!important;border:1px solid #dbe4ef!important}
       #launchList .launch-card-v3.payment-falta-acertar .grouped-item *{color:#111827!important;-webkit-text-fill-color:#111827!important}
       #launchList .launch-card-v3.payment-falta-acertar .payment-badge{background:#fff!important;color:#1d4ed8!important}
@@ -53,19 +53,26 @@
       @media(max-width:520px){
         #launchList .launch-card-v3{padding:4px 6px!important;border-radius:8px!important}
         #launchList .launch-card-v3 .grouped-top{grid-template-columns:52px minmax(0,1fr) auto!important;gap:5px!important}
-        #launchList .launch-card-v3 .grouped-date b{font-size:9px!important}
+        #launchList .launch-card-v3 .grouped-date b{font-size:8.5px!important}
         #launchList .launch-card-v3 .grouped-date small{font-size:7px!important}
-        #launchList .launch-card-v3 .grouped-main .lname{font-size:10px!important}
+        #launchList .launch-card-v3 .grouped-main .lname{font-size:9.5px!important}
         #launchList .launch-card-v3 .grouped-main .meta{font-size:7px!important}
-        #launchList .launch-card-v3 .grouped-total{font-size:9px!important}
-        #launchList .launch-card-v3 .grouped-items{margin-top:2px!important}
+        #launchList .launch-card-v3 .grouped-total{font-size:8.5px!important}
         #launchList .launch-card-v3 .grouped-item{font-size:7.5px!important;padding:2px 3px!important}
         #launchList .launch-card-v3 .grouped-item b{font-size:7.5px!important}
-        #launchList .launch-card-v3 .grouped-payment{margin-top:2px!important}
         #launchList .launch-card-v3 .payment-badge{font-size:7.5px!important;padding:2px 4px!important}
         #launchList .launch-card-v3 .service-actions-v2 button{font-size:7.5px!important;padding:3px 5px!important}
       }
     `;
+  }
+
+  function cleanupPaymentDuplicates(card){
+    const box=card?.querySelector('.grouped-payment');
+    if(!box)return;
+    const badges=[...box.querySelectorAll('.payment-badge')];
+    badges.slice(1).forEach(x=>x.remove());
+    const textNodes=[...box.childNodes].filter(n=>n.nodeType===3 && n.textContent.trim());
+    textNodes.forEach(n=>n.remove());
   }
 
   function removeOrder(id){
@@ -85,10 +92,10 @@
       const open=pay==='EM ABERTO',blue=pay.toUpperCase()==='FALTA ACERTAR';
       const statusClass=slug(items[0]?.service_status||'Liberado');
       const vehicle=o.vehicle_make_model?`<span class="grouped-vehicle">${esc(o.vehicle_make_model)}</span>`:'';
-      const pedido=o.pedido?`<span>${esc(o.pedido)}</span>`:'';
-      const placa=o.plate?`<span> • ${esc(o.plate)}</span>`:'';
+      const pedido=o.pedido?`<span>OS: ${esc(o.pedido)}</span>`:'';
+      const placa=o.plate?`<span> • Placa: ${esc(o.plate)}</span>`:'';
       const number=o.numero_lancamento!=null?`<span class="launch-number">#${esc(o.numero_lancamento)}</span>`:'';
-      return `<article class="launch service-card grouped-service launch-card-v3 ${statusClass} ${open?'payment-pending':'payment-'+slug(pay)} ${blue?'payment-falta-acertar':''}" data-id="${esc(o.id)}" data-order-id="${esc(o.id)}" aria-selected="false"><div class="grouped-top"><div class="grouped-date"><b>${esc(fmtDate(o.exit_date))}</b><small>Entrada ${esc(fmtDate(o.entry_date))}</small></div><div class="grouped-main"><div class="lname">${number}${esc(o.client_name||'Sem cliente')}</div><div class="meta">${pedido}${vehicle?' • '+vehicle:''}${placa}</div></div><b class="grouped-total">${money(o.total_sale)}</b></div><div class="grouped-items">${items.map(i=>`<div class="grouped-item ${slug(i.service_status)}"><span>${esc(i.description||'Sem descrição')} • ${money(i.sale_value)}</span><b>${esc(displayStatus(i.service_status))}</b></div>`).join('')||'<div class="grouped-item"><span>Sem serviço informado</span></div>'}</div><div class="grouped-payment"><span class="payment-badge">${esc(pay)}</span></div></article>`;
+      return `<article class="launch service-card grouped-service launch-card-v3 ${statusClass} ${open?'payment-pending':'payment-'+slug(pay)} ${blue?'payment-falta-acertar':''}" data-id="${esc(o.id)}" data-order-id="${esc(o.id)}" aria-selected="false"><div class="grouped-top"><div class="grouped-date"><b>Saída: ${esc(fmtDate(o.exit_date))}</b><small>Entrada: ${esc(fmtDate(o.entry_date))}</small></div><div class="grouped-main"><div class="lname">${number}${esc(o.client_name||'Sem cliente')}</div><div class="meta">${pedido}${vehicle?' • Marca/Modelo: '+vehicle:''}${placa}</div></div><b class="grouped-total">${money(o.total_sale)}</b></div><div class="grouped-items">${items.map(i=>`<div class="grouped-item ${slug(i.service_status)}"><span>${esc(i.description||'Sem descrição')} • ${money(i.sale_value)}</span><b>${esc(displayStatus(i.service_status))}</b></div>`).join('')||'<div class="grouped-item"><span>Sem serviço informado</span></div>'}</div><div class="grouped-payment"><span class="payment-badge">${esc(pay)}</span></div></article>`;
     }).join('')||'<div class="empty">Nenhum lançamento encontrado.</div>';
 
     list.querySelectorAll('.launch-card-v3').forEach(card=>{
@@ -98,6 +105,7 @@
       actions.querySelector('.service-edit-btn').onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof editOrder==='function')editOrder(id)};
       actions.querySelector('.service-delete-btn').onclick=e=>{e.preventDefault();e.stopPropagation();removeOrder(id)};
       card.onclick=e=>{if(e.target.closest('button'))return;if(typeof editOrder==='function')editOrder(id)};
+      cleanupPaymentDuplicates(card);
     });
   }
 
