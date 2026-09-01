@@ -79,19 +79,20 @@
     return document.querySelector('.period.active')?.dataset.p||'day';
   }
 
+  /* No Balanço, o período é determinado exclusivamente pela data de entrega/saída. */
   function balanceOrders(){
     const p=selectedBalancePeriod();
     const ref=$('balanceDate')?.value||'';
     const start=$('balanceStart')?.value||'';
     const end=$('balanceEnd')?.value||'';
-    if(p==='custom')return orders.filter(o=>o.entry_date&&(!start||o.entry_date>=start)&&(!end||o.entry_date<=end));
-    if(p==='all')return orders.slice();
+    if(p==='custom')return orders.filter(o=>o.exit_date&&(!start||o.exit_date>=start)&&(!end||o.exit_date<=end));
+    if(p==='all')return orders.filter(o=>!!o.exit_date);
     if(!ref)return [];
     const d=new Date(ref+'T00:00:00');
     return orders.filter(o=>{
-      if(!o.entry_date)return false;
-      const x=new Date(o.entry_date+'T00:00:00');
-      if(p==='day')return o.entry_date===ref;
+      if(!o.exit_date)return false;
+      const x=new Date(o.exit_date+'T00:00:00');
+      if(p==='day')return o.exit_date===ref;
       if(p==='month')return x.getFullYear()===d.getFullYear()&&x.getMonth()===d.getMonth();
       if(p==='year')return x.getFullYear()===d.getFullYear();
       const startWeek=new Date(d);startWeek.setDate(d.getDate()-d.getDay());
@@ -106,13 +107,13 @@
     const count=$('balanceServicesCount');
     if(!list||!count)return;
     const rows=balanceOrders().flatMap(o=>(o.order_items||[]).map(i=>({...i,order:o})));
-    rows.sort((a,b)=>String(b.order.exit_date||b.order.entry_date||'').localeCompare(String(a.order.exit_date||a.order.entry_date||'')));
+    rows.sort((a,b)=>String(b.order.exit_date||'').localeCompare(String(a.order.exit_date||'')));
     count.textContent=`${rows.length} ${rows.length===1?'serviço':'serviços'}`;
     list.innerHTML=rows.map(x=>{
       const pay=x.order.payment_status||'EM ABERTO';
       const cls=String(pay).toLowerCase().replace(/\s+/g,'-').replace('ã','a');
       const profit=Number(x.sale_value||0)-Number(x.cost_value||0)-Number(x.freight_value||0)-(Number(x.sale_value||0)*Number(x.tax_rate||0)/100);
-      return `<article class="service-card payment-${cls}"><div class="service-date"><b>${esc(x.order.exit_date||'—')}</b><small>Entrada ${esc(x.order.entry_date||'—')}</small></div><div class="service-main"><b>${esc(x.order.client_name||'Sem cliente')}</b><small>OS ${esc(x.order.numero_lancamento||'—')} • Pedido ${esc(x.order.pedido||'—')}${x.order.vehicle_make_model?' • '+esc(x.order.vehicle_make_model):''}</small><div class="service-desc">${esc(x.description||'Sem descrição')}</div></div><div class="service-values"><span>Venda <b>${money(x.sale_value)}</b></span><span>Custo <b>${money(x.cost_value)}</b></span><span>Lucro <b>${money(profit)}</b></span></div><div class="service-badges"><span class="status-badge status-${slug(x.service_status)}">${esc(x.service_status||'—')}</span><span class="payment-badge">${esc(pay)}</span></div></article>`;
+      return `<article class="service-card payment-${cls}"><div class="service-date"><b>Entrega ${esc(x.order.exit_date||'—')}</b></div><div class="service-main"><b>${esc(x.order.client_name||'Sem cliente')}</b><small>OS ${esc(x.order.numero_lancamento||'—')} • Pedido ${esc(x.order.pedido||'—')}${x.order.vehicle_make_model?' • '+esc(x.order.vehicle_make_model):''}</small><div class="service-desc">${esc(x.description||'Sem descrição')}</div></div><div class="service-values"><span>Venda <b>${money(x.sale_value)}</b></span><span>Custo <b>${money(x.cost_value)}</b></span><span>Lucro <b>${money(profit)}</b></span></div><div class="service-badges"><span class="status-badge status-${slug(x.service_status)}">${esc(x.service_status||'—')}</span><span class="payment-badge">${esc(pay)}</span></div></article>`;
     }).join('')||'<div class="empty">Nenhum serviço encontrado no período.</div>';
   }
 
