@@ -12,31 +12,33 @@
     let s=document.getElementById('launch-card-layout-css');
     if(!s){s=document.createElement('style');s.id='launch-card-layout-css';document.head.appendChild(s)}
     s.textContent=`
-      /* Mesmo padrão compacto de Todos os Serviços, sem perder dados. */
-      #launchList{display:grid!important;gap:5px!important;padding-left:0!important}
-      #launchList .launch-card-v3{display:block!important;position:relative!important;box-sizing:border-box!important;width:100%!important;min-height:0!important;padding:5px 7px!important;border-radius:8px!important;overflow:visible!important;cursor:default!important}
-      #launchList .launch-card-v3 .grouped-top{display:grid!important;grid-template-columns:55px minmax(0,1fr) auto!important;gap:6px!important;align-items:start!important;padding-right:0!important}
-      #launchList .launch-card-v3 .grouped-date b{display:block!important;font-size:9px!important;line-height:1.05!important;font-weight:1000!important;color:#17324d!important;white-space:nowrap!important}
-      #launchList .launch-card-v3 .grouped-date small{display:block!important;color:#17324d!important;font-size:7.5px!important;line-height:1.05!important;margin-top:1px!important;font-weight:900!important;white-space:nowrap!important}
+      /* Cartão de lançamentos: compacto, mas confortável e com hierarquia clara. */
+      #launchList{display:grid!important;gap:7px!important;padding-left:0!important}
+      #launchList .launch-card-v3{display:block!important;position:relative!important;box-sizing:border-box!important;width:100%!important;min-height:0!important;padding:7px 9px!important;border-radius:9px!important;overflow:visible!important;cursor:default!important}
+      #launchList .launch-card-v3 .grouped-top{display:grid!important;grid-template-columns:62px minmax(0,1fr) auto!important;gap:8px!important;align-items:start!important;padding-right:0!important}
+      #launchList .launch-card-v3 .grouped-date b{display:block!important;font-size:10px!important;line-height:1.08!important;font-weight:1000!important;color:#17324d!important;white-space:nowrap!important}
+      #launchList .launch-card-v3 .grouped-date small{display:block!important;color:#17324d!important;font-size:8.5px!important;line-height:1.08!important;margin-top:2px!important;font-weight:1000!important;white-space:nowrap!important}
       #launchList .launch-card-v3 .grouped-main{min-width:0!important}
-      #launchList .launch-card-v3 .grouped-main .lname{font-size:10px!important;line-height:1.05!important;font-weight:1000!important;white-space:normal!important;word-break:break-word!important;color:#111827!important}
-      #launchList .launch-card-v3 .grouped-main .meta{font-size:7.5px!important;line-height:1.08!important;margin-top:2px!important;white-space:normal!important;word-break:break-word!important;color:#17324d!important;font-weight:900!important}
+      #launchList .launch-card-v3 .grouped-main .lname{font-size:11px!important;line-height:1.08!important;font-weight:1000!important;white-space:normal!important;word-break:break-word!important;color:#111827!important}
+      #launchList .launch-card-v3 .grouped-main .meta{font-size:8.5px!important;line-height:1.12!important;margin-top:2px!important;white-space:normal!important;word-break:break-word!important;color:#17324d!important;font-weight:1000!important}
       #launchList .launch-card-v3 .grouped-vehicle{font-weight:1000!important;color:#111827!important}
-      #launchList .launch-card-v3 .grouped-total{font-size:9px!important;line-height:1!important;white-space:nowrap!important;align-self:start!important;margin-top:1px!important;font-weight:1000!important;color:#111827!important}
-      #launchList .launch-card-v3 .launch-number{display:inline-flex!important;align-items:center!important;justify-content:center!important;margin-right:4px!important;padding:2px 4px!important;border-radius:5px!important;background:#111827!important;color:#fff!important;font-size:8px!important;font-weight:950!important;line-height:1!important;vertical-align:middle!important;white-space:nowrap!important}
-      #launchList .launch-card-v3 .grouped-items{display:grid!important;gap:2px!important;margin-top:3px!important}
-      #launchList .launch-card-v3 .grouped-item{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:6px!important;min-height:0!important;padding:2px 4px!important;border-radius:4px!important;font-size:8px!important;line-height:1.05!important;font-weight:800!important}
+      #launchList .launch-card-v3 .grouped-total{font-size:10px!important;line-height:1.05!important;white-space:nowrap!important;align-self:start!important;margin-top:1px!important;font-weight:1000!important;color:#111827!important}
+      #launchList .launch-card-v3 .launch-number{display:inline-flex!important;align-items:center!important;justify-content:center!important;margin-right:4px!important;padding:2px 5px!important;border-radius:5px!important;background:#111827!important;color:#fff!important;font-size:8.5px!important;font-weight:1000!important;line-height:1!important;vertical-align:middle!important;white-space:nowrap!important}
+      #launchList .launch-card-v3 .grouped-items{display:grid!important;gap:2px!important;margin-top:4px!important}
+      #launchList .launch-card-v3 .grouped-item{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:8px!important;min-height:0!important;padding:3px 5px!important;border-radius:4px!important;font-size:8.5px!important;line-height:1.08!important;font-weight:900!important}
       #launchList .launch-card-v3 .grouped-item span{min-width:0!important;overflow-wrap:anywhere!important}
-      #launchList .launch-card-v3 .grouped-item b{font-size:8px!important;line-height:1!important;white-space:nowrap!important;text-align:right!important;font-weight:1000!important}
+      #launchList .launch-card-v3 .grouped-item b{font-size:8.5px!important;line-height:1!important;white-space:nowrap!important;text-align:right!important;font-weight:1000!important}
       #launchList .launch-card-v3 .grouped-item.Liberado{background:#e8f2ff!important;color:#2364a9!important}
       #launchList .launch-card-v3 .grouped-item.Parado{background:#fff3df!important;color:#9b5c00!important}
       #launchList .launch-card-v3 .grouped-item.Pronto{background:#eee9ff!important;color:#6444ad!important}
       #launchList .launch-card-v3 .grouped-item.Prontoentregue{background:#e6f7ef!important;color:#087249!important}
-      #launchList .launch-card-v3 .grouped-payment{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:6px!important;margin-top:3px!important;min-height:0!important}
-      #launchList .launch-card-v3 .payment-badge{display:inline-block!important;padding:2px 4px!important;border-radius:5px!important;background:#eef2f7!important;font-size:8px!important;line-height:1!important;font-weight:1000!important;white-space:nowrap!important}
-      #launchList .launch-card-v3 .service-actions-v2{position:static!important;display:flex!important;gap:3px!important;transform:none!important;margin-left:auto!important}
-      #launchList .launch-card-v3 .service-actions-v2 button{padding:3px 6px!important;font-size:8px!important;line-height:1!important;border-radius:5px!important;min-height:0!important}
-      #launchList .launch-card-v3.payment-pending{border-left-color:#111!important}
+      #launchList .launch-card-v3 .grouped-payment{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:6px!important;margin-top:4px!important;min-height:0!important}
+      #launchList .launch-card-v3 .payment-badge{display:inline-block!important;padding:3px 5px!important;border-radius:5px!important;background:#eef2f7!important;font-size:8.5px!important;line-height:1!important;font-weight:1000!important;white-space:nowrap!important}
+      #launchList .launch-card-v3 .payment-badge::before,#launchList .launch-card-v3 .payment-badge::after{content:none!important;display:none!important}
+      #launchList .launch-card-v3 .grouped-payment::before,#launchList .launch-card-v3 .grouped-payment::after{content:none!important;display:none!important}
+      #launchList .launch-card-v3 .service-actions-v2{position:static!important;display:flex!important;gap:4px!important;transform:none!important;margin-left:auto!important}
+      #launchList .launch-card-v3 .service-actions-v2 button{padding:3px 7px!important;font-size:8.5px!important;line-height:1!important;border-radius:5px!important;min-height:0!important}
+      #launchList .launch-card-v3.payment-pending{border-left-color:#d7a900!important}
       #launchList .launch-card-v3.payment-cash{border-left-color:var(--green)!important}
       #launchList .launch-card-v3.payment-card{border-left-color:var(--blue)!important}
       #launchList .launch-card-v3.payment-pix{border-left-color:var(--purple)!important}
@@ -51,17 +53,28 @@
       #launchList .launch-card-v3.payment-falta-acertar .payment-badge{background:#fff!important;color:#1d4ed8!important}
       #launchList .launch-card-v3.payment-falta-acertar .service-actions-v2 button{background:#fff!important;color:#1d4ed8!important;border-color:#fff!important}
       @media(max-width:520px){
-        #launchList .launch-card-v3{padding:4px 6px!important;border-radius:8px!important}
-        #launchList .launch-card-v3 .grouped-top{grid-template-columns:52px minmax(0,1fr) auto!important;gap:5px!important}
-        #launchList .launch-card-v3 .grouped-date b{font-size:8.5px!important}
-        #launchList .launch-card-v3 .grouped-date small{font-size:7px!important}
-        #launchList .launch-card-v3 .grouped-main .lname{font-size:9.5px!important}
-        #launchList .launch-card-v3 .grouped-main .meta{font-size:7px!important}
-        #launchList .launch-card-v3 .grouped-total{font-size:8.5px!important}
-        #launchList .launch-card-v3 .grouped-item{font-size:7.5px!important;padding:2px 3px!important}
-        #launchList .launch-card-v3 .grouped-item b{font-size:7.5px!important}
-        #launchList .launch-card-v3 .payment-badge{font-size:7.5px!important;padding:2px 4px!important}
-        #launchList .launch-card-v3 .service-actions-v2 button{font-size:7.5px!important;padding:3px 5px!important}
+        #launchList .launch-card-v3{padding:6px 8px!important;border-radius:9px!important}
+        #launchList .launch-card-v3 .grouped-top{grid-template-columns:60px minmax(0,1fr) auto!important;gap:7px!important}
+        #launchList .launch-card-v3 .grouped-date b{font-size:9.5px!important}
+        #launchList .launch-card-v3 .grouped-date small{font-size:8px!important}
+        #launchList .launch-card-v3 .grouped-main .lname{font-size:10.5px!important}
+        #launchList .launch-card-v3 .grouped-main .meta{font-size:8px!important}
+        #launchList .launch-card-v3 .grouped-total{font-size:9.5px!important}
+        #launchList .launch-card-v3 .grouped-item{font-size:8px!important;padding:3px 4px!important}
+        #launchList .launch-card-v3 .grouped-item b{font-size:8px!important}
+        #launchList .launch-card-v3 .payment-badge{font-size:8px!important;padding:3px 5px!important}
+        #launchList .launch-card-v3 .service-actions-v2 button{font-size:8px!important;padding:3px 6px!important}
+      }
+      @media(max-width:390px){
+        #launchList .launch-card-v3{padding:6px 7px!important}
+        #launchList .launch-card-v3 .grouped-top{grid-template-columns:56px minmax(0,1fr) auto!important;gap:6px!important}
+        #launchList .launch-card-v3 .grouped-date b{font-size:9px!important}
+        #launchList .launch-card-v3 .grouped-date small{font-size:7.5px!important}
+        #launchList .launch-card-v3 .grouped-main .lname{font-size:10px!important}
+        #launchList .launch-card-v3 .grouped-main .meta{font-size:7.5px!important}
+        #launchList .launch-card-v3 .grouped-total{font-size:9px!important}
+        #launchList .launch-card-v3 .grouped-item{font-size:7.7px!important}
+        #launchList .launch-card-v3 .grouped-item b{font-size:7.7px!important}
       }
     `;
   }
