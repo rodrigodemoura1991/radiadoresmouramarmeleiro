@@ -7,11 +7,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script>
 <link rel="stylesheet" href="css/style.css?v=stable2">
 <style>
-/* Override de estabilidade: impede a imagem da marca de ocupar o layout inteiro. */
 .brand-logo{display:block!important;width:68px!important;height:68px!important;max-width:68px!important;max-height:68px!important;min-width:68px!important;min-height:68px!important;object-fit:contain!important;object-position:center!important;flex:0 0 68px!important;border-radius:0!important}
-.brand-copy{display:block!important;min-width:0!important}
-.brand-copy b{display:block!important;font-size:16px!important}
-.brand-copy small{display:block!important;color:var(--muted)!important}
+.brand-copy{display:block!important;min-width:0!important}.brand-copy b{display:block!important;font-size:16px!important}.brand-copy small{display:block!important;color:var(--muted)!important}
 @media(max-width:700px){.brand-logo{width:52px!important;height:52px!important;max-width:52px!important;max-height:52px!important;min-width:52px!important;min-height:52px!important;flex-basis:52px!important}}
 </style>
 </head>
@@ -26,4 +23,5 @@
 </main></div></div>
 <div id="companyModal" class="modal hidden"><div class="modalbox" style="max-width:500px"><div class="modalhead"><h2>Escolha a empresa</h2></div><p style="color:var(--muted)">Escolha o banco antes de fazer qualquer lançamento.</p><div id="companies"></div></div></div><div id="clientModal" class="modal hidden"><div class="modalbox"><div class="modalhead"><h2 id="clientTitle">Novo cliente</h2><button class="btn" id="closeClient">×</button></div><form id="clientForm"><input id="clientId" type="hidden"><div class="grid"><div class="field g8"><label>Nome / Razão social</label><input id="clientName" required></div><div class="field g4"><label>CPF / CNPJ</label><input id="doc"></div><div class="field g4"><label>Telefone</label><input id="phone"></div><div class="field g4"><label>WhatsApp</label><input id="whatsapp"></div><div class="field g4"><label>E-mail</label><input id="mail" type="email"></div><div class="field g8"><label>Endereço</label><input id="address"></div><div class="field g2"><label>Cidade</label><input id="city"></div><div class="field g2"><label>UF</label><input id="uf" maxlength="2"></div><div class="field g12"><label>Observações</label><input id="notes"></div></div><div class="foot"><button type="button" class="btn" id="cancelClient">Cancelar</button><button class="btn primary">Salvar cliente</button></div></form></div></div><div id="toast" class="toast hidden"></div>
 <script src="app.js?v=stable2"></script>
+<script src="stability.js?v=stable1"></script>
 </body></html>
