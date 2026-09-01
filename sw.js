@@ -1,4 +1,4 @@
-const CACHE_NAME = 'radiadores-moura-v5-20260828-1700';
+const CACHE_NAME = 'radiadores-moura-v6-20260901-0800';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', event => {
