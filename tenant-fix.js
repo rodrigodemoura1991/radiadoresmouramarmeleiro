@@ -74,20 +74,26 @@
     cards.insertAdjacentElement('afterend',card);
   }
 
+  function selectedBalancePeriod(){
+    if(window.__balanceCustom)return 'custom';
+    return document.querySelector('.period.active')?.dataset.p||'day';
+  }
+
   function balanceOrders(){
+    const p=selectedBalancePeriod();
     const ref=$('balanceDate')?.value||'';
     const start=$('balanceStart')?.value||'';
     const end=$('balanceEnd')?.value||'';
-    if(window.period==='custom')return orders.filter(o=>o.entry_date&&(!start||o.entry_date>=start)&&(!end||o.entry_date<=end));
+    if(p==='custom')return orders.filter(o=>o.entry_date&&(!start||o.entry_date>=start)&&(!end||o.entry_date<=end));
+    if(p==='all')return orders.slice();
     if(!ref)return [];
     const d=new Date(ref+'T00:00:00');
     return orders.filter(o=>{
       if(!o.entry_date)return false;
       const x=new Date(o.entry_date+'T00:00:00');
-      if(window.period==='all')return true;
-      if(window.period==='day')return o.entry_date===ref;
-      if(window.period==='month')return x.getFullYear()===d.getFullYear()&&x.getMonth()===d.getMonth();
-      if(window.period==='year')return x.getFullYear()===d.getFullYear();
+      if(p==='day')return o.entry_date===ref;
+      if(p==='month')return x.getFullYear()===d.getFullYear()&&x.getMonth()===d.getMonth();
+      if(p==='year')return x.getFullYear()===d.getFullYear();
       const startWeek=new Date(d);startWeek.setDate(d.getDate()-d.getDay());
       const endWeek=new Date(startWeek);endWeek.setDate(startWeek.getDate()+6);
       return x>=startWeek&&x<=endWeek;
@@ -111,12 +117,13 @@
   }
 
   document.addEventListener('DOMContentLoaded',()=>{
+    window.__balanceCustom=false;
     ensureBalanceServicesBox();
     const cards=$('balanceCards');
     if(cards)new MutationObserver(()=>setTimeout(renderBalanceServices,0)).observe(cards,{childList:true,subtree:true});
-    document.querySelectorAll('.period').forEach(b=>b.addEventListener('click',()=>setTimeout(renderBalanceServices,20)));
+    document.querySelectorAll('.period').forEach(b=>b.addEventListener('click',()=>{window.__balanceCustom=false;setTimeout(renderBalanceServices,20)}));
     ['balanceDate','balanceStart','balanceEnd'].forEach(id=>$(id)?.addEventListener('change',()=>setTimeout(renderBalanceServices,20)));
-    $('applyCustomBalance')?.addEventListener('click',()=>setTimeout(renderBalanceServices,20));
+    $('applyCustomBalance')?.addEventListener('click',()=>{window.__balanceCustom=true;setTimeout(renderBalanceServices,20)});
     setTimeout(renderBalanceServices,250);
   });
 })();
