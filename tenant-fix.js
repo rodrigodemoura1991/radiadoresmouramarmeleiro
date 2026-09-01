@@ -63,4 +63,60 @@
   });
 
   document.addEventListener('DOMContentLoaded',()=>setTimeout(refreshTenant,150));
+
+  /* ===== Serviços relacionados ao período selecionado no Balanço ===== */
+  function ensureBalanceServicesBox(){
+    const cards=$('balanceCards');
+    if(!cards||$('balanceServicesList'))return;
+    const card=document.createElement('div');
+    card.className='card balance-services-card';
+    card.innerHTML='<div class="sectiontitle"><h3>Serviços do período</h3><span id="balanceServicesCount">0 serviços</span></div><div id="balanceServicesList" class="all-services"></div>';
+    cards.insertAdjacentElement('afterend',card);
+  }
+
+  function balanceOrders(){
+    const ref=$('balanceDate')?.value||'';
+    const start=$('balanceStart')?.value||'';
+    const end=$('balanceEnd')?.value||'';
+    if(window.period==='custom')return orders.filter(o=>o.entry_date&&(!start||o.entry_date>=start)&&(!end||o.entry_date<=end));
+    if(!ref)return [];
+    const d=new Date(ref+'T00:00:00');
+    return orders.filter(o=>{
+      if(!o.entry_date)return false;
+      const x=new Date(o.entry_date+'T00:00:00');
+      if(window.period==='all')return true;
+      if(window.period==='day')return o.entry_date===ref;
+      if(window.period==='month')return x.getFullYear()===d.getFullYear()&&x.getMonth()===d.getMonth();
+      if(window.period==='year')return x.getFullYear()===d.getFullYear();
+      const startWeek=new Date(d);startWeek.setDate(d.getDate()-d.getDay());
+      const endWeek=new Date(startWeek);endWeek.setDate(startWeek.getDate()+6);
+      return x>=startWeek&&x<=endWeek;
+    });
+  }
+
+  function renderBalanceServices(){
+    ensureBalanceServicesBox();
+    const list=$('balanceServicesList');
+    const count=$('balanceServicesCount');
+    if(!list||!count)return;
+    const rows=balanceOrders().flatMap(o=>(o.order_items||[]).map(i=>({...i,order:o})));
+    rows.sort((a,b)=>String(b.order.exit_date||b.order.entry_date||'').localeCompare(String(a.order.exit_date||a.order.entry_date||'')));
+    count.textContent=`${rows.length} ${rows.length===1?'serviço':'serviços'}`;
+    list.innerHTML=rows.map(x=>{
+      const pay=x.order.payment_status||'EM ABERTO';
+      const cls=String(pay).toLowerCase().replace(/\s+/g,'-').replace('ã','a');
+      const profit=Number(x.sale_value||0)-Number(x.cost_value||0)-Number(x.freight_value||0)-(Number(x.sale_value||0)*Number(x.tax_rate||0)/100);
+      return `<article class="service-card payment-${cls}"><div class="service-date"><b>${esc(x.order.exit_date||'—')}</b><small>Entrada ${esc(x.order.entry_date||'—')}</small></div><div class="service-main"><b>${esc(x.order.client_name||'Sem cliente')}</b><small>OS ${esc(x.order.numero_lancamento||'—')} • Pedido ${esc(x.order.pedido||'—')}${x.order.vehicle_make_model?' • '+esc(x.order.vehicle_make_model):''}</small><div class="service-desc">${esc(x.description||'Sem descrição')}</div></div><div class="service-values"><span>Venda <b>${money(x.sale_value)}</b></span><span>Custo <b>${money(x.cost_value)}</b></span><span>Lucro <b>${money(profit)}</b></span></div><div class="service-badges"><span class="status-badge status-${slug(x.service_status)}">${esc(x.service_status||'—')}</span><span class="payment-badge">${esc(pay)}</span></div></article>`;
+    }).join('')||'<div class="empty">Nenhum serviço encontrado no período.</div>';
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    ensureBalanceServicesBox();
+    const cards=$('balanceCards');
+    if(cards)new MutationObserver(()=>setTimeout(renderBalanceServices,0)).observe(cards,{childList:true,subtree:true});
+    document.querySelectorAll('.period').forEach(b=>b.addEventListener('click',()=>setTimeout(renderBalanceServices,20)));
+    ['balanceDate','balanceStart','balanceEnd'].forEach(id=>$(id)?.addEventListener('change',()=>setTimeout(renderBalanceServices,20)));
+    $('applyCustomBalance')?.addEventListener('click',()=>setTimeout(renderBalanceServices,20));
+    setTimeout(renderBalanceServices,250);
+  });
 })();
