@@ -12,36 +12,34 @@
     let s=document.getElementById('launch-card-layout-css');
     if(!s){s=document.createElement('style');s.id='launch-card-layout-css';document.head.appendChild(s)}
     s.textContent=`
-      #launchList{display:grid!important;gap:7px!important;padding-left:0!important}
-      #launchList .launch-card-v3{display:block!important;position:relative!important;box-sizing:border-box!important;width:100%!important;min-height:0!important;padding:7px 9px!important;border-radius:9px!important;overflow:visible!important;cursor:default!important}
-      /* Cabeçalho em três zonas: datas à esquerda, cliente/OS/veículo centralizados e total à direita. */
-      #launchList .launch-card-v3 .grouped-top{display:grid!important;grid-template-columns:78px minmax(0,1fr) auto!important;gap:8px!important;align-items:start!important;padding-right:0!important}
-      #launchList .launch-card-v3 .grouped-date{padding-top:1px!important}
-      #launchList .launch-card-v3 .grouped-date b{display:block!important;font-size:10px!important;line-height:1.08!important;font-weight:1000!important;color:#17324d!important;white-space:nowrap!important}
-      #launchList .launch-card-v3 .grouped-date small{display:block!important;color:#17324d!important;font-size:8.5px!important;line-height:1.08!important;margin-top:2px!important;font-weight:1000!important;white-space:nowrap!important}
+      #launchList{display:grid!important;gap:4px!important;padding-left:0!important}
+      #launchList .launch-card-v3{display:block!important;position:relative!important;box-sizing:border-box!important;width:100%!important;min-height:0!important;padding:3px 5px!important;border-radius:6px!important;overflow:visible!important;cursor:default!important}
+      #launchList .launch-card-v3 .grouped-top{display:grid!important;grid-template-columns:66px minmax(0,1fr) auto!important;gap:4px!important;align-items:start!important;padding-right:0!important}
+      #launchList .launch-card-v3 .grouped-date{padding-top:0!important}
+      #launchList .launch-card-v3 .grouped-date b{display:block!important;font-size:8.5px!important;line-height:1!important;font-weight:1000!important;color:#17324d!important;white-space:nowrap!important}
+      #launchList .launch-card-v3 .grouped-date small{display:block!important;color:#17324d!important;font-size:7.2px!important;line-height:1!important;margin-top:1px!important;font-weight:1000!important;white-space:nowrap!important}
       #launchList .launch-card-v3 .grouped-main{min-width:0!important;text-align:center!important;display:flex!important;flex-direction:column!important;align-items:center!important}
-      #launchList .launch-card-v3 .grouped-main .lname{font-size:11px!important;line-height:1.08!important;font-weight:1000!important;white-space:normal!important;word-break:break-word!important;color:#111827!important;width:100%!important;text-align:center!important}
-      #launchList .launch-card-v3 .grouped-main .meta{font-size:8.5px!important;line-height:1.15!important;margin-top:2px!important;white-space:normal!important;word-break:break-word!important;color:#17324d!important;font-weight:1000!important;width:100%!important;text-align:center!important}
-      /* OS ganha uma posição central própria para não disputar espaço com cliente/veículo. */
-      #launchList .launch-card-v3 .grouped-main .meta .order-id{display:block!important;font-weight:1000!important;text-align:center!important;margin-bottom:1px!important}
+      #launchList .launch-card-v3 .grouped-main .lname{font-size:9.5px!important;line-height:1!important;font-weight:1000!important;white-space:normal!important;word-break:break-word!important;color:#111827!important;width:100%!important;text-align:center!important}
+      #launchList .launch-card-v3 .grouped-main .meta{font-size:7.2px!important;line-height:1!important;margin-top:1px!important;white-space:normal!important;word-break:break-word!important;color:#17324d!important;font-weight:1000!important;width:100%!important;text-align:center!important}
+      #launchList .launch-card-v3 .grouped-main .meta .order-id{display:block!important;font-weight:1000!important;text-align:center!important;margin-bottom:0!important}
       #launchList .launch-card-v3 .grouped-main .meta .vehicle-line{display:block!important;font-weight:1000!important;text-align:center!important}
       #launchList .launch-card-v3 .grouped-vehicle{font-weight:1000!important;color:#111827!important}
-      #launchList .launch-card-v3 .grouped-total{font-size:10px!important;line-height:1.05!important;white-space:nowrap!important;align-self:start!important;margin-top:1px!important;font-weight:1000!important;color:#111827!important}
-      #launchList .launch-card-v3 .launch-number{display:inline-flex!important;align-items:center!important;justify-content:center!important;margin-right:4px!important;padding:2px 5px!important;border-radius:5px!important;background:#111827!important;color:#fff!important;font-size:8.5px!important;font-weight:1000!important;line-height:1!important;vertical-align:middle!important;white-space:nowrap!important}
-      #launchList .launch-card-v3 .grouped-items{display:grid!important;gap:2px!important;margin-top:4px!important}
-      #launchList .launch-card-v3 .grouped-item{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:8px!important;min-height:0!important;padding:3px 5px!important;border-radius:4px!important;font-size:8.5px!important;line-height:1.08!important;font-weight:900!important}
+      #launchList .launch-card-v3 .grouped-total{font-size:8.5px!important;line-height:1!important;white-space:nowrap!important;align-self:start!important;margin-top:0!important;font-weight:1000!important;color:#111827!important}
+      #launchList .launch-card-v3 .launch-number{display:inline-flex!important;align-items:center!important;justify-content:center!important;margin-right:2px!important;padding:1px 3px!important;border-radius:4px!important;background:#111827!important;color:#fff!important;font-size:7.2px!important;font-weight:1000!important;line-height:1!important;vertical-align:middle!important;white-space:nowrap!important}
+      #launchList .launch-card-v3 .grouped-items{display:grid!important;gap:1px!important;margin-top:2px!important}
+      #launchList .launch-card-v3 .grouped-item{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:5px!important;min-height:0!important;padding:1.5px 3px!important;border-radius:3px!important;font-size:7.3px!important;line-height:1!important;font-weight:900!important}
       #launchList .launch-card-v3 .grouped-item span{min-width:0!important;overflow-wrap:anywhere!important}
-      #launchList .launch-card-v3 .grouped-item b{font-size:8.5px!important;line-height:1!important;white-space:nowrap!important;text-align:right!important;font-weight:1000!important}
+      #launchList .launch-card-v3 .grouped-item b{font-size:7.3px!important;line-height:1!important;white-space:nowrap!important;text-align:right!important;font-weight:1000!important}
       #launchList .launch-card-v3 .grouped-item.Liberado{background:#e8f2ff!important;color:#2364a9!important}
       #launchList .launch-card-v3 .grouped-item.Parado{background:#fff3df!important;color:#9b5c00!important}
       #launchList .launch-card-v3 .grouped-item.Pronto{background:#eee9ff!important;color:#6444ad!important}
       #launchList .launch-card-v3 .grouped-item.Prontoentregue{background:#e6f7ef!important;color:#087249!important}
-      #launchList .launch-card-v3 .grouped-payment{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:6px!important;margin-top:4px!important;min-height:0!important}
-      #launchList .launch-card-v3 .payment-badge{display:inline-block!important;padding:3px 5px!important;border-radius:5px!important;background:#eef2f7!important;font-size:8.5px!important;line-height:1!important;font-weight:1000!important;white-space:nowrap!important}
+      #launchList .launch-card-v3 .grouped-payment{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:3px!important;margin-top:1px!important;min-height:0!important}
+      #launchList .launch-card-v3 .payment-badge{display:inline-block!important;padding:1.5px 3px!important;border-radius:3px!important;background:#eef2f7!important;font-size:7.2px!important;line-height:1!important;font-weight:1000!important;white-space:nowrap!important}
       #launchList .launch-card-v3 .payment-badge::before,#launchList .launch-card-v3 .payment-badge::after{content:none!important;display:none!important}
       #launchList .launch-card-v3 .grouped-payment::before,#launchList .launch-card-v3 .grouped-payment::after{content:none!important;display:none!important}
-      #launchList .launch-card-v3 .service-actions-v2{position:static!important;display:flex!important;gap:4px!important;transform:none!important;margin-left:auto!important}
-      #launchList .launch-card-v3 .service-actions-v2 button{padding:3px 7px!important;font-size:8.5px!important;line-height:1!important;border-radius:5px!important;min-height:0!important}
+      #launchList .launch-card-v3 .service-actions-v2{position:static!important;display:flex!important;gap:2px!important;transform:none!important;margin-left:auto!important}
+      #launchList .launch-card-v3 .service-actions-v2 button{padding:1.5px 4px!important;font-size:7.2px!important;line-height:1!important;border-radius:3px!important;min-height:0!important}
       #launchList .launch-card-v3.payment-pending{border-left-color:#d7a900!important}
       #launchList .launch-card-v3.payment-cash{border-left-color:var(--green)!important}
       #launchList .launch-card-v3.payment-card{border-left-color:var(--blue)!important}
@@ -50,36 +48,12 @@
       #launchList .launch-card-v3.payment-wallet{border-left-color:#b7791f!important}
       #launchList .launch-card-v3.payment-boleto{border-left-color:#0891b2!important}
       #launchList .launch-card-v3.payment-notinha{border-left-color:#64748b!important}
-      #launchList .launch-card-v3.payment-falta-acertar{background:#2563eb!important;background-color:#2563eb!important;border:2px solid #1d4ed8!important;color:#fff!important;box-shadow:0 2px 6px rgba(37,99,235,.22)!important}
+      #launchList .launch-card-v3.payment-falta-acertar{background:#2563eb!important;background-color:#2563eb!important;border:2px solid #1d4ed8!important;color:#fff!important;box-shadow:0 1px 3px rgba(37,99,235,.2)!important}
       #launchList .launch-card-v3.payment-falta-acertar .grouped-date b,#launchList .launch-card-v3.payment-falta-acertar .grouped-date small,#launchList .launch-card-v3.payment-falta-acertar .grouped-main .lname,#launchList .launch-card-v3.payment-falta-acertar .meta,#launchList .launch-card-v3.payment-falta-acertar .grouped-vehicle,#launchList .launch-card-v3.payment-falta-acertar .grouped-total{color:#fff!important;-webkit-text-fill-color:#fff!important}
       #launchList .launch-card-v3.payment-falta-acertar .grouped-item{background:#fff!important;color:#111827!important;border:1px solid #dbe4ef!important}
       #launchList .launch-card-v3.payment-falta-acertar .grouped-item *{color:#111827!important;-webkit-text-fill-color:#111827!important}
       #launchList .launch-card-v3.payment-falta-acertar .payment-badge{background:#fff!important;color:#1d4ed8!important}
       #launchList .launch-card-v3.payment-falta-acertar .service-actions-v2 button{background:#fff!important;color:#1d4ed8!important;border-color:#fff!important}
-      @media(max-width:520px){
-        #launchList .launch-card-v3{padding:7px 8px!important;border-radius:9px!important}
-        #launchList .launch-card-v3 .grouped-top{grid-template-columns:72px minmax(0,1fr) auto!important;gap:7px!important}
-        #launchList .launch-card-v3 .grouped-date b{font-size:9.5px!important}
-        #launchList .launch-card-v3 .grouped-date small{font-size:8px!important}
-        #launchList .launch-card-v3 .grouped-main .lname{font-size:10.5px!important}
-        #launchList .launch-card-v3 .grouped-main .meta{font-size:8px!important}
-        #launchList .launch-card-v3 .grouped-total{font-size:9.5px!important}
-        #launchList .launch-card-v3 .grouped-item{font-size:8px!important;padding:3px 4px!important}
-        #launchList .launch-card-v3 .grouped-item b{font-size:8px!important}
-        #launchList .launch-card-v3 .payment-badge{font-size:8px!important;padding:3px 5px!important}
-        #launchList .launch-card-v3 .service-actions-v2 button{font-size:8px!important;padding:3px 6px!important}
-      }
-      @media(max-width:390px){
-        #launchList .launch-card-v3{padding:6px 7px!important}
-        #launchList .launch-card-v3 .grouped-top{grid-template-columns:64px minmax(0,1fr) auto!important;gap:6px!important}
-        #launchList .launch-card-v3 .grouped-date b{font-size:9px!important}
-        #launchList .launch-card-v3 .grouped-date small{font-size:7.5px!important}
-        #launchList .launch-card-v3 .grouped-main .lname{font-size:10px!important}
-        #launchList .launch-card-v3 .grouped-main .meta{font-size:7.5px!important}
-        #launchList .launch-card-v3 .grouped-total{font-size:9px!important}
-        #launchList .launch-card-v3 .grouped-item{font-size:7.7px!important}
-        #launchList .launch-card-v3 .grouped-item b{font-size:7.7px!important}
-      }
     `;
   }
 
