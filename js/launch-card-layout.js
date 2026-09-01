@@ -12,15 +12,19 @@
     let s=document.getElementById('launch-card-layout-css');
     if(!s){s=document.createElement('style');s.id='launch-card-layout-css';document.head.appendChild(s)}
     s.textContent=`
-      /* Cartão de lançamentos: compacto, mas confortável e com hierarquia clara. */
       #launchList{display:grid!important;gap:7px!important;padding-left:0!important}
       #launchList .launch-card-v3{display:block!important;position:relative!important;box-sizing:border-box!important;width:100%!important;min-height:0!important;padding:7px 9px!important;border-radius:9px!important;overflow:visible!important;cursor:default!important}
-      #launchList .launch-card-v3 .grouped-top{display:grid!important;grid-template-columns:62px minmax(0,1fr) auto!important;gap:8px!important;align-items:start!important;padding-right:0!important}
+      /* Cabeçalho em três zonas: datas à esquerda, cliente/OS/veículo centralizados e total à direita. */
+      #launchList .launch-card-v3 .grouped-top{display:grid!important;grid-template-columns:78px minmax(0,1fr) auto!important;gap:8px!important;align-items:start!important;padding-right:0!important}
+      #launchList .launch-card-v3 .grouped-date{padding-top:1px!important}
       #launchList .launch-card-v3 .grouped-date b{display:block!important;font-size:10px!important;line-height:1.08!important;font-weight:1000!important;color:#17324d!important;white-space:nowrap!important}
       #launchList .launch-card-v3 .grouped-date small{display:block!important;color:#17324d!important;font-size:8.5px!important;line-height:1.08!important;margin-top:2px!important;font-weight:1000!important;white-space:nowrap!important}
-      #launchList .launch-card-v3 .grouped-main{min-width:0!important}
-      #launchList .launch-card-v3 .grouped-main .lname{font-size:11px!important;line-height:1.08!important;font-weight:1000!important;white-space:normal!important;word-break:break-word!important;color:#111827!important}
-      #launchList .launch-card-v3 .grouped-main .meta{font-size:8.5px!important;line-height:1.12!important;margin-top:2px!important;white-space:normal!important;word-break:break-word!important;color:#17324d!important;font-weight:1000!important}
+      #launchList .launch-card-v3 .grouped-main{min-width:0!important;text-align:center!important;display:flex!important;flex-direction:column!important;align-items:center!important}
+      #launchList .launch-card-v3 .grouped-main .lname{font-size:11px!important;line-height:1.08!important;font-weight:1000!important;white-space:normal!important;word-break:break-word!important;color:#111827!important;width:100%!important;text-align:center!important}
+      #launchList .launch-card-v3 .grouped-main .meta{font-size:8.5px!important;line-height:1.15!important;margin-top:2px!important;white-space:normal!important;word-break:break-word!important;color:#17324d!important;font-weight:1000!important;width:100%!important;text-align:center!important}
+      /* OS ganha uma posição central própria para não disputar espaço com cliente/veículo. */
+      #launchList .launch-card-v3 .grouped-main .meta .order-id{display:block!important;font-weight:1000!important;text-align:center!important;margin-bottom:1px!important}
+      #launchList .launch-card-v3 .grouped-main .meta .vehicle-line{display:block!important;font-weight:1000!important;text-align:center!important}
       #launchList .launch-card-v3 .grouped-vehicle{font-weight:1000!important;color:#111827!important}
       #launchList .launch-card-v3 .grouped-total{font-size:10px!important;line-height:1.05!important;white-space:nowrap!important;align-self:start!important;margin-top:1px!important;font-weight:1000!important;color:#111827!important}
       #launchList .launch-card-v3 .launch-number{display:inline-flex!important;align-items:center!important;justify-content:center!important;margin-right:4px!important;padding:2px 5px!important;border-radius:5px!important;background:#111827!important;color:#fff!important;font-size:8.5px!important;font-weight:1000!important;line-height:1!important;vertical-align:middle!important;white-space:nowrap!important}
@@ -53,8 +57,8 @@
       #launchList .launch-card-v3.payment-falta-acertar .payment-badge{background:#fff!important;color:#1d4ed8!important}
       #launchList .launch-card-v3.payment-falta-acertar .service-actions-v2 button{background:#fff!important;color:#1d4ed8!important;border-color:#fff!important}
       @media(max-width:520px){
-        #launchList .launch-card-v3{padding:6px 8px!important;border-radius:9px!important}
-        #launchList .launch-card-v3 .grouped-top{grid-template-columns:60px minmax(0,1fr) auto!important;gap:7px!important}
+        #launchList .launch-card-v3{padding:7px 8px!important;border-radius:9px!important}
+        #launchList .launch-card-v3 .grouped-top{grid-template-columns:72px minmax(0,1fr) auto!important;gap:7px!important}
         #launchList .launch-card-v3 .grouped-date b{font-size:9.5px!important}
         #launchList .launch-card-v3 .grouped-date small{font-size:8px!important}
         #launchList .launch-card-v3 .grouped-main .lname{font-size:10.5px!important}
@@ -67,7 +71,7 @@
       }
       @media(max-width:390px){
         #launchList .launch-card-v3{padding:6px 7px!important}
-        #launchList .launch-card-v3 .grouped-top{grid-template-columns:56px minmax(0,1fr) auto!important;gap:6px!important}
+        #launchList .launch-card-v3 .grouped-top{grid-template-columns:64px minmax(0,1fr) auto!important;gap:6px!important}
         #launchList .launch-card-v3 .grouped-date b{font-size:9px!important}
         #launchList .launch-card-v3 .grouped-date small{font-size:7.5px!important}
         #launchList .launch-card-v3 .grouped-main .lname{font-size:10px!important}
@@ -105,10 +109,11 @@
       const open=pay==='EM ABERTO',blue=pay.toUpperCase()==='FALTA ACERTAR';
       const statusClass=slug(items[0]?.service_status||'Liberado');
       const vehicle=o.vehicle_make_model?`<span class="grouped-vehicle">${esc(o.vehicle_make_model)}</span>`:'';
-      const pedido=o.pedido?`<span>OS: ${esc(o.pedido)}</span>`:'';
+      const pedido=o.pedido?`<span class="order-id">OS: ${esc(o.pedido)}</span>`:'';
       const placa=o.plate?`<span> • Placa: ${esc(o.plate)}</span>`:'';
+      const vehicleLine=vehicle||placa?`<span class="vehicle-line">${vehicle?'Marca/Modelo: '+vehicle:''}${placa}</span>`:'';
       const number=o.numero_lancamento!=null?`<span class="launch-number">#${esc(o.numero_lancamento)}</span>`:'';
-      return `<article class="launch service-card grouped-service launch-card-v3 ${statusClass} ${open?'payment-pending':'payment-'+slug(pay)} ${blue?'payment-falta-acertar':''}" data-id="${esc(o.id)}" data-order-id="${esc(o.id)}" aria-selected="false"><div class="grouped-top"><div class="grouped-date"><b>Saída: ${esc(fmtDate(o.exit_date))}</b><small>Entrada: ${esc(fmtDate(o.entry_date))}</small></div><div class="grouped-main"><div class="lname">${number}${esc(o.client_name||'Sem cliente')}</div><div class="meta">${pedido}${vehicle?' • Marca/Modelo: '+vehicle:''}${placa}</div></div><b class="grouped-total">${money(o.total_sale)}</b></div><div class="grouped-items">${items.map(i=>`<div class="grouped-item ${slug(i.service_status)}"><span>${esc(i.description||'Sem descrição')} • ${money(i.sale_value)}</span><b>${esc(displayStatus(i.service_status))}</b></div>`).join('')||'<div class="grouped-item"><span>Sem serviço informado</span></div>'}</div><div class="grouped-payment"><span class="payment-badge">${esc(pay)}</span></div></article>`;
+      return `<article class="launch service-card grouped-service launch-card-v3 ${statusClass} ${open?'payment-pending':'payment-'+slug(pay)} ${blue?'payment-falta-acertar':''}" data-id="${esc(o.id)}" data-order-id="${esc(o.id)}" aria-selected="false"><div class="grouped-top"><div class="grouped-date"><b>Saída: ${esc(fmtDate(o.exit_date))}</b><small>Entrada: ${esc(fmtDate(o.entry_date))}</small></div><div class="grouped-main"><div class="lname">${number}${esc(o.client_name||'Sem cliente')}</div><div class="meta">${pedido}${vehicleLine}</div></div><b class="grouped-total">${money(o.total_sale)}</b></div><div class="grouped-items">${items.map(i=>`<div class="grouped-item ${slug(i.service_status)}"><span>${esc(i.description||'Sem descrição')} • ${money(i.sale_value)}</span><b>${esc(displayStatus(i.service_status))}</b></div>`).join('')||'<div class="grouped-item"><span>Sem serviço informado</span></div>'}</div><div class="grouped-payment"><span class="payment-badge">${esc(pay)}</span></div></article>`;
     }).join('')||'<div class="empty">Nenhum lançamento encontrado.</div>';
 
     list.querySelectorAll('.launch-card-v3').forEach(card=>{
