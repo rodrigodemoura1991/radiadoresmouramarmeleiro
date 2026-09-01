@@ -73,6 +73,19 @@
     });
   }
 
+  function applyPaymentColors(){
+    const list=document.getElementById(LIST_ID);
+    if(!list) return;
+    list.querySelectorAll('.launch').forEach(card=>{
+      card.classList.remove('payment-em-aberto');
+      const chips=card.querySelector('.chips');
+      const paymentChip=chips?.lastElementChild;
+      const status=(paymentChip?.textContent||'').replace(/★/g,'').replace(/\s+/g,' ').trim().toUpperCase();
+      if(status==='EM ABERTO') card.classList.add('payment-em-aberto');
+      if(status==='FALTA ACERTAR') card.classList.add('payment-falta-acertar');
+    });
+  }
+
   function dateKey(card){
     const b=card.querySelector('.grouped-date b');
     const m=(b?.textContent||'').match(/(\d{2})\/(\d{2})\/(\d{4})/);
@@ -90,6 +103,7 @@
     if(!list) return;
     injectCss();
     hideColorLegend();
+    applyPaymentColors();
     [...list.querySelectorAll('.launch-group-divider')].forEach(x=>x.remove());
     const cards=[...list.querySelectorAll('.launch-card-v3')];
     if(!cards.length) return;
@@ -114,7 +128,7 @@
   }
 
   function install(){
-    injectCss();hideColorLegend();regroup();
+    injectCss();hideColorLegend();applyPaymentColors();regroup();
     const list=document.getElementById(LIST_ID);
     if(list&&!list.__groupsObserver){
       const obs=new MutationObserver(()=>{
@@ -132,7 +146,7 @@
     }
     const old=window.renderAll;
     if(typeof old==='function'&&!old.__groupsWrapped){
-      const wrapped=function(){const r=old.apply(this,arguments);requestAnimationFrame(regroup);return r};
+      const wrapped=function(){const r=old.apply(this,arguments);requestAnimationFrame(()=>{applyPaymentColors();regroup()});return r};
       wrapped.__groupsWrapped=true;window.renderAll=wrapped;
     }
   }
