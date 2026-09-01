@@ -10,6 +10,8 @@
     s.id=STYLE_ID;
     s.textContent=`
       .launch-color-legend,.launch-legend{display:none!important}
+      /* Os separadores antigos são gerados por outro módulo. O agrupamento atual cria os seus próprios. */
+      #${LIST_ID} .launch-day-separator{display:none!important}
       #${LIST_ID} .launch-group-divider{display:flex!important;align-items:center!important;gap:9px!important;margin:8px 5px 5px!important;color:#17324d!important;font-weight:1000!important;font-size:10.5px!important}
       #${LIST_ID} .launch-group-divider::before,#${LIST_ID} .launch-group-divider::after{content:"";height:1px;background:#cbd8e7;flex:1}
       #${LIST_ID} .launch-group-divider span{background:#edf3fa;border:1px solid #d4e0ed;border-radius:14px;padding:4px 10px;white-space:nowrap}
@@ -77,7 +79,7 @@
   function regroup(){
     const list=document.getElementById(LIST_ID);if(!list)return;
     injectCss();hideColorLegend();applyPaymentColors();
-    [...list.querySelectorAll('.launch-group-divider')].forEach(x=>x.remove());
+    [...list.querySelectorAll('.launch-group-divider,.launch-day-separator')].forEach(x=>x.remove());
     const cards=[...list.querySelectorAll('.launch-card-v3')];if(!cards.length)return;
     const groups=new Map();
     cards.forEach(card=>{const key=dateKey(card)||'';if(!groups.has(key))groups.set(key,[]);groups.get(key).push(card)});
@@ -114,19 +116,14 @@
     list.querySelectorAll('.launch-card-v3').forEach(card=>{
       const o=orders.find(x=>String(x.id)===String(card.dataset.id));if(!o)return;
       const lname=card.querySelector('.lname'),meta=card.querySelector('.meta');if(!lname||!meta)return;
-
-      /* numero_lancamento é o número automático da OS. */
       const os=o.numero_lancamento!=null&&String(o.numero_lancamento).trim()!==''?`OS: ${esc(o.numero_lancamento)}`:'';
-      /* pedido é preenchido manualmente pelo usuário. */
       const pedido=String(o.pedido||'').trim();
       const vehicle=String(o.vehicle_make_model||'').trim();
-
       lname.innerHTML=`<span class="launch-os">${os}</span>${esc(o.client_name||'Sem cliente')}`;
       let html='';
       if(pedido)html+=`<span class="launch-pedido">PEDIDO: ${esc(pedido)}</span>`;
       if(vehicle)html+=`${html?' ':''}<span class="launch-vehicle-line">Marca/Modelo: <strong>${esc(vehicle)}</strong></span>`;
       meta.innerHTML=html;
-
       const date=card.querySelector('.grouped-date');
       if(date){
         const b=date.querySelector('b'),small=date.querySelector('small');
