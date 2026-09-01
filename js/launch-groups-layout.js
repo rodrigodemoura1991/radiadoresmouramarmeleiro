@@ -39,6 +39,64 @@
         font-size:10.5px!important;line-height:1.12!important;
         font-weight:1000!important;
       }
+      /* PAGAMENTO: somente as duas cores solicitadas. */
+      #${LIST_ID} .launch-card-v3.payment-pending,
+      #${LIST_ID} .launch-card-v3.payment-em-aberto{
+        background:#f5c542!important;
+        background-color:#f5c542!important;
+        border:2px solid #d7a900!important;
+        border-left-color:#d7a900!important;
+        color:#172033!important;
+        box-shadow:0 4px 12px rgba(215,169,0,.20)!important;
+      }
+      #${LIST_ID} .launch-card-v3.payment-pending .grouped-date b,
+      #${LIST_ID} .launch-card-v3.payment-pending .grouped-date small,
+      #${LIST_ID} .launch-card-v3.payment-pending .grouped-main .lname,
+      #${LIST_ID} .launch-card-v3.payment-pending .grouped-main .meta,
+      #${LIST_ID} .launch-card-v3.payment-pending .grouped-vehicle,
+      #${LIST_ID} .launch-card-v3.payment-pending .grouped-total,
+      #${LIST_ID} .launch-card-v3.payment-em-aberto .grouped-date b,
+      #${LIST_ID} .launch-card-v3.payment-em-aberto .grouped-date small,
+      #${LIST_ID} .launch-card-v3.payment-em-aberto .grouped-main .lname,
+      #${LIST_ID} .launch-card-v3.payment-em-aberto .grouped-main .meta,
+      #${LIST_ID} .launch-card-v3.payment-em-aberto .grouped-vehicle,
+      #${LIST_ID} .launch-card-v3.payment-em-aberto .grouped-total{
+        color:#172033!important;
+        -webkit-text-fill-color:#172033!important;
+      }
+      #${LIST_ID} .launch-card-v3.payment-pending .payment-badge,
+      #${LIST_ID} .launch-card-v3.payment-pending .service-actions-v2 button,
+      #${LIST_ID} .launch-card-v3.payment-em-aberto .payment-badge,
+      #${LIST_ID} .launch-card-v3.payment-em-aberto .service-actions-v2 button{
+        background:#fff!important;color:#173b67!important;border-color:#fff!important;
+      }
+      #${LIST_ID} .launch-card-v3.payment-falta-acertar{
+        background:#2563eb!important;
+        background-color:#2563eb!important;
+        border:2px solid #1d4ed8!important;
+        color:#fff!important;
+        box-shadow:0 2px 6px rgba(37,99,235,.22)!important;
+      }
+      #${LIST_ID} .launch-card-v3.payment-falta-acertar .grouped-date b,
+      #${LIST_ID} .launch-card-v3.payment-falta-acertar .grouped-date small,
+      #${LIST_ID} .launch-card-v3.payment-falta-acertar .grouped-main .lname,
+      #${LIST_ID} .launch-card-v3.payment-falta-acertar .meta,
+      #${LIST_ID} .launch-card-v3.payment-falta-acertar .grouped-vehicle,
+      #${LIST_ID} .launch-card-v3.payment-falta-acertar .grouped-total{
+        color:#fff!important;-webkit-text-fill-color:#fff!important;
+      }
+      #${LIST_ID} .launch-card-v3.payment-falta-acertar .grouped-item{
+        background:#fff!important;color:#111827!important;border:1px solid #dbe4ef!important;
+      }
+      #${LIST_ID} .launch-card-v3.payment-falta-acertar .grouped-item *{
+        color:#111827!important;-webkit-text-fill-color:#111827!important;
+      }
+      #${LIST_ID} .launch-card-v3.payment-falta-acertar .payment-badge{
+        background:#fff!important;color:#1d4ed8!important;
+      }
+      #${LIST_ID} .launch-card-v3.payment-falta-acertar .service-actions-v2 button{
+        background:#fff!important;color:#1d4ed8!important;border-color:#fff!important;
+      }
       @media(max-width:520px){
         #${LIST_ID} .launch-card-v3 .grouped-date b{font-size:11px!important}
         #${LIST_ID} .launch-card-v3 .grouped-date small{font-size:9.5px!important}
