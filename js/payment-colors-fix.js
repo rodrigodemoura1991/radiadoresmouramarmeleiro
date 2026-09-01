@@ -14,8 +14,6 @@
       #launchList .launch.payment-falta-acertar .chips .chip:not(:last-child),#launchList .launch.payment-falta-acertar .chips .chip:not(:last-child) *{color:#111827!important;-webkit-text-fill-color:#111827!important;text-shadow:none!important}
       #launchList .launch.payment-falta-acertar .chips .chip:not(:last-child){background:#e6f7ef!important;border-color:#d1eadf!important}
       #launchList .launch.payment-falta-acertar .chips .chip:last-child{background:#fff!important;color:#1266cf!important;-webkit-text-fill-color:#1266cf!important;border-color:#fff!important;font-weight:950!important}
-
-      /* SERVIÇOS: mesmas cores de pagamento dos cartões de Lançamentos */
       #allServicesList .service-card.payment-em-aberto,#allServicesList .service-card.payment-pending{background:#f5c542!important;background-color:#f5c542!important;border:2px solid #d7a900!important;border-left-color:#d7a900!important;color:#172033!important;box-shadow:0 8px 22px #d7a90033!important}
       #allServicesList .service-card.payment-em-aberto .service-main>b,#allServicesList .service-card.payment-em-aberto .service-date>b,#allServicesList .service-card.payment-pending .service-main>b,#allServicesList .service-card.payment-pending .service-date>b{color:#172033!important}
       #allServicesList .service-card.payment-em-aberto .service-main small,#allServicesList .service-card.payment-em-aberto .service-date small,#allServicesList .service-card.payment-pending .service-main small,#allServicesList .service-card.payment-pending .service-date small{color:#172033!important}
@@ -24,8 +22,6 @@
       #allServicesList .service-card.payment-falta-acertar .service-main>b,#allServicesList .service-card.payment-falta-acertar .service-date>b,#allServicesList .service-card.payment-falta-acertar .service-main small,#allServicesList .service-card.payment-falta-acertar .service-date small{color:#fff!important}
       #allServicesList .service-card.payment-falta-acertar .payment-badge{background:#fff!important;color:#1266cf!important;border-color:#fff!important}
       #allServicesList .service-card .service-vehicle{display:inline-block!important;font-weight:950!important;color:inherit!important;font-size:11px!important}
-
-      /* Marca e modelo destacados também nos cartões de Lançamentos */
       #launchList .launch .launch-vehicle{display:block!important;margin-top:3px!important;font-size:14px!important;line-height:1.25!important;font-weight:950!important;letter-spacing:.1px!important;color:inherit!important}
       #launchList .launch .launch-order{display:inline!important}
       #launchList .launch .launch-plate{display:inline!important;font-weight:800!important}
@@ -62,5 +58,32 @@
   const start=()=>{addStyles();applyLaunches();applyServices();const launch=document.getElementById('launchList');if(launch)new MutationObserver(()=>requestAnimationFrame(applyLaunches)).observe(launch,{childList:true,subtree:true});const services=document.getElementById('allServicesList');if(services)new MutationObserver(()=>requestAnimationFrame(applyServices)).observe(services,{childList:true,subtree:true})};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
-
-(()=>{const start=()=>{const brand=document.querySelector('.brand');if(!brand)return;const old=brand.querySelector('.mark');if(old)old.remove();let logo=brand.querySelector('.brand-logo');if(!logo){logo=document.createElement('img');logo.className='brand-logo';logo.alt='Radiadores Moura';logo.src='assets/logo-radiadores-moura.svg';brand.prepend(logo)}const copy=brand.querySelector('.brand-copy');if(copy)copy.style.display='none';};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start()})();
+(()=>{
+  // O layout final é carregado depois deste arquivo e estava colocando fundo preto no OS.
+  // Este override entra depois dele e deixa o OS como texto normal, preservando o contraste do cartão.
+  function fixOS(){
+    let s=document.getElementById('launch-os-contrast-final');
+    if(!s){s=document.createElement('style');s.id='launch-os-contrast-final';document.head.appendChild(s)}
+    s.textContent=`
+      #launchList .launch-card-v3 .launch-os{
+        display:inline!important;
+        padding:0!important;
+        margin:0 4px 0 0!important;
+        border:0!important;
+        border-radius:0!important;
+        background:transparent!important;
+        background-color:transparent!important;
+        box-shadow:none!important;
+        color:inherit!important;
+        -webkit-text-fill-color:inherit!important;
+        font-size:10px!important;
+        line-height:1.05!important;
+        font-weight:1000!important;
+      }
+      #launchList .launch-card-v3 .launch-number{display:none!important}
+      #launchList .launch-card-v3 .launch-os-pedido-fix-css{display:none!important}
+    `;
+  }
+  const run=()=>{fixOS();setTimeout(fixOS,100);setTimeout(fixOS,500);setTimeout(fixOS,1500);setTimeout(fixOS,2500)};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+})();
