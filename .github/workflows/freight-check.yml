@@ -1,0 +1,22 @@
+name: Freight Check
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node syntax check
+        run: node --check freight.js
+      - name: Verify freight persistence code
+        run: |
+          grep -q "freight_value" freight.js
+          grep -q "total_freight" freight.js
+          grep -q "order_items" freight.js
+          grep -q "order.onsubmit=saveNew" freight.js
+          grep -q "fix.onsubmit=saveEdit" freight.js
