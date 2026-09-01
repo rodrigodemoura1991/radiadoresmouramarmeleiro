@@ -1,42 +1,15 @@
-/* Cartões de Lançamentos: mostra apenas o número do pedido e preserva as datas de entrada e saída. */
+/* Carrega o ajuste final dos cartões depois de todos os demais scripts da página. */
 (function(){
-  const fmtDate=(v)=>{
-    const s=String(v||'').trim();
-    const m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    return m ? `${m[3]}/${m[2]}` : s;
-  };
-  const escLocal=(s)=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  function apply(){
-    const list=document.getElementById('launchList');
-    if(!list || typeof orders==='undefined' || !Array.isArray(orders)) return;
-    list.querySelectorAll('.launch').forEach(card=>{
-      const order=orders.find(o=>String(o.id)===String(card.dataset.id));
-      const meta=card.querySelector('.meta');
-      if(!order || !meta) return;
-      const entry=fmtDate(order.entry_date);
-      const exit=fmtDate(order.exit_date);
-      const pedido=String(order.pedido||'').trim();
-      const vehicle=String(order.vehicle_make_model||'').trim();
-      const plate=String(order.plate||'').trim();
-      const parts=[];
-      if(entry) parts.push(entry);
-      if(exit) parts.push(`Saída ${exit}`);
-      if(pedido) parts.push(pedido);
-      if(vehicle) parts.push(`<strong class="launch-vehicle">${escLocal(vehicle)}</strong>`);
-      if(plate) parts.push(escLocal(plate));
-      const html=parts.join(' • ');
-      if(meta.innerHTML!==html) meta.innerHTML=html;
-    });
+  'use strict';
+  function loadFix(){
+    if(document.querySelector('script[data-launch-os-pedido-fix]')) return;
+    const s=document.createElement('script');
+    s.src='js/launch-os-pedido-fix.js?v=20260901-1';
+    s.async=false;
+    s.setAttribute('data-launch-os-pedido-fix','1');
+    document.body.appendChild(s);
   }
-  function start(){
-    apply();
-    if(typeof window.renderLaunches==='function' && !window.renderLaunches.__pedidoFormat){
-      const original=window.renderLaunches;
-      const wrapped=function(){const r=original.apply(this,arguments);apply();return r};
-      wrapped.__pedidoFormat=true;
-      window.renderLaunches=wrapped;
-    }
-    setTimeout(apply,300);
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+  if(document.readyState==='complete') loadFix();
+  else window.addEventListener('load',loadFix,{once:true});
+  setTimeout(loadFix,1800);
 })();
