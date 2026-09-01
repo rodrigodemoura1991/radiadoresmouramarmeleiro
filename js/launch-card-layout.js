@@ -1,45 +1,113 @@
-/* Layout dos cartões de Lançamentos: preserva todas as informações e organiza a leitura. */
+/* Lançamentos: mesma estrutura visual dos cartões de Todos os Serviços. */
 (function(){
   'use strict';
-  const getOrders=()=>typeof orders!=='undefined'&&Array.isArray(orders)?orders:[];
-  const getSB=()=>typeof sb!=='undefined'?sb:null;
-  const money=n=>{try{return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0)}catch(e){return 'R$ '+(Number(n)||0).toFixed(2).replace('.',',')}};
+  const ordersList=()=>typeof orders!=='undefined'&&Array.isArray(orders)?orders:[];
+  const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
   const esc=s=>String(s??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
   const slug=s=>String(s||'').replace(/\s+/g,'').replace('ç','c').replace('ã','a');
-  const dateBR=v=>{const s=String(v||'').slice(0,10),m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[3]}/${m[2]}/${m[1]}`:(s||'—')};
-  const status=v=>String(v||'Liberado').trim().toLowerCase()==='pronto entregue'?'PRONTO/ENTREGUE':String(v||'Liberado');
-  function css(){if(document.getElementById('launch-card-layout-css'))return;const s=document.createElement('style');s.id='launch-card-layout-css';s.textContent=`
-#launchList .launch-card-v3{position:relative;display:block;padding:16px 17px 15px!important;border-radius:24px!important;overflow:hidden}
-#launchList .launch-card-v3 .launch-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-#launchList .launch-card-v3 .launch-client-row{display:flex;align-items:flex-start;gap:8px;min-width:0}
-#launchList .launch-card-v3 .launch-no{flex:0 0 auto;background:#111827;color:#fff;border-radius:9px;padding:5px 9px;font-size:13px;font-weight:950;line-height:1}
-#launchList .launch-card-v3 .launch-client{font-size:21px;font-weight:950;line-height:1.12;color:#14243b;word-break:break-word}
-#launchList .launch-card-v3 .launch-total{font-size:16px;font-weight:950;color:#14243b;white-space:nowrap}
-#launchList .launch-card-v3 .launch-info{margin:8px 0 0;padding-left:2px;display:flex;flex-direction:column;gap:3px;color:#60728a;font-size:13px;font-weight:750}
-#launchList .launch-card-v3 .launch-info strong{color:#203653;font-weight:950}
-#launchList .launch-card-v3 .launch-services{margin-top:12px;display:flex;flex-direction:column;gap:7px}
-#launchList .launch-card-v3 .launch-service{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:9px;padding:9px 11px;border-radius:13px;background:rgba(255,255,255,.72);border:1px solid rgba(190,205,220,.65)}
-#launchList .launch-card-v3 .launch-service-name{font-size:14px;font-weight:900;color:#193653;line-height:1.2;min-width:0}
-#launchList .launch-card-v3 .launch-service-value{font-size:13px;font-weight:900;color:#294766;white-space:nowrap}
-#launchList .launch-card-v3 .launch-service-status{font-size:12px;font-weight:950;white-space:nowrap}
-#launchList .launch-card-v3 .launch-service-status.liberado{color:#2563a8}.launch-service-status.parado{color:#c96d00}.launch-service-status.pronto{color:#7350c5}.launch-service-status.prontoentregue{color:#198b5c}
-#launchList .launch-card-v3 .launch-dates{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
-#launchList .launch-card-v3 .launch-date{background:#edf4fa;border:1px solid #d4e1ed;border-radius:10px;padding:6px 9px;color:#50657d;font-size:12px;font-weight:850}
-#launchList .launch-card-v3 .launch-payment{display:inline-flex;margin-top:10px;padding:6px 10px;border-radius:999px;background:#fff;color:#294766;font-size:12px;font-weight:950}
-#launchList .launch-card-v3 .launch-actions{display:flex;align-items:center;gap:7px;margin-top:11px;flex-wrap:wrap}
-#launchList .launch-card-v3 .launch-actions .launch-action-btn{border:1px solid #d5e0eb;background:#fff;color:#172b43;border-radius:11px;padding:8px 12px;font-weight:900;font-size:13px;cursor:pointer}
-#launchList .launch-card-v3 .launch-actions .launch-delete{color:#b52f24}
-#launchList .launch-card-v3 .launch-actions .launch-card-total{margin-left:auto;font-size:16px;font-weight:950;color:#172b43}
-#launchList .launch-card-v3.payment-falta-acertar{background:#1476e8!important;color:#fff!important;border-color:#075fc5!important;box-shadow:0 6px 18px rgba(20,118,232,.30)!important}
-#launchList .launch-card-v3.payment-falta-acertar .launch-client,#launchList .launch-card-v3.payment-falta-acertar .launch-total,#launchList .launch-card-v3.payment-falta-acertar .launch-info,#launchList .launch-card-v3.payment-falta-acertar .launch-info strong,#launchList .launch-card-v3.payment-falta-acertar .launch-card-total{color:#fff!important}
-#launchList .launch-card-v3.payment-falta-acertar .launch-no{background:#fff;color:#075fc5}
-#launchList .launch-card-v3.payment-falta-acertar .launch-service{background:#fff;border-color:#dbe4ef}
-#launchList .launch-card-v3.payment-falta-acertar .launch-payment{color:#075fc5}
-#launchList .launch-card-v3.payment-falta-acertar .launch-date{background:rgba(255,255,255,.9);color:#294766}
-@media(max-width:600px){#launchList .launch-card-v3 .launch-client{font-size:20px}#launchList .launch-card-v3 .launch-head{gap:8px}#launchList .launch-card-v3 .launch-total{font-size:14px}#launchList .launch-card-v3 .launch-service{grid-template-columns:minmax(0,1fr) auto;align-items:start}#launchList .launch-card-v3 .launch-service-status{grid-column:2;grid-row:1}.launch-service-value{grid-column:1;grid-row:2}}
-`;document.head.appendChild(s)}
-  function render(){const list=document.getElementById('launchList');const data0=getOrders();if(!list)return;css();const q=(document.getElementById('launchSearch')?.value||'').toLowerCase().trim();const data=data0.filter(o=>[o.client_name,o.vehicle_make_model,o.plate,o.pedido,...(o.order_items||[]).map(i=>i.description)].join(' ').toLowerCase().includes(q));const count=document.getElementById('count');if(count)count.textContent=data.length+' lançamento(s)';list.innerHTML=data.map(o=>{const items=o.order_items||[],first=items[0]?.service_status||'Liberado',payment=String(o.payment_status||'EM ABERTO').trim()||'EM ABERTO',blue=payment.toUpperCase()==='FALTA ACERTAR';const vehicle=o.vehicle_make_model?`<div><strong>Marca e modelo:</strong> ${esc(o.vehicle_make_model)}</div>`:'';const pedido=o.pedido?`<div><strong>Nº do pedido:</strong> ${esc(o.pedido)}</div>`:'';const plate=o.plate?`<div><strong>Placa:</strong> ${esc(o.plate)}</div>`:'';const services=items.map(i=>`<div class="launch-service"><span class="launch-service-name">${esc(i.description||'Sem descrição')}</span><span class="launch-service-value">${money(i.sale_value)}</span><span class="launch-service-status ${slug(i.service_status)}">${esc(status(i.service_status))}</span></div>`).join('');const no=o.numero_lancamento!=null?'#'+o.numero_lancamento:'';return `<article class="launch launch-card-v3 ${slug(first)} ${blue?'payment-falta-acertar':''}" data-id="${esc(o.id)}"><div class="launch-head"><div class="launch-client-row">${no?`<span class="launch-no">${esc(no)}</span>`:''}<div class="launch-client">${esc(o.client_name||'Sem cliente')}</div></div><div class="launch-total">${money(o.total_sale)}</div></div><div class="launch-info">${vehicle}${pedido}${plate}</div><div class="launch-services">${services||'<div class="launch-service"><span class="launch-service-name">Sem serviço informado</span></div>'}</div><div class="launch-dates"><span class="launch-date">Entrada: ${dateBR(o.entry_date)}</span><span class="launch-date">Saída: ${dateBR(o.exit_date)}</span></div><span class="launch-payment">${esc(payment)}</span><div class="launch-actions"><button type="button" class="launch-action-btn launch-edit">Editar</button><button type="button" class="launch-action-btn launch-delete">Excluir</button><span class="launch-card-total">Total: ${money(o.total_sale)}</span></div></article>`}).join('')||'<div class="empty">Nenhum lançamento encontrado.</div>';list.querySelectorAll('.launch-card-v3').forEach(card=>{card.querySelector('.launch-edit')?.addEventListener('click',e=>{e.stopPropagation();if(typeof editOrder==='function')editOrder(card.dataset.id)});card.querySelector('.launch-delete')?.addEventListener('click',e=>{e.stopPropagation();removeOrder(card.dataset.id)});card.addEventListener('click',e=>{if(e.target.closest('button'))return;if(typeof editOrder==='function')editOrder(card.dataset.id)})})}
-  async function removeOrder(id){const o=getOrders().find(x=>String(x.id)===String(id));if(!o||!confirm('Excluir este lançamento? Esta ação não pode ser desfeita.'))return;const client=getSB();if(!client)return;if(typeof cloud==='function')cloud('Excluindo...');const a=await client.from('order_items').delete().eq('order_id',id);if(a.error){if(typeof toast==='function')toast('Erro ao excluir serviços: '+a.error.message);return}const r=await client.from('orders').delete().eq('id',id);if(r.error){if(typeof toast==='function')toast('Erro ao excluir lançamento: '+r.error.message);return}if(typeof loadData==='function')await loadData();if(typeof toast==='function')toast('Lançamento excluído com sucesso')}
-  function install(){css();const originalRenderAll=window.renderAll;if(typeof originalRenderAll==='function'&&!originalRenderAll.__launchLayoutFixed){const wrapped=function(){const r=originalRenderAll.apply(this,arguments);requestAnimationFrame(render);return r};wrapped.__launchLayoutFixed=true;window.renderAll=wrapped}render();document.getElementById('launchSearch')?.addEventListener('input',render)}
+  const fmtDate=v=>{const s=String(v||'').trim(),m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[3]}/${m[2]}`:(s||'—')};
+  const fmtDateFull=v=>{const s=String(v||'').trim(),m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[3]}/${m[2]}/${m[1]}`:(s||'Sem data')};
+  const displayStatus=v=>String(v||'—').trim().toLowerCase()==='pronto entregue'?'PRONTO/ENTREGUE':String(v||'—');
+
+  function injectCss(){
+    let s=document.getElementById('launch-card-layout-css');
+    if(!s){s=document.createElement('style');s.id='launch-card-layout-css';document.head.appendChild(s)}
+    s.textContent=`
+      #launchList{display:grid!important;gap:6px!important;padding-left:0!important}
+      #launchList .launch-card-v3{display:block!important;position:relative!important;box-sizing:border-box!important;width:100%!important;min-height:0!important;padding:7px 10px 6px!important;border-radius:10px!important;overflow:visible!important;cursor:default!important}
+      #launchList .launch-card-v3 .grouped-top{display:grid!important;grid-template-columns:82px minmax(0,1fr) auto!important;gap:8px!important;align-items:center!important;padding-right:112px!important}
+      #launchList .launch-card-v3 .grouped-date b{display:block!important;font-size:13px!important;line-height:1.15!important}
+      #launchList .launch-card-v3 .grouped-date small{display:block!important;color:var(--muted)!important;font-size:10px!important;line-height:1.2!important;margin-top:1px!important}
+      #launchList .launch-card-v3 .grouped-main .lname{font-size:13px!important;line-height:1.15!important;font-weight:900!important;white-space:normal!important;word-break:break-word!important}
+      #launchList .launch-card-v3 .grouped-main .meta{font-size:10px!important;line-height:1.2!important;margin-top:1px!important;white-space:normal!important;word-break:break-word!important}
+      #launchList .launch-card-v3 .grouped-total{font-size:13px!important;white-space:nowrap!important}
+      #launchList .launch-card-v3 .launch-number{display:inline-flex!important;align-items:center!important;justify-content:center!important;margin-right:6px!important;padding:2px 5px!important;border-radius:6px!important;background:#111827!important;color:#fff!important;font-size:9px!important;font-weight:950!important;line-height:1!important;vertical-align:middle!important;white-space:nowrap!important}
+      #launchList .launch-card-v3 .grouped-items{display:grid!important;gap:2px!important;margin-top:4px!important}
+      #launchList .launch-card-v3 .grouped-item{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:8px!important;padding:2px 5px!important;border-radius:5px!important;font-size:9px!important;line-height:1.15!important;font-weight:800!important}
+      #launchList .launch-card-v3 .grouped-item span{min-width:0!important;overflow-wrap:anywhere!important}
+      #launchList .launch-card-v3 .grouped-item b{font-size:9px!important;white-space:nowrap!important}
+      #launchList .launch-card-v3 .grouped-item.Liberado{background:#e8f2ff!important;color:#2364a9!important}
+      #launchList .launch-card-v3 .grouped-item.Parado{background:#fff3df!important;color:#9b5c00!important}
+      #launchList .launch-card-v3 .grouped-item.Pronto{background:#eee9ff!important;color:#6444ad!important}
+      #launchList .launch-card-v3 .grouped-item.Prontoentregue{background:#e6f7ef!important;color:#087249!important}
+      #launchList .launch-card-v3 .grouped-payment{margin-top:3px!important}
+      #launchList .launch-card-v3 .payment-badge{display:inline-block!important;padding:2px 5px!important;border-radius:6px!important;background:#eef2f7!important;font-size:9px!important;line-height:1.1!important;font-weight:900!important}
+      #launchList .launch-card-v3 .service-actions-v2{position:absolute!important;top:7px!important;right:8px!important;transform:none!important}
+      #launchList .launch-card-v3 .service-actions-v2 button{padding:5px 8px!important;font-size:11px!important}
+      #launchList .launch-card-v3.payment-pending{border-left-color:#111!important}
+      #launchList .launch-card-v3.payment-cash{border-left-color:var(--green)!important}
+      #launchList .launch-card-v3.payment-card{border-left-color:var(--blue)!important}
+      #launchList .launch-card-v3.payment-pix{border-left-color:var(--purple)!important}
+      #launchList .launch-card-v3.payment-check{border-left-color:var(--orange)!important}
+      #launchList .launch-card-v3.payment-wallet{border-left-color:#b7791f!important}
+      #launchList .launch-card-v3.payment-boleto{border-left-color:#0891b2!important}
+      #launchList .launch-card-v3.payment-notinha{border-left-color:#64748b!important}
+      #launchList .launch-card-v3.payment-falta-acertar{background:#2563eb!important;background-color:#2563eb!important;border:2px solid #1d4ed8!important;color:#fff!important;box-shadow:0 3px 10px rgba(37,99,235,.28)!important}
+      #launchList .launch-card-v3.payment-falta-acertar .grouped-date small,#launchList .launch-card-v3.payment-falta-acertar .meta{color:#eaf2ff!important}
+      #launchList .launch-card-v3.payment-falta-acertar .grouped-item{background:#fff!important;color:#111827!important;border:1px solid #dbe4ef!important}
+      #launchList .launch-card-v3.payment-falta-acertar .grouped-item *{color:#111827!important;-webkit-text-fill-color:#111827!important}
+      #launchList .launch-card-v3.payment-falta-acertar .payment-badge{background:#fff!important;color:#1d4ed8!important}
+      #launchList .launch-card-v3.payment-falta-acertar .service-actions-v2 button{background:#fff!important;color:#1d4ed8!important;border-color:#fff!important}
+      @media(max-width:800px){
+        #launchList .launch-card-v3 .grouped-top{grid-template-columns:72px minmax(0,1fr) auto!important;padding-right:108px!important}
+      }
+      @media(max-width:520px){
+        #launchList .launch-card-v3{padding:6px 8px!important}
+        #launchList .launch-card-v3 .grouped-top{grid-template-columns:72px minmax(0,1fr) auto!important;padding-right:0!important;align-items:start!important}
+        #launchList .launch-card-v3 .grouped-date{grid-column:1!important;grid-row:1!important}
+        #launchList .launch-card-v3 .grouped-main{grid-column:2!important;grid-row:1!important;min-width:0!important}
+        #launchList .launch-card-v3 .grouped-total{grid-column:1/-1!important;grid-row:2!important;justify-self:start!important;margin-top:2px!important}
+        #launchList .launch-card-v3 .grouped-items{margin-top:7px!important}
+        #launchList .launch-card-v3 .grouped-item{align-items:flex-start!important}
+        #launchList .launch-card-v3 .grouped-item b{font-size:9px!important;text-align:right!important}
+        #launchList .launch-card-v3 .service-actions-v2{top:6px!important;right:7px!important}
+        #launchList .launch-card-v3 .launch-number{font-size:8px!important;padding:2px 5px!important}
+      }
+    `;
+  }
+
+  function removeOrder(id){
+    const o=ordersList().find(x=>String(x.id)===String(id));
+    if(!o||!confirm('Excluir este lançamento? Esta ação não pode ser desfeita.'))return;
+    (async()=>{if(typeof cloud==='function')cloud('Excluindo...');const a=await sb.from('order_items').delete().eq('order_id',id);if(a.error){toast('Erro ao excluir serviços: '+a.error.message);return}const r=await sb.from('orders').delete().eq('id',id);if(r.error){toast('Erro ao excluir lançamento: '+r.error.message);return}if(typeof loadData==='function')await loadData();toast('Lançamento excluído com sucesso')})();
+  }
+
+  function render(){
+    const list=document.getElementById('launchList');if(!list)return;
+    injectCss();
+    const q=(document.getElementById('launchSearch')?.value||'').toLowerCase().trim();
+    const data=ordersList().filter(o=>[o.client_name,o.vehicle_make_model,o.plate,o.pedido,...(o.order_items||[]).map(i=>i.description)].join(' ').toLowerCase().includes(q));
+    const count=document.getElementById('count');if(count)count.textContent=data.length+' lançamento(s)';
+    list.innerHTML=data.map(o=>{
+      const items=o.order_items||[],pay=String(o.payment_status||'EM ABERTO').trim()||'EM ABERTO';
+      const open=pay==='EM ABERTO',blue=pay.toUpperCase()==='FALTA ACERTAR';
+      const statusClass=slug(items[0]?.service_status||'Liberado');
+      const vehicle=o.vehicle_make_model?`<span class="grouped-vehicle">${esc(o.vehicle_make_model)}</span>`:'';
+      const pedido=o.pedido?`<span>${esc(o.pedido)}</span>`:'';
+      const placa=o.plate?`<span> • ${esc(o.plate)}</span>`:'';
+      const number=o.numero_lancamento!=null?`<span class="launch-number">#${esc(o.numero_lancamento)}</span>`:'';
+      return `<article class="launch service-card grouped-service launch-card-v3 ${statusClass} ${open?'payment-pending':'payment-'+slug(pay)} ${blue?'payment-falta-acertar':''}" data-id="${esc(o.id)}" data-order-id="${esc(o.id)}" aria-selected="false"><div class="grouped-top"><div class="grouped-date"><b>${esc(fmtDate(o.exit_date))}</b><small>Entrada ${esc(fmtDate(o.entry_date))}</small></div><div class="grouped-main"><div class="lname">${number}${esc(o.client_name||'Sem cliente')}</div><div class="meta">${pedido}${vehicle?' • '+vehicle:''}${placa}</div></div><b class="grouped-total">${money(o.total_sale)}</b></div><div class="grouped-items">${items.map(i=>`<div class="grouped-item ${slug(i.service_status)}"><span>${esc(i.description||'Sem descrição')} • ${money(i.sale_value)}</span><b>${esc(displayStatus(i.service_status))}</b></div>`).join('')||'<div class="grouped-item"><span>Sem serviço informado</span></div>'}</div><div class="grouped-payment"><span class="payment-badge">${esc(pay)}</span></div></article>`;
+    }).join('')||'<div class="empty">Nenhum lançamento encontrado.</div>';
+
+    list.querySelectorAll('.launch-card-v3').forEach(card=>{
+      const id=card.dataset.id;
+      let actions=card.querySelector('.service-actions-v2');
+      if(!actions){actions=document.createElement('div');actions.className='service-actions-v2';actions.innerHTML='<button type="button" class="service-edit-btn">Editar</button><button type="button" class="service-delete-btn">Excluir</button>';card.appendChild(actions)}
+      actions.querySelector('.service-edit-btn').onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof editOrder==='function')editOrder(id)};
+      actions.querySelector('.service-delete-btn').onclick=e=>{e.preventDefault();e.stopPropagation();removeOrder(id)};
+      card.onclick=e=>{if(e.target.closest('button'))return;if(typeof editOrder==='function')editOrder(id)};
+    });
+  }
+
+  function install(){
+    injectCss();
+    const original=window.renderAll;
+    if(typeof original==='function'&&!original.__launchLayoutV4){
+      const wrapped=function(){const r=original.apply(this,arguments);requestAnimationFrame(render);return r};
+      wrapped.__launchLayoutV4=true;window.renderAll=wrapped;
+    }
+    render();
+    const search=document.getElementById('launchSearch');if(search&&!search.dataset.launchLayoutBound){search.dataset.launchLayoutBound='1';search.addEventListener('input',render)}
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
