@@ -1,83 +1,205 @@
-/* Radiadores Moura - Frete por item
-   Correção: o frete deve ser carregado, editável e persistido tanto em
-   novos lançamentos quanto na edição de lançamentos existentes.
+/* Radiadores Moura - Frete FINAL
+   Uma unica rotina de salvamento para novos lancamentos e edicao.
+   O frete pertence ao order_item e o total_freight fica em orders.
 */
 (function(){
-'use strict';
-const q=id=>document.getElementById(id);
-const moneyInput=v=>{const n=parseMoney(v);return n?money(n):''};
+  'use strict';
 
-function styleRows(){
- const id='freight-layout-v4';
- if(document.getElementById(id))return;
- const s=document.createElement('style');s.id=id;s.textContent=`
- .services{overflow-x:auto}
- .svc-head,.svc-row{grid-template-columns:minmax(220px,2.8fr) minmax(92px,1fr) minmax(92px,1fr) minmax(92px,1fr) minmax(78px,.8fr) minmax(132px,1.25fr) 34px;gap:7px;min-width:0}
- .svc-head{padding:9px 8px}.svc-row{padding:8px}.svc-row .freight{text-align:right}
- .edit-services{overflow-x:auto}
- .edit-svc-head,.edit-svc-row{grid-template-columns:minmax(210px,2.7fr) minmax(90px,1fr) minmax(90px,1fr) minmax(90px,1fr) minmax(76px,.8fr) minmax(125px,1.2fr) 34px;gap:7px;min-width:0}
- @media(max-width:850px){.svc-head,.svc-row,.edit-svc-head,.edit-svc-row{min-width:820px}}
- `;
- document.head.appendChild(s)
-}
-function ensureHeader(h){
- if(!h)return;
- const c=[...h.children],cost=c.find(x=>x.textContent.trim().toLowerCase()==='custo');
- if(cost&&!c.some(x=>x.classList.contains('freight-head'))){const s=document.createElement('span');s.className='freight-head';s.textContent='Frete';cost.after(s)}
-}
-function ensureFreight(row,value){
- if(!row)return null;let f=row.querySelector('.freight');
- if(!f){
-   f=document.createElement('input');f.className='freight money';f.inputMode='decimal';f.placeholder='R$ 0,00';
-   const cost=row.querySelector('.cost'),tax=row.querySelector('.tax');if(cost&&tax)tax.before(f);else row.appendChild(f);
-   f.addEventListener('input',calcNew);f.addEventListener('blur',()=>{f.value=moneyInput(f.value);calcNew()})
- }
- if(value!==undefined&&value!==null&&value!=='')f.value=moneyInput(value);return f
-}
-function patchNewRows(){styleRows();ensureHeader(document.querySelector('.svc-head'));document.querySelectorAll('#rows .svc-row').forEach(r=>ensureFreight(r,r.dataset.freightValue))}
-function newItems(){return [...document.querySelectorAll('#rows .svc-row')].map(r=>({description:r.querySelector('.desc')?.value.trim()||'',sale_value:parseMoney(r.querySelector('.sale')?.value),cost_value:parseMoney(r.querySelector('.cost')?.value),freight_value:parseMoney(r.querySelector('.freight')?.value),tax_rate:Number(r.querySelector('.tax')?.value)||0,service_status:r.querySelector('.status')?.value||'Liberado'})).filter(x=>x.description||x.sale_value||x.cost_value||x.freight_value)}
-function calcNew(){if(!q('rows'))return;const a=newItems(),sale=a.reduce((s,x)=>s+x.sale_value,0),cost=a.reduce((s,x)=>s+x.cost_value,0),freight=a.reduce((s,x)=>s+x.freight_value,0),tax=a.reduce((s,x)=>s+x.sale_value*x.tax_rate/100,0);if(q('saleTotal'))q('saleTotal').textContent=money(sale);if(q('costTotal'))q('costTotal').textContent=money(cost+freight);if(q('taxTotal'))q('taxTotal').textContent=money(tax);if(q('profitTotal'))q('profitTotal').textContent=money(sale-cost-freight-tax);if(q('grand'))q('grand').textContent=money(sale)}
-async function saveNew(e){
- e.preventDefault();e.stopImmediatePropagation();if(!company)return toast('Escolha a empresa primeiro');patchNewRows();const a=newItems();if(!a.length)return toast('Adicione pelo menos um serviço ou produto');cloud('Salvando...');
- let c=clients.find(x=>x.name.toLowerCase()===(q('clientInput').value||'').trim().toLowerCase());if(!c&&q('clientInput').value.trim()){const cr=await sb.from('clients').insert({company_id:company.id,name:q('clientInput').value.trim()}).select().single();if(cr.error){cloud('Erro ao salvar',false);return toast(cr.error.message)}c=cr.data;clients.unshift(c)}
- const sale=a.reduce((s,x)=>s+x.sale_value,0),cost=a.reduce((s,x)=>s+x.cost_value,0),freight=a.reduce((s,x)=>s+x.freight_value,0),tax=a.reduce((s,x)=>s+x.sale_value*x.tax_rate/100,0),payment=String(q('payment').value||'').trim();
- const p={company_id:company.id,client_id:c?.id||null,entry_date:q('entry').value||null,exit_date:q('exit').value||null,client_name:q('clientInput').value.trim(),vehicle_make_model:q('vehicle').value.trim(),plate:q('plate').value.trim(),pedido:q('pedido').value.trim(),payment_status:payment||null,total_sale:sale,total_cost:cost+freight,total_tax:tax,net_profit:sale-cost-freight-tax};
- const r=editing?await sb.from('orders').update(p).eq('id',editing.id).select().single():await sb.from('orders').insert(p).select().single();if(r.error){cloud('Erro ao salvar',false);return toast('Erro ao salvar lançamento: '+r.error.message)}
- if(editing){const dr=await sb.from('order_items').delete().eq('order_id',editing.id);if(dr.error){cloud('Erro ao salvar',false);return toast('Erro ao atualizar serviços: '+dr.error.message)}}
- const ir=await sb.from('order_items').insert(a.map(x=>({...x,order_id:r.data.id})));if(ir.error){cloud('Erro ao salvar',false);return toast('Lançamento salvo, mas os serviços falharam: '+ir.error.message)}
- if(typeof saveCatalog==='function')await saveCatalog(a);editing=null;clearOrder();await loadData();toast('Lançamento salvo na nuvem')
-}
-function patchAddRow(){if(typeof window.addRow!=='function'||window.addRow.__freightV4)return;const original=window.addRow;function wrapped(item={}){original(item);const r=q('rows')?.lastElementChild;if(r){r.dataset.freightValue=item.freight_value??'';ensureFreight(r,item.freight_value)}calcNew()}wrapped.__freightV4=true;window.addRow=wrapped}
-function editItems(){return [...document.querySelectorAll('#fixRows .edit-svc-row')].map(r=>({description:r.querySelector('.fd')?.value.trim()||'',sale_value:parseMoney(r.querySelector('.fs')?.value),cost_value:parseMoney(r.querySelector('.fc')?.value),freight_value:parseMoney(r.querySelector('.ff')?.value),tax_rate:Number(r.querySelector('.ft')?.value)||0,service_status:r.querySelector('.fst')?.value||'Pronto entregue'})).filter(x=>x.description||x.sale_value||x.cost_value||x.freight_value)}
-function ensureEditFreight(row,value){if(!row)return;let f=row.querySelector('.ff');if(!f){f=document.createElement('input');f.className='ff freight money';f.inputMode='decimal';f.placeholder='R$ 0,00';const cost=row.querySelector('.fc'),tax=row.querySelector('.ft');if(cost&&tax)tax.before(f);else row.appendChild(f);f.addEventListener('input',calcEdit);f.addEventListener('blur',()=>{f.value=moneyInput(f.value);calcEdit()})}if(value!==undefined&&value!==null&&value!=='')f.value=moneyInput(value)}
-function patchEditRows(){styleRows();ensureHeader(document.querySelector('.edit-svc-head'));document.querySelectorAll('#fixRows .edit-svc-row').forEach(r=>ensureEditFreight(r,r.dataset.freightValue))}
-function calcEdit(){if(!q('fixRows'))return;const a=editItems(),sale=a.reduce((s,x)=>s+x.sale_value,0),cost=a.reduce((s,x)=>s+x.cost_value,0),freight=a.reduce((s,x)=>s+x.freight_value,0),tax=a.reduce((s,x)=>s+x.sale_value*x.tax_rate/100,0);if(q('fixSale'))q('fixSale').textContent=money(sale);if(q('fixCost'))q('fixCost').textContent=money(cost+freight);if(q('fixTax'))q('fixTax').textContent=money(tax);if(q('fixProfit'))q('fixProfit').textContent=money(sale-cost-freight-tax)}
-function loadEditFreightsFromOrder(order){if(!order)return;const items=order.order_items||[],rows=[...document.querySelectorAll('#fixRows .edit-svc-row')];rows.forEach((r,i)=>{const value=items[i]?.freight_value;if(value!==undefined&&value!==null){r.dataset.freightValue=value;ensureEditFreight(r,value)}});calcEdit()}
-async function saveEdit(e){
- e.preventDefault();e.stopImmediatePropagation();if(!company)return toast('Escolha a empresa primeiro');
- const modal=q('orderFixModal'),id=window.__freightEditId||modal?.dataset.freightOrderId;if(!id)return toast('Não foi possível identificar o lançamento');patchEditRows();const a=editItems();if(!a.length)return toast('Adicione pelo menos um serviço ou produto');const old=orders.find(x=>x.id===id);if(!old)return toast('Lançamento não encontrado');cloud('Salvando...');
- let c=clients.find(x=>x.name.toLowerCase()===(q('fixClient').value||'').trim().toLowerCase());if(!c&&q('fixClient').value.trim()){const cr=await sb.from('clients').insert({company_id:company.id,name:q('fixClient').value.trim()}).select().single();if(cr.error){cloud('Erro ao salvar',false);return toast(cr.error.message)}c=cr.data;clients.unshift(c)}
- const sale=a.reduce((s,x)=>s+x.sale_value,0),cost=a.reduce((s,x)=>s+x.cost_value,0),freight=a.reduce((s,x)=>s+x.freight_value,0),tax=a.reduce((s,x)=>s+x.sale_value*x.tax_rate/100,0);const p={company_id:company.id,client_id:c?.id||old.client_id||null,entry_date:q('fixEntry').value,exit_date:q('fixExit').value,client_name:q('fixClient').value.trim(),vehicle_make_model:q('fixVehicle').value.trim(),plate:q('fixPlate').value.trim(),pedido:q('fixPedido').value.trim(),payment_status:q('fixPayment').value,total_sale:sale,total_cost:cost+freight,total_tax:tax,net_profit:sale-cost-freight-tax};
- const r=await sb.from('orders').update(p).eq('id',id).select().single();if(r.error){cloud('Erro ao salvar',false);return toast('Erro ao salvar: '+r.error.message)}const dr=await sb.from('order_items').delete().eq('order_id',id);if(dr.error){cloud('Erro ao salvar',false);return toast(dr.error.message)}const ir=await sb.from('order_items').insert(a.map(x=>({...x,order_id:id})));if(ir.error){cloud('Erro ao salvar',false);return toast('Erro ao salvar serviços: '+ir.error.message)}if(typeof saveCatalog==='function')await saveCatalog(a);modal.classList.add('hidden');window.__freightEditId=null;await loadData();toast('Lançamento atualizado')
-}
-function capture(e){
- const edit=e.target.closest('[data-edit]');
- if(edit){window.__freightEditId=edit.dataset.edit;requestAnimationFrame(()=>{const m=q('orderFixModal');if(m)m.dataset.freightOrderId=edit.dataset.edit;patchEditRows();calcEdit()})}
- if(e.target.closest('#add')||e.target.closest('#fixAdd'))requestAnimationFrame(()=>{patchNewRows();patchEditRows();calcNew();calcEdit()});
- const launch=e.target.closest('.launch[data-id]');
- if(launch){const id=launch.dataset.id;requestAnimationFrame(()=>requestAnimationFrame(()=>{const order=orders.find(x=>String(x.id)===String(id));if(order){const m=q('orderFixModal');if(m)m.dataset.freightOrderId=id;window.__freightEditId=id;patchEditRows();loadEditFreightsFromOrder(order)}}))}
-}
-function install(){
- styleRows();patchAddRow();patchNewRows();patchEditRows();
- const form=q('order');if(form&&!form.dataset.freightV4){form.dataset.freightV4='1';form.addEventListener('submit',saveNew,true);form.addEventListener('input',e=>{if(e.target.closest('#rows')){patchNewRows();calcNew()}},true)}
- /* O modal de edição é criado dinamicamente. Por isso o salvamento é capturado
-    no documento, em fase capture, e não depende do modal existir no carregamento. */
- if(!document.documentElement.dataset.freightSubmitV4){
-   document.documentElement.dataset.freightSubmitV4='1';
-   document.addEventListener('submit',e=>{if(e.target?.id==='fixEditForm')saveEdit(e)},true)
- }
- document.addEventListener('click',capture,true);
- setTimeout(()=>{patchAddRow();patchNewRows();patchEditRows();calcNew();calcEdit()},300)
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+  const $=id=>document.getElementById(id);
+  const num=v=>parseMoney(v)||0;
+  const fmt=v=>Number(v)?money(v):'';
+  let currentEditId=null;
+
+  function addStyle(){
+    if($('freight-final-style')) return;
+    const s=document.createElement('style'); s.id='freight-final-style'; s.textContent=`
+      .svc-head,.svc-row{grid-template-columns:minmax(220px,2.8fr) minmax(92px,1fr) minmax(92px,1fr) minmax(92px,1fr) minmax(92px,1fr) minmax(132px,1.25fr) 34px;gap:7px;min-width:0}
+      .edit-svc-head,.edit-svc-row{grid-template-columns:minmax(210px,2.7fr) minmax(90px,1fr) minmax(90px,1fr) minmax(90px,1fr) minmax(90px,1fr) minmax(125px,1.2fr) 34px;gap:7px;min-width:0}
+      .svc-head .freight-head,.edit-svc-head .freight-head{display:block}
+      .svc-row .freight,.edit-svc-row .freight{width:100%;text-align:right}
+      @media(max-width:850px){.svc-head,.svc-row,.edit-svc-head,.edit-svc-row{min-width:850px}}
+    `; document.head.appendChild(s);
+  }
+
+  function header(){
+    document.querySelectorAll('.svc-head,.edit-svc-head').forEach(h=>{
+      if(h.querySelector('.freight-head')) return;
+      const cost=[...h.children].find(x=>x.textContent.trim().toLowerCase()==='custo');
+      if(cost){const x=document.createElement('span');x.className='freight-head';x.textContent='Frete';cost.after(x)}
+    });
+  }
+
+  function freightInput(row,value){
+    if(!row) return null;
+    let f=row.querySelector('.freight');
+    if(!f){
+      f=document.createElement('input');
+      f.className='freight money'; f.inputMode='decimal'; f.placeholder='R$ 0,00';
+      const cost=row.querySelector('.cost,.fc'), tax=row.querySelector('.tax,.ft');
+      if(cost&&tax) tax.before(f); else row.appendChild(f);
+      f.addEventListener('input',()=>{calcNew();calcEdit()});
+      f.addEventListener('blur',()=>{const n=num(f.value);f.value=fmt(n);calcNew();calcEdit()});
+    }
+    if(value!==undefined&&value!==null) f.value=fmt(value);
+    return f;
+  }
+
+  function patchNewRows(){
+    document.querySelectorAll('#rows .svc-row').forEach(r=>freightInput(r,r.dataset.freightValue));
+    header();
+  }
+
+  function wrapAddRow(){
+    if(typeof window.addRow!=='function'||window.addRow.__freightFinal) return;
+    const old=window.addRow;
+    function wrapped(item={}){
+      old(item);
+      const r=$('rows')?.lastElementChild;
+      if(r){r.dataset.freightValue=item.freight_value??0;freightInput(r,item.freight_value??0)}
+      calcNew();
+    }
+    wrapped.__freightFinal=true; window.addRow=wrapped;
+  }
+
+  function newItems(){
+    return [...document.querySelectorAll('#rows .svc-row')].map(r=>({
+      description:r.querySelector('.desc')?.value.trim()||'',
+      sale_value:num(r.querySelector('.sale')?.value),
+      cost_value:num(r.querySelector('.cost')?.value),
+      freight_value:num(r.querySelector('.freight')?.value),
+      tax_rate:Number(r.querySelector('.tax')?.value)||0,
+      service_status:r.querySelector('.status')?.value||'Pronto entregue'
+    })).filter(x=>x.description||x.sale_value||x.cost_value||x.freight_value);
+  }
+
+  function editItems(){
+    return [...document.querySelectorAll('#fixRows .edit-svc-row')].map(r=>({
+      description:r.querySelector('.fd')?.value.trim()||'',
+      sale_value:num(r.querySelector('.fs')?.value),
+      cost_value:num(r.querySelector('.fc')?.value),
+      freight_value:num(r.querySelector('.freight')?.value),
+      tax_rate:Number(r.querySelector('.ft')?.value)||0,
+      service_status:r.querySelector('.fst')?.value||'Pronto entregue'
+    })).filter(x=>x.description||x.sale_value||x.cost_value||x.freight_value);
+  }
+
+  function totals(a){
+    const sale=a.reduce((s,x)=>s+x.sale_value,0);
+    const cost=a.reduce((s,x)=>s+x.cost_value,0);
+    const freight=a.reduce((s,x)=>s+x.freight_value,0);
+    const tax=a.reduce((s,x)=>s+x.sale_value*x.tax_rate/100,0);
+    return {sale,cost,freight,tax,net:sale-cost-freight-tax};
+  }
+
+  function calcNew(){
+    if(!$('rows')) return; const t=totals(newItems());
+    if($('saleTotal'))$('saleTotal').textContent=money(t.sale);
+    if($('costTotal'))$('costTotal').textContent=money(t.cost+t.freight);
+    if($('taxTotal'))$('taxTotal').textContent=money(t.tax);
+    if($('profitTotal'))$('profitTotal').textContent=money(t.net);
+    if($('grand'))$('grand').textContent=money(t.sale);
+  }
+
+  function calcEdit(){
+    if(!$('fixRows')) return; const t=totals(editItems());
+    if($('fixSale'))$('fixSale').textContent=money(t.sale);
+    if($('fixCost'))$('fixCost').textContent=money(t.cost+t.freight);
+    if($('fixTax'))$('fixTax').textContent=money(t.tax);
+    if($('fixProfit'))$('fixProfit').textContent=money(t.net);
+  }
+
+  async function saveNew(e){
+    e.preventDefault();
+    if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+    if(!company)return toast('Escolha a empresa primeiro');
+    patchNewRows(); const a=newItems();
+    if(!a.length)return toast('Adicione pelo menos um serviço ou produto');
+    cloud('Salvando...');
+    let c=clients.find(x=>x.name.toLowerCase()===$('clientInput').value.trim().toLowerCase());
+    if(!c&&$('clientInput').value.trim()){
+      const cr=await sb.from('clients').insert({company_id:company.id,name:$('clientInput').value.trim()}).select().single();
+      if(cr.error){cloud('Erro ao salvar',false);return toast(cr.error.message)} c=cr.data; clients.unshift(c);
+    }
+    const t=totals(a), payment=String($('payment').value||'').trim();
+    const p={company_id:company.id,client_id:c?.id||null,entry_date:$('entry').value||null,exit_date:$('exit').value||null,client_name:$('clientInput').value.trim(),vehicle_make_model:$('vehicle').value.trim(),plate:$('plate').value.trim(),pedido:$('pedido').value.trim(),payment_status:payment||null,total_sale:t.sale,total_cost:t.cost+t.freight,total_freight:t.freight,total_tax:t.tax,net_profit:t.net};
+    const r=editing?await sb.from('orders').update(p).eq('id',editing.id).select().single():await sb.from('orders').insert(p).select().single();
+    if(r.error){cloud('Erro ao salvar',false);return toast('Erro ao salvar lançamento: '+r.error.message)}
+    if(editing){const dr=await sb.from('order_items').delete().eq('order_id',editing.id);if(dr.error){cloud('Erro ao salvar',false);return toast('Erro ao atualizar serviços: '+dr.error.message)}}
+    const ir=await sb.from('order_items').insert(a.map(x=>({...x,order_id:r.data.id,freight_value:Number(x.freight_value)||0})));
+    if(ir.error){cloud('Erro ao salvar',false);return toast('Lançamento salvo, mas os serviços falharam: '+ir.error.message)}
+    if(typeof saveCatalog==='function')await saveCatalog(a);
+    editing=null;clearOrder();await loadData();toast('Lançamento salvo na nuvem');
+  }
+
+  function patchEditRows(){
+    document.querySelectorAll('#fixRows .edit-svc-row').forEach(r=>freightInput(r,r.dataset.freightValue??0));
+    header(); calcEdit();
+  }
+
+  function loadEditFreight(){
+    if(!currentEditId||!$('fixRows'))return;
+    const o=orders.find(x=>String(x.id)===String(currentEditId));
+    if(!o)return;
+    const items=o.order_items||[];
+    [...document.querySelectorAll('#fixRows .edit-svc-row')].forEach((r,i)=>{
+      const v=Number(items[i]?.freight_value||0); r.dataset.freightValue=v; freightInput(r,v);
+    });
+    calcEdit();
+  }
+
+  async function saveEdit(e){
+    e.preventDefault();
+    if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+    if(!company)return toast('Escolha a empresa primeiro');
+    patchEditRows(); const a=editItems();
+    if(!a.length)return toast('Adicione pelo menos um serviço ou produto');
+    const id=currentEditId;if(!id)return toast('Não foi possível identificar o lançamento');
+    const old=orders.find(x=>String(x.id)===String(id));if(!old)return toast('Lançamento não encontrado');
+    cloud('Salvando...');
+    let c=clients.find(x=>x.name.toLowerCase()===$('fixClient').value.trim().toLowerCase());
+    if(!c&&$('fixClient').value.trim()){
+      const cr=await sb.from('clients').insert({company_id:company.id,name:$('fixClient').value.trim()}).select().single();
+      if(cr.error){cloud('Erro ao salvar',false);return toast(cr.error.message)} c=cr.data;
+    }
+    const t=totals(a);
+    const p={company_id:company.id,client_id:c?.id||old.client_id||null,entry_date:$('fixEntry').value,exit_date:$('fixExit').value,client_name:$('fixClient').value.trim(),vehicle_make_model:$('fixVehicle').value.trim(),plate:$('fixPlate').value.trim(),pedido:$('fixPedido').value.trim(),payment_status:$('fixPayment').value,total_sale:t.sale,total_cost:t.cost+t.freight,total_freight:t.freight,total_tax:t.tax,net_profit:t.net};
+    const r=await sb.from('orders').update(p).eq('id',id).select().single();
+    if(r.error){cloud('Erro ao salvar',false);return toast('Erro ao salvar: '+r.error.message)}
+    const dr=await sb.from('order_items').delete().eq('order_id',id);
+    if(dr.error){cloud('Erro ao salvar',false);return toast('Erro ao atualizar serviços: '+dr.error.message)}
+    const ir=await sb.from('order_items').insert(a.map(x=>({...x,order_id:id,freight_value:Number(x.freight_value)||0})));
+    if(ir.error){cloud('Erro ao salvar',false);return toast('Erro ao salvar serviços: '+ir.error.message)}
+    if(typeof saveCatalog==='function')await saveCatalog(a);
+    $('orderFixModal')?.classList.add('hidden'); currentEditId=null; await loadData(); toast('Lançamento atualizado');
+  }
+
+  function observeClicks(){
+    document.addEventListener('click',e=>{
+      const edit=e.target.closest?.('[data-edit]');
+      const launch=e.target.closest?.('.launch[data-id]');
+      if(edit) currentEditId=edit.dataset.edit;
+      else if(launch) currentEditId=launch.dataset.id;
+      if(e.target.closest?.('#fixAdd')) requestAnimationFrame(()=>{patchEditRows()});
+      requestAnimationFrame(()=>{patchNewRows();patchEditRows();loadEditFreight()});
+    },true);
+  }
+
+  function install(){
+    addStyle();
+    wrapAddRow();
+    patchNewRows();
+    const order=$('order');
+    if(order){order.onsubmit=saveNew;order.dataset.freightFinal='1'}
+    const fix=$('fixEditForm');
+    if(fix){fix.onsubmit=saveEdit;fix.dataset.freightFinal='1'}
+    observeClicks();
+    setTimeout(()=>{
+      wrapAddRow();patchNewRows();patchEditRows();
+      const f=$('fixEditForm');if(f)f.onsubmit=saveEdit;
+      calcNew();calcEdit();
+    },250);
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
+  else install();
 })();
