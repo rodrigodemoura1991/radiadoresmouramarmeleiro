@@ -56,6 +56,9 @@
   }
   function bind(){
     if(document.documentElement.dataset.servicePopupBound==='1')return;document.documentElement.dataset.servicePopupBound='1';
+    document.addEventListener('keydown',function(e){
+      if(e.key==='Escape'&&opened){e.preventDefault();e.stopPropagation();close();}
+    },true);
     document.addEventListener('click',function(e){
       const btn=e.target.closest?.('#allServicesList .service-edit-btn,#allServicesList .edit-all-service,#allServicesList [data-edit]');if(!btn)return;const list=$('allServicesList');if(!list||!list.contains(btn))return;
       const card=btn.closest('.service-card,.grouped-service,.service-order-group,[data-order-id],[data-id]');const id=btn.dataset.edit||btn.dataset.orderId||btn.dataset.id||card?.dataset.orderId||card?.dataset.id;if(!id)return;
