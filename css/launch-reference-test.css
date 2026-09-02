@@ -281,3 +281,117 @@
   #launchList .launch-reference-card .launch-vehicle{font-size:12px!important}
   #launchList .launch-reference-card .launch-reference-values b{font-size:17px!important}
 }
+
+/* V29 — cartões mais compactos, mantendo todas as informações */
+#launchList .launch-reference-card{
+  padding:6px 9px 5px!important;
+  margin-bottom:4px!important;
+  border-radius:9px!important;
+}
+#launchList .launch-reference-top{
+  min-height:72px!important;
+  gap:4px!important;
+}
+#launchList .launch-reference-left{
+  padding:1px 3px!important;
+}
+#launchList .launch-reference-left .launch-pedido{
+  margin-bottom:4px!important;
+  font-size:13px!important;
+}
+#launchList .launch-reference-left .launch-dates{
+  gap:1px!important;
+  font-size:12px!important;
+  line-height:1.1!important;
+}
+#launchList .launch-reference-left .launch-dates b{
+  font-size:13px!important;
+}
+#launchList .launch-reference-center{
+  padding:0 2px!important;
+}
+#launchList .launch-reference-card .launch-os{
+  margin-bottom:2px!important;
+  padding:2px 8px!important;
+  font-size:13px!important;
+}
+#launchList .launch-reference-card .launch-client{
+  font-size:18px!important;
+  line-height:1.05!important;
+}
+#launchList .launch-reference-card .launch-vehicle{
+  margin-top:1px!important;
+  font-size:11.5px!important;
+  line-height:1.05!important;
+}
+#launchList .launch-reference-card .launch-payment{
+  margin-top:3px!important;
+  padding:2px 8px!important;
+  font-size:9px!important;
+}
+#launchList .launch-reference-right{
+  gap:5px!important;
+  padding-top:0!important;
+}
+#launchList .launch-reference-values{
+  min-width:72px!important;
+}
+#launchList .launch-reference-values b{
+  font-size:18px!important;
+  line-height:1!important;
+}
+#launchList .launch-reference-values span{
+  font-size:11px!important;
+  line-height:1!important;
+}
+#launchList .launch-reference-values em{
+  font-size:8px!important;
+}
+#launchList .launch-reference-actions{
+  gap:3px!important;
+}
+#launchList .launch-reference-actions .launch-action{
+  padding:4px 6px!important;
+  font-size:9px!important;
+}
+#launchList .launch-reference-card .launch-services{
+  gap:2px!important;
+  margin-top:2px!important;
+}
+#launchList .launch-reference-card .service-line{
+  padding:3px 6px!important;
+  border-radius:5px!important;
+  font-size:9.5px!important;
+  line-height:1.05!important;
+}
+#launchList .launch-reference-card .service-line b{
+  font-size:9.5px!important;
+}
+#launchList .launch-reference-card .launch-observation-card{
+  margin-top:3px!important;
+  padding-top:2px!important;
+  padding-bottom:2px!important;
+  font-size:10px!important;
+}
+
+@media(max-width:700px){
+  #launchList .launch-reference-card{
+    padding:7px!important;
+    margin-bottom:4px!important;
+  }
+  #launchList .launch-reference-top{
+    gap:3px!important;
+  }
+  #launchList .launch-reference-center{
+    margin-top:2px!important;
+  }
+  #launchList .launch-reference-card .launch-client{
+    font-size:17px!important;
+  }
+  #launchList .launch-reference-card .launch-vehicle{
+    font-size:11px!important;
+  }
+  #launchList .launch-reference-card .launch-services{
+    gap:2px!important;
+  }
+}
