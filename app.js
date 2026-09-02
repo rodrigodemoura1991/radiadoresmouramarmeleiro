@@ -1,7 +1,7 @@
 
 const sb=supabase.createClient(SUPABASE_CONFIG.url,SUPABASE_CONFIG.key);
 const COMPANIES=[{id:'48f0eb3d-22ff-4506-9d9c-b6dd4455946b',name:'Radiadores Moura'},{id:'f3cd9d20-a341-41fe-87fe-c0726a19b65b',name:'Radiadores Moura Marmeleiro'}];
-let company=null,orders=[],clients=[],catalog=[],editing=null,period='day';
+let company=null,orders=[],clients=[],catalog=[],editing=null,period='all';
 const $=id=>document.getElementById(id),today=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)};
 function sanitizeDates(payload){if(!payload||typeof payload!=='object')return payload;const copy={...payload};for(const k of ['entry_date','exit_date']){if(Object.prototype.hasOwnProperty.call(copy,k)){const v=copy[k];copy[k]=(v===null||v===undefined||String(v).trim()==='')?null:String(v).trim()}}return copy;}
 const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));const slug=s=>String(s||'').replace(/\s+/g,'').replace('ç','c').replace('ã','a');
@@ -44,8 +44,9 @@ $('launchSearch').oninput=renderLaunches;async function editOrder(id){const o=or
 function renderClients(){const q=($('clientSearch').value||'').toLowerCase();const a=clients.filter(c=>c.name.toLowerCase().includes(q));$('clientGrid').innerHTML=a.map(c=>`<div class="client" data-id="${c.id}"><b>${esc(c.name)}</b><small>${esc(c.phone||c.whatsapp||c.email||'Sem contato')}</small><small>${esc(c.city||'')}</small></div>`).join('')||'<div class="empty" style="grid-column:1/-1">Nenhum cliente cadastrado.</div>';$('clientGrid').querySelectorAll('.client').forEach(x=>x.onclick=()=>openClient(x.dataset.id))}$('clientSearch').oninput=renderClients;
 function openClient(id=''){const c=clients.find(x=>x.id===id);$('clientTitle').textContent=c?'Editar cliente':'Novo cliente';$('clientId').value=c?.id||'';$('clientName').value=c?.name||'';$('doc').value=c?.cpf_cnpj||'';$('phone').value=c?.phone||'';$('whatsapp').value=c?.whatsapp||'';$('mail').value=c?.email||'';$('address').value=c?.address||'';$('city').value=c?.city||'';$('uf').value=c?.uf||'';$('notes').value=c?.notes||'';$('clientModal').classList.remove('hidden')}$('newClient').onclick=()=>openClient();$('closeClient').onclick=$('cancelClient').onclick=()=>$('clientModal').classList.add('hidden');
 $('clientForm').onsubmit=async e=>{e.preventDefault();const p={company_id:company.id,name:$('clientName').value.trim(),cpf_cnpj:$('doc').value.trim(),phone:$('phone').value.trim(),whatsapp:$('whatsapp').value.trim(),email:$('mail').value.trim(),address:$('address').value.trim(),city:$('city').value.trim(),uf:$('uf').value.trim().toUpperCase(),notes:$('notes').value.trim()},id=$('clientId').value,r=id?await sb.from('clients').update(p).eq('id',id).select().single():await sb.from('clients').insert(p).select().single();if(r.error)return toast(r.error.message);$('clientModal').classList.add('hidden');await loadData();toast('Cliente salvo')};
-function inPeriod(o){const d=o.entry_date;if(!d)return false;const ref=new Date($('balanceDate').value+'T00:00:00'),x=new Date(d+'T00:00:00');if(period==='day')return d===$('balanceDate').value;if(period==='year')return x.getFullYear()===ref.getFullYear();const start=new Date(ref);start.setDate(start.getDate()-start.getDay());const end=new Date(start);end.setDate(start.getDate()+6);return x>=start&&x<=end}
-function renderBalance(){const a=orders.filter(inPeriod),sale=a.reduce((s,o)=>s+Number(o.total_sale),0),cost=a.reduce((s,o)=>s+Number(o.total_cost),0),tax=a.reduce((s,o)=>s+Number(o.total_tax),0),profit=a.reduce((s,o)=>s+Number(o.net_profit),0);$('balanceCards').innerHTML=[['Vendas',sale],['Custos',cost],['Impostos',tax],['Lucro líquido',profit]].map(x=>`<div class="bcard"><small>${x[0]}</small><b>${money(x[1])}</b></div>`).join('');const counts={'Liberado':0,'Parado':0,'Pronto':0,'Pronto entregue':0};a.forEach(o=>(o.order_items||[]).forEach(i=>counts[i.service_status]=(counts[i.service_status]||0)+1));$('breakdown').innerHTML=Object.entries(counts).map(([k,v])=>`<div style="display:grid;grid-template-columns:150px 1fr 40px;gap:10px;align-items:center;margin:9px 0"><b>${k}</b><div class="bar"><i style="width:${v/Math.max(1,...Object.values(counts))*100}%"></i></div><span>${v}</span></div>`).join('')}
+function balancePeriodBounds(){const refValue=$('balanceDate')?.value||today();const ref=new Date(refValue+'T00:00:00');if(period==='all')return [null,null];if(period==='custom'){const a=$('balanceStart')?.value||'',b=$('balanceEnd')?.value||'';return [a||null,b||null]}if(period==='day')return [refValue,refValue];if(period==='month'){const start=new Date(ref.getFullYear(),ref.getMonth(),1),end=new Date(ref.getFullYear(),ref.getMonth()+1,0);return [start.toISOString().slice(0,10),end.toISOString().slice(0,10)]}if(period==='year'){return [ref.getFullYear()+'-01-01',ref.getFullYear()+'-12-31']}const start=new Date(ref);const day=start.getDay()||7;start.setDate(start.getDate()-day+1);const end=new Date(start);end.setDate(start.getDate()+6);return [start.toISOString().slice(0,10),end.toISOString().slice(0,10)]}
+function inPeriod(o){const d=String(o?.exit_date||'').slice(0,10);if(!d)return false;const [a,b]=balancePeriodBounds();return (!a||d>=a)&&(!b||d<=b)}
+function renderBalance(){renderAdvancedBalance()}
 function renderAll(){renderLaunches();renderClients();calc();renderBalance()}$('balanceDate').onchange=renderBalance;document.querySelectorAll('.period').forEach(b=>b.onclick=()=>{document.querySelectorAll('.period').forEach(x=>x.classList.remove('active'));b.classList.add('active');period=b.dataset.p;renderBalance()});document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$(b.dataset.view).classList.add('active');if(b.dataset.view==='balance')renderBalance()});init();
 
 
@@ -165,8 +166,54 @@ function renderAll(){renderLaunches();renderClients();calc();renderBalance()}$('
 const paymentColors={'EM ABERTO':'pending','FALTA ACERTAR':'falta-acertar','Dinheiro':'cash','Cartão':'card','Pix':'pix','Cheque':'check','Carteira':'wallet','Boleto':'boleto','Notinha':'notinha'};
 function allServiceRows(){return orders.flatMap(o=>(o.order_items||[]).map(i=>({...i,order:o})))}
 function renderAllServices(){const q=($('allServicesSearch')?.value||'').toLowerCase().trim();const pf=$('servicePaymentFilter')?.value||'';const sf=$('serviceStatusFilter')?.value||'';let a=allServiceRows().filter(x=>{const text=[x.order.client_name,x.order.pedido,x.description,x.order.vehicle_make_model,x.order.plate].join(' ').toLowerCase();return (!q||text.includes(q))&&(!pf||(x.order.payment_status||'EM ABERTO')===pf)&&(!sf||x.service_status===sf)});a.sort((x,y)=>String(y.order.exit_date||'').localeCompare(String(x.order.exit_date||'')));$('allServicesList').innerHTML=a.map(x=>{const pay=x.order.payment_status||'EM ABERTO';const cls=paymentColors[pay]||'other';const profit=Number(x.sale_value||0)-Number(x.cost_value||0)-Number(x.freight_value||0)-(Number(x.sale_value||0)*Number(x.tax_rate||0)/100);return `<article class="service-card payment-${cls}"><div class="service-date"><b>${esc(x.order.exit_date||'—')}</b><small>Entrada ${esc(x.order.entry_date||'—')}</small></div><div class="service-main"><b>${esc(x.order.client_name||'Sem cliente')}</b><small>Pedido ${esc(x.order.pedido||'—')} ${x.order.vehicle_make_model?'• '+esc(x.order.vehicle_make_model):''}</small><div class="service-desc">${esc(x.description||'Sem descrição')}</div></div><div class="service-values"><span>Venda <b>${money(x.sale_value)}</b></span><span>Custo <b>${money(x.cost_value)}</b></span><span>Lucro <b>${money(profit)}</b></span></div><div class="service-badges"><span class="status-badge status-${slug(x.service_status)}">${esc(x.service_status||'—')}</span><span class="payment-badge">${esc(pay)}</span></div></article>`}).join('')||'<div class="empty">Nenhum serviço encontrado.</div>'}
-function balancePeriodOrders(){if(period==='custom'){const a=$('balanceStart').value,b=$('balanceEnd').value;return orders.filter(o=>o.entry_date&&(!a||o.entry_date>=a)&&(!b||o.entry_date<=b))}const ref=$('balanceDate').value;if(!ref)return [];const r=new Date(ref+'T00:00:00');return orders.filter(o=>{if(!o.entry_date)return false;const x=new Date(o.entry_date+'T00:00:00');if(period==='day')return o.entry_date===ref;if(period==='year')return x.getFullYear()===r.getFullYear();if(period==='month')return x.getFullYear()===r.getFullYear()&&x.getMonth()===r.getMonth();const start=new Date(r);start.setDate(r.getDate()-r.getDay());const end=new Date(start);end.setDate(start.getDate()+6);return x>=start&&x<=end})}
-function renderAdvancedBalance(){const a=balancePeriodOrders();const sale=a.reduce((s,o)=>s+Number(o.total_sale||0),0),cost=a.reduce((s,o)=>s+Number(o.total_cost||0),0),tax=a.reduce((s,o)=>s+Number(o.total_tax||0),0),profit=a.reduce((s,o)=>s+Number(o.net_profit||0),0);$('balanceCards').innerHTML=[['Vendas',sale],['Custos',cost],['Impostos',tax],['Lucro líquido',profit]].map(x=>`<div class="bcard"><small>${x[0]}</small><b>${money(x[1])}</b></div>`).join('');const payments={};a.forEach(o=>{const p=o.payment_status||'EM ABERTO';payments[p]=(payments[p]||0)+Number(o.total_sale||0)});$('paymentBreakdown').innerHTML=Object.entries(payments).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="payment-row"><span>${esc(k)}</span><b>${money(v)}</b></div>`).join('')||'<div class="empty">Sem pagamentos no período.</div>';const margin=sale?profit/sale*100:0,costPct=sale?cost/sale*100:0,taxPct=sale?tax/sale*100:0;$('profitManagement').innerHTML=`<div class="profit-grid"><div><small>Margem líquida</small><b>${margin.toFixed(1)}%</b></div><div><small>Custos sobre vendas</small><b>${costPct.toFixed(1)}%</b></div><div><small>Impostos sobre vendas</small><b>${taxPct.toFixed(1)}%</b></div><div><small>Serviços</small><b>${a.reduce((n,o)=>n+(o.order_items||[]).length,0)}</b></div></div>`;const counts={'Liberado':0,'Parado':0,'Pronto':0,'Pronto entregue':0};a.forEach(o=>(o.order_items||[]).forEach(i=>counts[i.service_status]=(counts[i.service_status]||0)+1));$('breakdown').innerHTML=Object.entries(counts).map(([k,v])=>`<div class="break-row"><b>${k}</b><div class="bar"><i style="width:${v/Math.max(1,...Object.values(counts))*100}%"></i></div><span>${v}</span></div>`).join('')}
+function balancePeriodOrders(){return orders.filter(inPeriod)}
+function balancePeriodServices(){
+  const rows=[];
+  orders.filter(inPeriod).forEach(o=>{
+    const items=Array.isArray(o.order_items)?o.order_items:[];
+    if(!items.length)return;
+    const hasItemFreight=items.some(i=>Number(i?.freight_value)||0);
+    items.forEach(i=>{
+      const sale=Number(i?.sale_value)||0;
+      const cost=Number(i?.cost_value)||0;
+      const freight=Number(i?.freight_value)||0;
+      const tax=sale*(Number(i?.tax_rate)||0)/100;
+      rows.push({order:o,item:i,sale,cost,freight,tax,profit:sale-cost-freight-tax});
+    });
+    // Compatibilidade com lançamentos antigos: se o frete estiver salvo somente no pedido,
+    // considera-o uma única vez. Para lançamentos novos, o frete fica nos serviços.
+    if(!hasItemFreight && Number(o.total_freight||0)){
+      const target=rows.filter(r=>r.order===o);
+      if(target.length)target[target.length-1].freight+=Number(o.total_freight)||0,target[target.length-1].profit-=Number(o.total_freight)||0;
+    }
+  });
+  return rows;
+}
+function renderAdvancedBalance(){
+  const rows=balancePeriodServices();
+  const sale=rows.reduce((s,r)=>s+r.sale,0);
+  const cost=rows.reduce((s,r)=>s+r.cost,0);
+  const freight=rows.reduce((s,r)=>s+r.freight,0);
+  const tax=rows.reduce((s,r)=>s+r.tax,0);
+  const profit=sale-cost-freight-tax;
+  const margin=sale?profit/sale*100:0;
+  const uniqueOrders=[...new Set(rows.map(r=>r.order.id))];
+  const moneyCards=[['Valor bruto',sale],['Custo',cost],['Frete',freight],['Imposto',tax],['Lucro líquido',profit],['Margem líquida',margin,null,true],['Serviços',rows.length,null,true],['Lançamentos',uniqueOrders.length,null,true]];
+  $('balanceCards').innerHTML=moneyCards.map(([label,value,,isInfo])=>`<div class="bcard"><small>${label}</small><b>${isInfo&&label==='Margem líquida'?Number(value).toFixed(1)+'%':isInfo&&label!=='Margem líquida'?Number(value)||0:money(value)}</b></div>`).join('');
+
+  const payments={};
+  rows.forEach(r=>{const p=r.order.payment_status||'EM ABERTO';payments[p]=(payments[p]||0)+r.sale});
+  $('paymentBreakdown').innerHTML=Object.entries(payments).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="payment-row"><span>${esc(k)}</span><b>${money(v)}</b></div>`).join('')||'<div class="empty">Sem pagamentos no período.</div>';
+
+  const costPct=sale?cost/sale*100:0,freightPct=sale?freight/sale*100:0,taxPct=sale?tax/sale*100:0;
+  $('profitManagement').innerHTML=`<div class="profit-grid"><div><small>Valor bruto</small><b>${money(sale)}</b></div><div><small>(−) Custo</small><b>${money(cost)}</b></div><div><small>(−) Frete</small><b>${money(freight)}</b></div><div><small>(−) Imposto</small><b>${money(tax)}</b></div><div><small>(=) Lucro líquido</small><b>${money(profit)}</b></div><div><small>Margem líquida</small><b>${margin.toFixed(1)}%</b></div></div><p style="margin:12px 0 0;color:var(--muted);font-size:13px">Cálculo pelos serviços dos lançamentos cuja <b>data de saída</b> está dentro do período selecionado.</p><p style="margin:6px 0 0;color:var(--muted);font-size:13px">Custos: ${costPct.toFixed(1)}% • Fretes: ${freightPct.toFixed(1)}% • Impostos: ${taxPct.toFixed(1)}% do valor bruto.</p>`;
+
+  const counts={};
+  rows.forEach(r=>{const st=r.item.service_status||'Sem situação';counts[st]=(counts[st]||0)+1});
+  const max=Math.max(1,...Object.values(counts));
+  $('breakdown').innerHTML=Object.entries(counts).map(([k,v])=>`<div class="break-row"><b>${esc(k)}</b><div class="bar"><i style="width:${v/max*100}%"></i></div><span>${v}</span></div>`).join('')||'<div class="empty">Nenhum serviço com data de saída no período.</div>';
+}
+
 const _oldRenderAll=renderAll;renderAll=function(){_oldRenderAll();renderAllServices();renderAdvancedBalance()};
 document.querySelectorAll('.nav').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.view==='services')renderAllServices();if(b.dataset.view==='balance')renderAdvancedBalance()}));
 ['allServicesSearch','servicePaymentFilter','serviceStatusFilter'].forEach(id=>$(id)?.addEventListener('input',renderAllServices));$('servicePaymentFilter')?.addEventListener('change',renderAllServices);$('serviceStatusFilter')?.addEventListener('change',renderAllServices);$('balanceDate')?.addEventListener('change',renderAdvancedBalance);document.querySelectorAll('.period').forEach(b=>b.addEventListener('click',()=>{period=b.dataset.p;renderAdvancedBalance()}));$('applyCustomBalance')?.addEventListener('click',()=>{period='custom';document.querySelectorAll('.period').forEach(x=>x.classList.remove('active'));renderAdvancedBalance()});

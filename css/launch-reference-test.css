@@ -1,0 +1,283 @@
+/* TESTE V26 — padrão visual dos cartões da segunda imagem */
+#launchList .launch-reference-card{
+  position:relative!important;
+  overflow:hidden!important;
+  padding:8px 10px 7px!important;
+  margin:0 0 6px!important;
+  min-height:0!important;
+  border-radius:11px!important;
+  border:2px solid var(--line)!important;
+  box-shadow:0 2px 7px rgba(23,32,51,.10)!important;
+  color:#172033!important;
+}
+#launchList .launch-reference-card.payment-em-aberto{
+  background:#f5c542!important;
+  border-color:#d3a900!important;
+}
+#launchList .launch-reference-card.payment-paid{
+  background:#fff!important;
+  border-color:#b9c7d5!important;
+}
+#launchList .launch-reference-card.payment-falta-acertar{
+  background:#2563eb!important;
+  border-color:#1d4ed8!important;
+  color:#fff!important;
+}
+#launchList .launch-reference-top{
+  display:grid!important;
+  grid-template-columns:minmax(190px,32%) minmax(250px,36%) minmax(210px,32%)!important;
+  align-items:start!important;
+  min-height:93px!important;
+  gap:6px!important;
+}
+#launchList .launch-reference-left{
+  min-width:0!important;
+  padding:2px 4px!important;
+  text-align:left!important;
+}
+#launchList .launch-reference-left .launch-pedido{
+  font-size:14px!important;
+  line-height:1.15!important;
+  font-weight:900!important;
+  margin-bottom:7px!important;
+}
+#launchList .launch-reference-left .launch-pedido span{
+  font-weight:1000!important;
+  margin-right:4px!important;
+}
+#launchList .launch-reference-left .launch-dates{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  gap:2px!important;
+  margin:0!important;
+  font-size:13px!important;
+  line-height:1.18!important;
+  font-weight:800!important;
+}
+#launchList .launch-reference-left .launch-dates b{
+  font-size:14px!important;
+  font-weight:1000!important;
+}
+#launchList .launch-reference-center{
+  min-width:0!important;
+  text-align:center!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  padding:0 4px!important;
+}
+#launchList .launch-reference-card .launch-os{
+  display:table!important;
+  margin:0 auto 4px!important;
+  padding:3px 10px!important;
+  border-radius:7px!important;
+  background:rgba(255,255,255,.82)!important;
+  border:1px solid rgba(23,32,51,.16)!important;
+  color:#172033!important;
+  font-size:15px!important;
+  line-height:1.05!important;
+  font-weight:1000!important;
+  white-space:nowrap!important;
+}
+#launchList .launch-reference-card .launch-client{
+  font-size:16px!important;
+  line-height:1.12!important;
+  font-weight:1000!important;
+  text-align:center!important;
+  overflow-wrap:anywhere!important;
+}
+#launchList .launch-reference-card .launch-vehicle{
+  margin-top:3px!important;
+  font-size:15px!important;
+  line-height:1.12!important;
+  font-weight:1000!important;
+  text-align:center!important;
+  overflow-wrap:anywhere!important;
+}
+#launchList .launch-reference-card .launch-payment{
+  display:table!important;
+  margin:6px auto 0!important;
+  padding:3px 9px!important;
+  border-radius:7px!important;
+  background:#fff!important;
+  border:1px solid rgba(23,32,51,.12)!important;
+  color:#173b67!important;
+  font-size:10px!important;
+  line-height:1.05!important;
+  font-weight:1000!important;
+  white-space:nowrap!important;
+}
+#launchList .launch-reference-card.payment-falta-acertar .launch-client,
+#launchList .launch-reference-card.payment-falta-acertar .launch-vehicle{
+  color:#fff!important;
+}
+#launchList .launch-reference-right{
+  min-width:0!important;
+  display:flex!important;
+  justify-content:flex-end!important;
+  align-items:flex-start!important;
+  gap:7px!important;
+  padding:1px 0 0 4px!important;
+}
+#launchList .launch-reference-values{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-end!important;
+  min-width:78px!important;
+  line-height:1.05!important;
+}
+#launchList .launch-reference-values b{
+  font-size:13px!important;
+  font-weight:1000!important;
+  white-space:nowrap!important;
+}
+#launchList .launch-reference-values span{
+  font-size:11px!important;
+  font-weight:700!important;
+  white-space:nowrap!important;
+}
+#launchList .launch-reference-values em{
+  font-size:9px!important;
+  font-style:normal!important;
+  font-weight:800!important;
+}
+#launchList .launch-reference-actions{
+  display:flex!important;
+  gap:4px!important;
+}
+#launchList .launch-reference-actions .launch-action{
+  padding:5px 7px!important;
+  border-radius:7px!important;
+  font-size:10px!important;
+  font-weight:900!important;
+  background:#fff!important;
+  color:#173b67!important;
+  border:1px solid #d6dee8!important;
+}
+#launchList .launch-reference-actions .launch-action.delete{
+  color:#b42318!important;
+}
+#launchList .launch-reference-card.payment-falta-acertar .launch-reference-values b,
+#launchList .launch-reference-card.payment-falta-acertar .launch-reference-values span,
+#launchList .launch-reference-card.payment-falta-acertar .launch-reference-values em{
+  color:#fff!important;
+}
+#launchList .launch-reference-card .launch-services{
+  display:grid!important;
+  gap:3px!important;
+  margin-top:1px!important;
+}
+#launchList .launch-reference-card .service-line{
+  min-height:0!important;
+  padding:4px 7px!important;
+  border-radius:6px!important;
+  font-size:10px!important;
+  line-height:1.08!important;
+}
+#launchList .launch-reference-card .service-line b{
+  font-size:10px!important;
+}
+#launchList .launch-reference-card .service-status{
+  font-weight:1000!important;
+  white-space:nowrap!important;
+}
+#launchList .launch-reference-card.payment-falta-acertar .service-line{
+  background:#fff!important;
+  color:#172033!important;
+}
+#launchList .launch-reference-card.payment-falta-acertar .service-line .service-status{
+  color:#172033!important;
+}
+#launchList .launch-reference-card .launch-observation-card{
+  margin-top:4px!important;
+}
+#launchList .launch-reference-card.keyboard-selected{
+  outline:3px solid var(--brand,#173b67)!important;
+  outline-offset:2px!important;
+}
+
+/* Filtros completos na lista de lançamentos */
+#launchFilters{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:8px!important;
+  margin:0 0 12px!important;
+}
+#launchFilters select{
+  width:100%!important;
+  min-height:38px!important;
+  padding:8px 11px!important;
+  border:1px solid var(--line)!important;
+  border-radius:10px!important;
+  background:#fff!important;
+  color:var(--ink)!important;
+  font-size:12px!important;
+  font-weight:800!important;
+  outline:none!important;
+}
+#launchFilters select:focus{
+  border-color:#8fb0d2!important;
+  box-shadow:0 0 0 3px rgba(23,59,103,.08)!important;
+}
+@media(max-width:700px){
+  #launchFilters{grid-template-columns:1fr!important}
+  #launchList .launch-reference-card{padding:8px!important}
+  #launchList .launch-reference-top{grid-template-columns:1fr!important;min-height:0!important}
+  #launchList .launch-reference-left{padding-right:0!important}
+  #launchList .launch-reference-center{margin-top:4px!important}
+  #launchList .launch-reference-right{justify-content:space-between!important;padding:5px 0 0!important}
+}
+
+/* V28 — ajustes solicitados */
+#launchList .launch-reference-card .launch-reference-values b{
+  font-size:18px!important;
+  line-height:1.05!important;
+  font-weight:1000!important;
+}
+#launchList .launch-reference-card .launch-reference-values span{
+  font-size:11px!important;
+  line-height:1.05!important;
+  font-weight:700!important;
+}
+#launchList .launch-reference-card .launch-client{
+  font-size:19px!important;
+  line-height:1.12!important;
+  font-weight:1000!important;
+}
+#launchList .launch-reference-card .launch-vehicle{
+  font-size:12.5px!important;
+  line-height:1.12!important;
+  font-weight:400!important;
+}
+
+/* Sem data de saída: verde claro, independentemente da situação do pagamento. */
+#launchList .launch-reference-card.no-exit-service{
+  background:#e6f7ef!important;
+  border-color:#9bd7b8!important;
+  color:#172033!important;
+}
+#launchList .launch-reference-card.no-exit-service .launch-client,
+#launchList .launch-reference-card.no-exit-service .launch-vehicle,
+#launchList .launch-reference-card.no-exit-service .launch-reference-values b,
+#launchList .launch-reference-card.no-exit-service .launch-reference-values span,
+#launchList .launch-reference-card.no-exit-service .launch-reference-values em,
+#launchList .launch-reference-card.no-exit-service .launch-dates,
+#launchList .launch-reference-card.no-exit-service .launch-dates b{
+  color:#172033!important;
+  -webkit-text-fill-color:#172033!important;
+}
+#launchList .launch-reference-card.no-exit-service .launch-payment{
+  background:#fff!important;
+  color:#173b67!important;
+}
+#launchList .launch-reference-card.no-exit-service .launch-services .service-line{
+  background:rgba(255,255,255,.82)!important;
+  color:#172033!important;
+}
+
+@media(max-width:700px){
+  #launchList .launch-reference-card .launch-client{font-size:18px!important}
+  #launchList .launch-reference-card .launch-vehicle{font-size:12px!important}
+  #launchList .launch-reference-card .launch-reference-values b{font-size:17px!important}
+}
