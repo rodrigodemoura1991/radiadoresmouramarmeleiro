@@ -13,3 +13,135 @@
 #launchList .launch-reference-card.no-exit-service .launch-dates b{color:#172033!important;-webkit-text-fill-color:#172033!important}
 #launchList .launch-reference-card.no-exit-service .launch-payment{background:#fff!important;color:#173b67!important}
 #launchList .launch-reference-card.no-exit-service .launch-services .service-line{background:rgba(255,255,255,.82)!important;color:#172033!important}
+
+/* Cartões compactos — mantém a mesma posição dos blocos, apenas reduz dimensões e fontes. */
+#launchList{gap:3px!important}
+#launchList .launch-reference-card{
+  padding:5px 8px!important;
+  border-radius:8px!important;
+}
+#launchList .launch-reference-top{
+  gap:6px!important;
+}
+#launchList .launch-reference-left,
+#launchList .launch-reference-center,
+#launchList .launch-reference-right{
+  padding:0 2px!important;
+}
+#launchList .launch-reference-left .launch-pedido{
+  font-size:10px!important;
+  line-height:1.05!important;
+  margin-bottom:2px!important;
+}
+#launchList .launch-reference-left .launch-dates{
+  gap:3px!important;
+  margin:0!important;
+  font-size:9px!important;
+  line-height:1.05!important;
+}
+#launchList .launch-reference-left .launch-dates b{
+  font-size:10px!important;
+  line-height:1.05!important;
+}
+#launchList .launch-reference-card .launch-os{
+  margin:0 auto 1px!important;
+  padding:1px 5px!important;
+  border-radius:5px!important;
+  font-size:10px!important;
+  line-height:1!important;
+}
+#launchList .launch-reference-card .launch-client{
+  font-size:14px!important;
+  line-height:1.02!important;
+}
+#launchList .launch-reference-card .launch-vehicle{
+  margin-top:1px!important;
+  font-size:10px!important;
+  line-height:1.02!important;
+}
+#launchList .launch-reference-card .launch-payment{
+  margin:2px auto 0!important;
+  padding:1px 6px!important;
+  border-radius:5px!important;
+  font-size:8px!important;
+  line-height:1!important;
+}
+#launchList .launch-reference-values b{
+  font-size:11px!important;
+  line-height:1!important;
+}
+#launchList .launch-reference-values span,
+#launchList .launch-reference-values em{
+  font-size:8px!important;
+  line-height:1!important;
+}
+#launchList .launch-reference-actions{gap:2px!important}
+#launchList .launch-reference-card .launch-action{
+  padding:2px 4px!important;
+  border-radius:5px!important;
+  font-size:8px!important;
+  line-height:1!important;
+}
+#launchList .launch-services{
+  gap:1px!important;
+  margin-top:2px!important;
+}
+#launchList .launch-services .service-line{
+  gap:4px!important;
+  padding:2px 4px!important;
+  border-radius:4px!important;
+  font-size:8px!important;
+  line-height:1.02!important;
+  min-height:0!important;
+}
+#launchList .launch-services .service-line b,
+#launchList .launch-services .service-status{
+  font-size:8px!important;
+  line-height:1.02!important;
+}
+#launchList .launch-reference-card .launch-observation-card{
+  margin-top:2px!important;
+  padding:2px 4px!important;
+  font-size:8px!important;
+  line-height:1.05!important;
+}
+
+/* Sem data de saída: vermelho claro, sempre, independentemente do pagamento. */
+#launchList .launch-reference-card.no-exit-service,
+#launchList .launch-reference-card.no-exit-date{
+  background:#fde8e8!important;
+  background-color:#fde8e8!important;
+  border-color:#f3b4b4!important;
+  border-left-color:#e78b8b!important;
+}
+#launchList .launch-reference-card.no-exit-service .launch-services .service-line,
+#launchList .launch-reference-card.no-exit-date .launch-services .service-line{
+  background:#fff!important;
+  border-color:#f0cccc!important;
+}
+
+/* Também aplica a regra aos cartões da tela Todos os Serviços. */
+#allServicesList .service-card.no-exit,
+#allServicesList .service-card.no-exit-date,
+#allServicesList .grouped-service.no-exit,
+#allServicesList .grouped-service.no-exit-date{
+  background:#fde8e8!important;
+  background-color:#fde8e8!important;
+  border-color:#f3b4b4!important;
+  border-left-color:#e78b8b!important;
+}
+
+@media(max-width:700px){
+  #launchList .launch-reference-card{padding:3px 5px!important;border-radius:6px!important}
+  #launchList .launch-reference-left .launch-pedido{font-size:8px!important}
+  #launchList .launch-reference-left .launch-dates{font-size:8px!important;gap:2px!important}
+  #launchList .launch-reference-left .launch-dates b{font-size:9px!important}
+  #launchList .launch-reference-card .launch-os{font-size:8px!important;padding:1px 4px!important}
+  #launchList .launch-reference-card .launch-client{font-size:11px!important}
+  #launchList .launch-reference-card .launch-vehicle{font-size:8px!important}
+  #launchList .launch-reference-card .launch-payment{font-size:7px!important;padding:1px 4px!important}
+  #launchList .launch-reference-values b{font-size:9px!important}
+  #launchList .launch-reference-values span,#launchList .launch-reference-values em{font-size:7px!important}
+  #launchList .launch-reference-card .launch-action{padding:1px 3px!important;font-size:7px!important}
+  #launchList .launch-services .service-line,#launchList .launch-services .service-line b,#launchList .launch-services .service-status{font-size:7px!important}
+}
