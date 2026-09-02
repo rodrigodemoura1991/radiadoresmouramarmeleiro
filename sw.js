@@ -1,4 +1,4 @@
-const CACHE_NAME = 'radiadores-moura-v35';
+const CACHE_NAME = 'radiadores-moura-v36';
 const APP_SHELL = [
   './',
   './index.html',
@@ -11,6 +11,7 @@ const APP_SHELL = [
   './freight.js?v=freight8',
   './freight-ui.js?v=freight8',
   './tenant-fix.js?v=tenant3',
+  './js/services-enhancements.js?v=services2',
   './supabase-config.js?v=stable5',
   './assets/logo-radiadores-moura.svg',
   './manifest.webmanifest',
