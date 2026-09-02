@@ -1,4 +1,4 @@
-const CACHE_NAME = 'radiadores-moura-v42-cartoes-compactos';
+const CACHE_NAME = 'radiadores-moura-v43-popup-fix';
 const APP_SHELL = [
   './',
   './index.html',
