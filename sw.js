@@ -1,4 +1,4 @@
-const CACHE_NAME = 'radiadores-moura-v34';
+const CACHE_NAME = 'radiadores-moura-v35';
 const APP_SHELL = [
   './',
   './index.html',
@@ -7,7 +7,7 @@ const APP_SHELL = [
   './css/layout-consolidated.css?v=layout1',
   './app.js?v=stable7',
   './auth-fix.js?v=auth3',
-  './stability.js?v=stable2',
+  './stability.js?v=stable3',
   './freight.js?v=freight8',
   './freight-ui.js?v=freight8',
   './tenant-fix.js?v=tenant3',
