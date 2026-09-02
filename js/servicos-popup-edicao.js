@@ -32,8 +32,6 @@
   }
   function open(id){
     if(!id)return;const edit=window.editOrder,form=$('order');if(typeof edit!=='function'||!form)return;ensurePopup();
-    // CRÍTICO: o popup aparece e recebe o formulário ANTES de editOrder.
-    // O editOrder legado chama scrollTo({top:0}); isso não poderá mover a página principal.
     originalParent=form.parentNode;originalNext=form.nextSibling;$('serviceEditBox').appendChild(form);popup.classList.remove('hidden');document.documentElement.classList.add('service-edit-popup-html');document.body.classList.add('service-edit-popup-open');opened=true;
     const nativeScrollTo=window.scrollTo;window.scrollTo=function(){};try{edit(String(id))}finally{window.scrollTo=nativeScrollTo}
     const o=(window.orders||[]).find(x=>String(x.id)===String(id));$('serviceEditTitle').textContent=o?.numero_lancamento!=null?'Editar lançamento #'+o.numero_lancamento:'Editar lançamento';
@@ -66,5 +64,6 @@
     const list=$('allServicesList');if(list){decorate();new MutationObserver(()=>requestAnimationFrame(decorate)).observe(list,{childList:true,subtree:true})}
     document.addEventListener('input',()=>requestAnimationFrame(decorate),true);document.addEventListener('change',()=>requestAnimationFrame(decorate),true);
   }
-  window.openServiceEditPopup=open;window.closeServiceEditPopup=close;if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{css();bind()},{once:true});else{css();bind()}
+  window.openServiceEditPopup=open;window.closeServiceEditPopup=close;window.openFix=open;
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{css();bind()},{once:true});else{css();bind()}
 })();
