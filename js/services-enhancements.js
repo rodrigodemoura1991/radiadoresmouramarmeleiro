@@ -16,10 +16,29 @@ function css(){if(document.getElementById('falta-acertar-css'))return;const s=do
 .payment-falta-acertar .grouped-item div{color:#111827!important;-webkit-text-fill-color:#111827!important;text-shadow:none!important}
 .payment-falta-acertar .grouped-item{background:#e6f7ef!important;border-color:#d1eadf!important}
 
-/* Destaque dos dados principais: cliente maior/negrito; marca e modelo normal e menor. */
+/* Destaque dos dados principais: cliente maior/negrito; informações secundárias normais e menores. */
 #launchList .launch .lname{font-size:16px!important;font-weight:800!important;line-height:1.15!important}
 #launchList .launch .meta{font-size:13px!important;font-weight:400!important;line-height:1.2!important}
-#launchList .launch .meta{font-weight:400!important}
+
+/* Sem data de saída: verde claro sempre, independentemente do pagamento. */
+#launchList .launch.no-exit-date,
+#allServicesList .service-card.no-exit-date,
+#allServicesList .grouped-service.no-exit-date{background:#dff5e6!important;color:#173b2a!important;border-color:#b8e6c8!important;box-shadow:0 4px 14px rgba(60,160,90,.16)!important}
+#launchList .launch.no-exit-date .lname,
+#launchList .launch.no-exit-date .meta,
+#launchList .launch.no-exit-date .ltop>b,
+#launchList .launch.no-exit-date .launch-values,
+#launchList .launch.no-exit-date .launch-values b,
+#launchList .launch.no-exit-date .launch-values span,
+#launchList .launch.no-exit-date .launch-values em{color:#173b2a!important}
+#launchList .launch.no-exit-date .chip{background:#effaf2!important;border-color:#c9ead3!important;color:#173b2a!important;-webkit-text-fill-color:#173b2a!important}
+#allServicesList .service-card.no-exit-date .service-main,
+#allServicesList .service-card.no-exit-date .service-main b,
+#allServicesList .service-card.no-exit-date .service-main small,
+#allServicesList .service-card.no-exit-date .service-desc,
+#allServicesList .service-card.no-exit-date .service-values,
+#allServicesList .service-card.no-exit-date .service-values b{color:#173b2a!important;-webkit-text-fill-color:#173b2a!important}
+#allServicesList .service-card.no-exit-date .payment-badge{background:#effaf2!important;color:#173b2a!important;border-color:#c9ead3!important;-webkit-text-fill-color:#173b2a!important}
 `;
 document.head.appendChild(s)}
 function addOption(id){const el=document.getElementById(id);if(!el||!el.options)return;if(!Array.from(el.options).some(o=>o.value===FLAG)){const o=document.createElement('option');o.value=FLAG;o.textContent=FLAG;el.appendChild(o)}}
