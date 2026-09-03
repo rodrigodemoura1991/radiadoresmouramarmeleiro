@@ -5,7 +5,7 @@ function br(n){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'
 function init(){
  const launch=document.getElementById('launch'); if(!launch||document.getElementById('saleCalculator'))return;
  const layout=launch.querySelector('.launch-dashboard-layout');
- if(!layout)return;
+ const container=layout||launch;
  const aside=document.createElement('aside'); aside.id='saleCalculator'; aside.className='sale-calculator card';
  aside.innerHTML=`
  <div class="sale-calc-head"><div><h3>Calculadora de preço</h3><small>Preço de venda por margem</small></div></div>
@@ -16,7 +16,7 @@ function init(){
  <div class="sale-calc-result"><span>Preço de venda</span><strong id="calcPrice">R$ 0,00</strong></div>
  <div class="sale-calc-details"><div><span>Custo total</span><b id="calcTotalCost">R$ 0,00</b></div><div><span>Imposto</span><b id="calcTaxValue">R$ 0,00</b></div><div><span>Lucro</span><b id="calcProfit">R$ 0,00</b></div></div>
  <button type="button" class="btn primary sale-copy" id="calcCopy">📋 Copiar valor</button>`;
- layout.appendChild(aside);
+ container.appendChild(aside);
  let margin=30;
  const num=v=>{let s=String(v||'').replace(/R\$\s?/g,'').trim(); if(s.includes(',')){s=s.replace(/\./g,'').replace(',','.')} return Number(s.replace(/[^0-9.-]/g,''))||0};
  function calc(){
