@@ -82,3 +82,10 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
   setTimeout(start,500);
 })();
+
+/* Cliente em destaque */
+(function(){
+  const style=document.createElement('style');
+  style.textContent='#launchList .launch .launch-client-name{font-size:18px!important;font-weight:800!important;line-height:1.15!important;color:var(--ink,#111827)!important;display:inline-block} #launchList .launch .launch-os-plain{font-size:12px!important;font-weight:500!important;margin-right:7px}';
+  document.head.appendChild(style);
+})();
