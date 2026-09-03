@@ -92,6 +92,7 @@
       <div class="launch-summary-section">
         <div class="launch-summary-title">Serviços concluídos</div>
         <div class="launch-summary-stats">
+          <div class="summary-stat"><span>Entraram</span><b id="sumEntered">0</b></div>
           <div class="summary-stat"><span>Saíram</span><b id="sumExited">0</b></div>
         </div>
       </div>
@@ -116,13 +117,16 @@
       if(mode==='custom' && !start.value){start.value=localToday();end.value=localToday();}
       const [a,b]=bounds(mode);
       const data=Array.isArray(orders)?orders:[];
+      const enteredOrders=data.filter(o=>inRange(o.entry_date,a,b));
       const exitedOrders=data.filter(o=>inRange(o.exit_date,a,b));
+      const entered=enteredOrders.flatMap(o=>Array.isArray(o.order_items)?o.order_items:[]);
       const exited=exitedOrders.flatMap(o=>Array.isArray(o.order_items)?o.order_items:[]);
       const sales=exited.reduce((s,i)=>s+(Number(i.sale_value)||0),0);
       const costs=exited.reduce((s,i)=>s+(Number(i.cost_value)||0),0);
       const taxes=exited.reduce((s,i)=>s+(Number(i.sale_value)||0)*(Number(i.tax_rate)||0)/100,0);
       const profit=sales-costs-taxes;
 
+      document.getElementById('sumEntered').textContent=entered.length;
       document.getElementById('sumExited').textContent=exited.length;
       document.getElementById('sumSales').textContent=moneyLocal(sales);
       document.getElementById('sumProfit').textContent=moneyLocal(profit);
