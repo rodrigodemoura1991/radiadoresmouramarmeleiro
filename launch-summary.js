@@ -122,7 +122,7 @@
       custom.classList.toggle('hidden',mode!=='custom');
       if(mode==='custom' && !start.value){start.value=localToday();end.value=localToday();}
       const [a,b]=bounds(mode);
-      const data=Array.isArray(window.orders)?window.orders:[];
+      const data=Array.isArray(orders)?orders:[];
       const enteredOrders=data.filter(o=>inRange(o.entry_date,a,b));
       const exitedOrders=data.filter(o=>inRange(o.exit_date,a,b));
       const entered=enteredOrders.flatMap(o=>Array.isArray(o.order_items)?o.order_items:[]);
