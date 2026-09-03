@@ -90,26 +90,19 @@
         <label>Até <input id="launchSummaryEnd" type="date"></label>
       </div>
       <div class="launch-summary-section">
-        <div class="launch-summary-title">Serviços</div>
+        <div class="launch-summary-title">Serviços concluídos</div>
         <div class="launch-summary-stats">
-          <div class="summary-stat"><span>Entraram</span><b id="sumEntered">0</b></div>
           <div class="summary-stat"><span>Saíram</span><b id="sumExited">0</b></div>
-          <div class="summary-stat"><span>Em andamento</span><b id="sumOpen">0</b></div>
         </div>
       </div>
       <div class="launch-summary-section">
         <div class="launch-summary-title">Financeiro</div>
         <div class="summary-finance">
-          <div><span>Vendas</span><b id="sumSales">R$ 0,00</b></div>
-          <div><span>Custos</span><b id="sumCosts">R$ 0,00</b></div>
-          <div class="summary-profit"><span>Lucro líquido*</span><b id="sumProfit">R$ 0,00</b></div>
-          <div><span>Margem</span><b id="sumMargin">0,0%</b></div>
+          <div><span>Valor bruto</span><b id="sumSales">R$ 0,00</b></div>
+          <div><span>Valor líquido</span><b id="sumProfit">R$ 0,00</b></div>
         </div>
       </div>
-      <div class="summary-ticket">
-        <span>Ticket médio</span><b id="sumTicket">R$ 0,00</b>
-      </div>
-      <small class="launch-summary-note">* Considera venda − custo − imposto dos serviços que entraram no período.</small>
+      <small class="launch-summary-note">Valores calculados somente sobre serviços que possuem data de saída dentro do período selecionado.</small>
     `;
 
     const select=document.getElementById('launchSummaryPeriod');
@@ -123,27 +116,16 @@
       if(mode==='custom' && !start.value){start.value=localToday();end.value=localToday();}
       const [a,b]=bounds(mode);
       const data=Array.isArray(orders)?orders:[];
-      const enteredOrders=data.filter(o=>inRange(o.entry_date,a,b));
       const exitedOrders=data.filter(o=>inRange(o.exit_date,a,b));
-      const entered=enteredOrders.flatMap(o=>Array.isArray(o.order_items)?o.order_items:[]);
       const exited=exitedOrders.flatMap(o=>Array.isArray(o.order_items)?o.order_items:[]);
-      const sales=entered.reduce((s,i)=>s+(Number(i.sale_value)||0),0);
-      const costs=entered.reduce((s,i)=>s+(Number(i.cost_value)||0),0);
-      const taxes=entered.reduce((s,i)=>s+(Number(i.sale_value)||0)*(Number(i.tax_rate)||0)/100,0);
+      const sales=exited.reduce((s,i)=>s+(Number(i.sale_value)||0),0);
+      const costs=exited.reduce((s,i)=>s+(Number(i.cost_value)||0),0);
+      const taxes=exited.reduce((s,i)=>s+(Number(i.sale_value)||0)*(Number(i.tax_rate)||0)/100,0);
       const profit=sales-costs-taxes;
-      const margin=sales?profit/sales*100:0;
-      const ticket=entered.length?sales/entered.length:0;
-      const exitedIds=new Set(exitedOrders.map(o=>o.id));
-      const open=data.flatMap(o=>Array.isArray(o.order_items)?o.order_items.map(i=>({i,o})):[]).filter(x=>inRange(x.o.entry_date,a,b)&&!exitedIds.has(x.o.id)).length;
 
-      document.getElementById('sumEntered').textContent=entered.length;
       document.getElementById('sumExited').textContent=exited.length;
-      document.getElementById('sumOpen').textContent=open;
       document.getElementById('sumSales').textContent=moneyLocal(sales);
-      document.getElementById('sumCosts').textContent=moneyLocal(costs);
       document.getElementById('sumProfit').textContent=moneyLocal(profit);
-      document.getElementById('sumMargin').textContent=margin.toFixed(1).replace('.',',')+'%';
-      document.getElementById('sumTicket').textContent=moneyLocal(ticket);
 
       const labels={day:'Hoje',yesterday:'Ontem',week:'Esta semana',month:'Este mês','prev-month':'Mês anterior',custom:'Período personalizado'};
       document.getElementById('launchSummaryLabel').textContent=mode==='custom'?('De '+a.split('-').reverse().join('/')+' até '+b.split('-').reverse().join('/')):labels[mode];
