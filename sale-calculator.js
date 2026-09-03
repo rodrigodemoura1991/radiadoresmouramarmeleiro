@@ -5,7 +5,7 @@ function br(n){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'
 function init(){
  const launch=document.getElementById('launch'); if(!launch||document.getElementById('saleCalculator'))return;
  const layout=launch.querySelector('.launch-dashboard-layout');
- const container=layout||launch;
+ const container=layout?.querySelector('.launch-dashboard-side')||layout||launch;
  const aside=document.createElement('aside'); aside.id='saleCalculator'; aside.className='sale-calculator card';
  aside.innerHTML=`
  <div class="sale-calc-head"><div><h3>Calculadora de preço</h3><small>Preço de venda por margem</small></div></div>
