@@ -1,7 +1,7 @@
 /* Resumo rápido na lateral dos lançamentos */
 .launch-dashboard-layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:12px;align-items:start}
 .launch-dashboard-layout>.head{grid-column:1/-1}
-.launch-dashboard-main{min-width:0}
+.launch-dashboard-main{min-width:0}.launch-dashboard-side{min-width:0;display:flex;flex-direction:column;gap:12px}.launch-dashboard-side .launch-summary{position:sticky;top:12px}
 .launch-summary{position:sticky;top:12px;margin-bottom:0;padding:13px!important}
 .launch-summary-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px}
 .launch-summary-head h3{margin:0;font-size:15px}
