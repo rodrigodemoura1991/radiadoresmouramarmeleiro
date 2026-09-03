@@ -155,9 +155,9 @@
     refresh();
 
     window.renderLaunchSummary=refresh;
-    if(typeof window.renderAll==='function'){
-      const oldRenderAll=window.renderAll;
-      window.renderAll=function(){
+    if(typeof renderAll==='function'){
+      const oldRenderAll=renderAll;
+      renderAll=function(){
         oldRenderAll();
         refresh();
       };
