@@ -60,6 +60,8 @@
     layout.className='launch-dashboard-layout';
     const main=document.createElement('div');
     main.className='launch-dashboard-main';
+    const right=document.createElement('div');
+    right.className='launch-dashboard-side';
     const aside=document.createElement('aside');
     aside.id='launchSummary';
     aside.className='launch-summary card';
@@ -67,7 +69,8 @@
     if(head) layout.appendChild(head);
     cards.forEach(x=>main.appendChild(x));
     layout.appendChild(main);
-    layout.appendChild(aside);
+    right.appendChild(aside);
+    layout.appendChild(right);
     launch.appendChild(layout);
 
     aside.innerHTML=`
