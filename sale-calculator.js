@@ -41,7 +41,7 @@ function init(){
    calc();
  }));
  ['calcCost','calcTax','calcFreight'].forEach(id=>document.getElementById(id).addEventListener('input',calc));
- document.getElementById('calcCopy').addEventListener('click',async()=>{const price=document.getElementById('calcPrice').textContent;const margin=document.getElementById('calcMargin').textContent;const v=`Preço de venda: ${price}\nMargem somada: ${margin}\n\nCondições de pagamento:\nÀ vista — 5% de desconto\nCartão de crédito — até 3x sem juros\nCartão de crédito — até 12x com acréscimo`;try{await navigator.clipboard.writeText(v);const b=document.getElementById('calcCopy');b.textContent='Valor e condições copiados';setTimeout(()=>b.textContent='Copiar valor e condições',1800)}catch(e){}});
+ document.getElementById('calcCopy').addEventListener('click',async()=>{const price=document.getElementById('calcPrice').textContent;const v=`*${price}*\n\n*Condições de pagamento:*\nÀ vista — 5% de desconto\nCartão de crédito — até 3x sem juros\nCartão de crédito — até 12x com acréscimo`;try{await navigator.clipboard.writeText(v);const b=document.getElementById('calcCopy');b.textContent='Valor e condições copiados';setTimeout(()=>b.textContent='Copiar valor e condições',1800)}catch(e){}});
  calc();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
