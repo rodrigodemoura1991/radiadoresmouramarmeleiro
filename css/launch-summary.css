@@ -1,7 +1,8 @@
 /* Resumo rápido na lateral dos lançamentos */
-.launch-dashboard-layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:12px;align-items:start}
+.launch-dashboard-layout{display:grid;grid-template-columns:290px minmax(0,1fr);gap:14px;align-items:start}
 .launch-dashboard-layout>.head{grid-column:1/-1}
-.launch-dashboard-main{min-width:0}.launch-dashboard-side{min-width:0;display:flex;flex-direction:column;gap:12px}.launch-dashboard-side .launch-summary{position:sticky;top:12px}
+.launch-dashboard-main{min-width:0;grid-column:2}.launch-dashboard-side{min-width:0;display:flex;flex-direction:column;gap:12px;grid-column:1;grid-row:2}.launch-dashboard-side .launch-summary{position:sticky;top:12px}
+.launch-dashboard-layout>#saleCalculator{grid-column:1;grid-row:3;position:sticky;top:12px;margin:0}
 .launch-summary{position:sticky;top:12px;margin-bottom:0;padding:13px!important}
 .launch-summary-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px}
 .launch-summary-head h3{margin:0;font-size:15px}
@@ -25,5 +26,5 @@
 .summary-ticket{border-top:1px solid var(--line);margin-top:9px;padding-top:9px;display:flex;align-items:center;justify-content:space-between;font-size:10px;color:var(--muted)}
 .summary-ticket b{font-size:14px;color:var(--ink)}
 .launch-summary-note{display:block;margin-top:9px;color:var(--muted);font-size:8px;line-height:1.3}
-@media(max-width:900px) and (min-width:701px){.launch-dashboard-layout{grid-template-columns:minmax(0,1fr) 250px}}
-@media(max-width:700px){.launch-dashboard-layout{display:block}.launch-summary{position:static;margin-bottom:10px;padding:11px!important}.launch-dashboard-main{display:block}.launch-summary-head select{max-width:118px}.summary-stat{padding:7px 4px}.summary-stat b{font-size:16px}}
+@media(max-width:900px) and (min-width:701px){.launch-dashboard-layout{grid-template-columns:250px minmax(0,1fr)}.launch-dashboard-main{grid-column:2}.launch-dashboard-side{grid-column:1}.launch-dashboard-layout>#saleCalculator{grid-column:1}}
+@media(max-width:700px){.launch-dashboard-layout{display:flex;flex-direction:column}.launch-dashboard-layout>.head{order:0}.launch-dashboard-main{order:1;width:100%}.launch-dashboard-side{order:2;width:100%}.launch-dashboard-layout>#saleCalculator{order:3;width:100%;position:static}.launch-summary{position:static;margin-bottom:10px;padding:11px!important}.launch-summary-head select{max-width:118px}.summary-stat{padding:7px 4px}.summary-stat b{font-size:16px}}
