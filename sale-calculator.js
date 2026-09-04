@@ -36,7 +36,7 @@ function init(){
    const cardInterest=payment==='card12'?(Number(document.getElementById('calcCardInterest').value)||0)/100:0;
    const denom=1-margin/100-tax-discount, base=denom>0?total/denom:0;
    const rawPrice=payment==='card12'?(base/(1-cardInterest)):base;
-   const price=rawPrice>0?Math.ceil(rawPrice):0;
+   const price=rawPrice>0?Math.ceil(rawPrice/5)*5:0;
    const taxValue=price*tax, discountValue=payment==='cash'?price*discount:0, cardFee=payment==='card12'?price*cardInterest:0, profit=price-taxValue-discountValue-cardFee-total;
    document.getElementById('calcPrice').textContent=br(price);
    document.getElementById('calcTotalCost').textContent=br(total);
@@ -47,7 +47,7 @@ function init(){
  aside.querySelectorAll('.margin-btn').forEach(b=>b.addEventListener('click',()=>{margin=Number(b.dataset.margin);aside.querySelectorAll('.margin-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');calc()}));
  ['calcCost','calcTax','calcFreight','calcCardInterest'].forEach(id=>document.getElementById(id).addEventListener('input',calc));
  aside.querySelectorAll('.payment-btn').forEach(b=>b.addEventListener('click',()=>{payment=b.dataset.payment;aside.querySelectorAll('.payment-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('cardInterestWrap').classList.toggle('hidden',payment!=='card12');calc()}));
- document.getElementById('calcCopy').addEventListener('click',async()=>{const v=document.getElementById('calcPrice').textContent+' — '+document.getElementById('calcCondition').textContent; try{await navigator.clipboard.writeText(v); const b=document.getElementById('calcCopy');b.textContent='✓ Valor copiado';setTimeout(()=>b.textContent='📋 Copiar valor',1500)}catch(e){}});
+ document.getElementById('calcCopy').addEventListener('click',async()=>{const priceText=document.getElementById('calcPrice').textContent; const interest=document.getElementById('calcCardInterest').value||'0'; const cash=Math.ceil((price*0.95)/5)*5; const card3=priceText; const card12=interest==='0'?priceText:br(Math.ceil((price/(1-Number(interest)/100))/5)*5); const v=`Preço de venda: ${priceText}\nÀ vista: ${br(cash)} — 5% de desconto\nCartão: ${card3} — 3x sem juros\nCartão: ${card12} — até 12x com juros (${interest}%)`; try{await navigator.clipboard.writeText(v); const b=document.getElementById('calcCopy');b.textContent='✓ Valor copiado';setTimeout(()=>b.textContent='📋 Copiar valor',1500)}catch(e){}});
  calc();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
