@@ -5,7 +5,8 @@ function br(n){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'
 function init(){
  const launch=document.getElementById('launch'); if(!launch||document.getElementById('saleCalculator'))return;
  const layout=launch.querySelector('.launch-dashboard-layout');
- const container=layout?.querySelector('.launch-dashboard-side')||layout||launch;
+ if(!layout)return;
+ const main=layout.querySelector('.launch-dashboard-main');
  const aside=document.createElement('aside'); aside.id='saleCalculator'; aside.className='sale-calculator card';
  aside.innerHTML=`
  <div class="sale-calc-head"><div><h3>Calculadora de preço</h3><small>Margem somatória sobre o custo</small></div></div>
@@ -16,7 +17,7 @@ function init(){
  <div class="sale-calc-result"><span>Preço de venda</span><strong id="calcPrice">R$ 0,00</strong></div>
  <div class="sale-calc-details"><div><span>Custo total</span><b id="calcTotalCost">R$ 0,00</b></div><div><span>Margem somada</span><b id="calcMargin">0%</b></div><div><span>Imposto</span><b id="calcTaxValue">R$ 0,00</b></div><div><span>Valor antes do imposto</span><b id="calcBasePrice">R$ 0,00</b></div></div>
  <button type="button" class="btn primary sale-copy" id="calcCopy">Copiar valor e condições</button>`;
- container.appendChild(aside);
+ layout.insertBefore(aside,main||layout.firstChild);
  let selectedMargins=new Set();
  const num=v=>{let s=String(v||'').replace(/R\$\s?/g,'').trim(); if(s.includes(',')){s=s.replace(/\./g,'').replace(',','.')} return Number(s.replace(/[^0-9.-]/g,''))||0};
  function calc(){
@@ -34,12 +35,7 @@ function init(){
    document.getElementById('calcTaxValue').textContent=br(taxValue);
    document.getElementById('calcBasePrice').textContent=br(basePrice);
  }
- aside.querySelectorAll('.margin-btn').forEach(b=>b.addEventListener('click',()=>{
-   const value=Number(b.dataset.margin);
-   if(selectedMargins.has(value)){selectedMargins.delete(value);b.classList.remove('active')}
-   else{selectedMargins.add(value);b.classList.add('active')}
-   calc();
- }));
+ aside.querySelectorAll('.margin-btn').forEach(b=>b.addEventListener('click',()=>{const value=Number(b.dataset.margin);if(selectedMargins.has(value)){selectedMargins.delete(value);b.classList.remove('active')}else{selectedMargins.add(value);b.classList.add('active')}calc()}));
  ['calcCost','calcTax','calcFreight'].forEach(id=>document.getElementById(id).addEventListener('input',calc));
  document.getElementById('calcCopy').addEventListener('click',async()=>{const price=document.getElementById('calcPrice').textContent;const v=`*${price}*\n\n*Condições de pagamento:*\nÀ vista — 5% de desconto\nCartão de crédito — até 3x sem juros\nCartão de crédito — até 12x com acréscimo`;try{await navigator.clipboard.writeText(v);const b=document.getElementById('calcCopy');b.textContent='Valor e condições copiados';setTimeout(()=>b.textContent='Copiar valor e condições',1800)}catch(e){}});
  calc();
