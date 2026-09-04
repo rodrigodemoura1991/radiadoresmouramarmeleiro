@@ -103,3 +103,96 @@
   outline:3px solid var(--brand,#173b67)!important;
   outline-offset:2px!important;
 }
+
+
+/* V25 — otimização mobile: toque, leitura e navegação sem alterar desktop */
+@media(max-width:700px){
+  html,body{overflow-x:hidden;width:100%;max-width:100%;}
+  body{font-size:14px;-webkit-tap-highlight-color:transparent;padding-bottom:76px;}
+  .topin{padding:8px 10px;min-height:58px;gap:7px;}
+  .brand{gap:7px;min-width:0;flex:1;}
+  .brand-logo{width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;flex-basis:46px!important;}
+  .brand-copy b{font-size:14px!important;line-height:1.1!important;}
+  .actions{gap:4px;min-width:0;max-width:62%;}
+  .actions .pill{max-width:105px;padding:7px 8px;font-size:9px;}
+  .actions #switch{padding:7px 8px;font-size:10px;white-space:nowrap;}
+  .actions #logout{display:none;}
+  .shell{padding:9px 8px 14px;display:block;max-width:none;}
+  .side{left:7px;right:7px;bottom:7px;height:60px;padding:4px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;border-radius:16px;}
+  .nav{min-width:0!important;padding:6px 2px;font-size:10px;line-height:1.1;text-align:center;white-space:nowrap;}
+  .head{margin:4px 1px 10px;gap:3px;}
+  .head h1{font-size:21px;line-height:1.15;}
+  .head p{font-size:11px;line-height:1.3;}
+  .card{padding:10px;border-radius:13px;margin-bottom:9px;}
+  .grid{gap:8px!important;}
+  .field{gap:4px;}
+  .field label{font-size:10px;}
+  .field input,.field select{min-height:44px;font-size:16px;padding:9px 10px;border-radius:9px;}
+  input[type=date],input[type=number],select{font-size:16px!important;}
+  .date-pending{font-size:10px;min-height:26px;}
+  .sectiontitle{align-items:flex-start;gap:8px;}
+  .sectiontitle h3{font-size:14px;}
+  .sectiontitle span{font-size:9px;text-align:right;}
+  .services{width:100%;overflow-x:auto;overscroll-behavior-x:contain;}
+  .svc-head,.svc-row{min-width:760px;}
+  .svc-head{font-size:8px;padding:8px;}
+  .svc-row{padding:7px;gap:6px;}
+  .svc-row input,.svc-row select{min-height:42px;font-size:16px;padding:8px;}
+  .totals{gap:6px;}
+  .metric{min-width:0;padding:8px;}
+  .metric small{font-size:9px;}
+  .metric b{font-size:14px;}
+  .grand{font-size:18px;}
+  .foot{gap:6px;}
+  .foot .btn{min-height:44px;font-size:12px;padding:9px 8px;}
+  #add{min-height:44px;font-size:12px;}
+  .suggest{max-height:260px;border-radius:0 0 11px 11px;}
+  .suggest button{min-height:44px;padding:11px 10px;font-size:14px;}
+  .suggest button.keyboard-active{background:#e8f0ff!important;}
+  .launches{gap:5px;}
+  #launchList .launch{border-radius:9px;}
+  #launchList .launch-card-v3{font-size:10px!important;}
+  .launch-action{min-width:36px;min-height:34px;padding:6px 7px;font-size:10px;}
+  .launch-services{overflow:hidden;}
+  .service-line{min-height:28px;font-size:9px;}
+  .clients{grid-template-columns:1fr!important;}
+  .client{min-height:58px;padding:10px;}
+  .client-name{font-size:14px;}
+  .client-delete{min-height:38px;}
+  .balance{grid-template-columns:1fr 1fr!important;}
+  .bcard{min-width:0;padding:9px;}
+  .bcard b{font-size:17px;overflow-wrap:anywhere;}
+  .profit-grid{grid-template-columns:1fr 1fr!important;gap:6px;}
+  .profit-grid>div{padding:10px;min-width:0;}
+  .profit-grid b{font-size:17px;overflow-wrap:anywhere;}
+  .payment-breakdown{grid-template-columns:1fr!important;}
+  .payment-row{min-height:42px;align-items:center;font-size:12px;}
+  .break-row{grid-template-columns:85px minmax(0,1fr) 28px!important;gap:5px!important;}
+  .service-toolbar{display:grid;grid-template-columns:1fr;gap:7px;}
+  .service-toolbar input{min-width:0!important;width:100%;font-size:16px;min-height:44px;}
+  .service-toolbar select{width:100%;min-height:44px;font-size:16px;}
+  .all-services{gap:5px;}
+  .service-card{grid-template-columns:1fr!important;gap:5px;padding:8px;}
+  .service-values,.service-badges{grid-column:1!important;}
+  .service-badges{justify-content:flex-start;}
+  .modal{padding:0;place-items:end center;}
+  .modalbox{width:100%!important;max-height:94vh;padding:13px;border-radius:18px 18px 0 0;}
+  .modalbox .btn{min-height:44px;}
+  .toast{left:8px;right:8px;bottom:72px;}
+  .sale-calculator{width:100%;margin-top:9px;padding:10px!important;}
+  .sale-calc-label input{min-height:42px;font-size:16px!important;padding:9px!important;}
+  .margin-options{grid-template-columns:repeat(4,1fr);gap:5px;}
+  .margin-btn{min-height:40px;font-size:11px;}
+  .sale-calc-result strong{font-size:21px;}
+  .sale-copy{min-height:44px;font-size:12px;}
+}
+@media(max-width:380px){
+  .brand-logo{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;flex-basis:42px!important;}
+  .brand-copy b{font-size:13px!important;}
+  .actions .pill{max-width:82px;}
+  .actions #switch{font-size:9px;padding:7px 6px;}
+  .nav{font-size:9px;}
+  .head h1{font-size:20px;}
+  .totals{grid-template-columns:1fr 1fr!important;}
+  .profit-grid{grid-template-columns:1fr 1fr!important;}
+}
