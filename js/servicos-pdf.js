@@ -43,7 +43,7 @@
     const pf=$('servicePaymentFilter')?.value||'';
     const sf=$('serviceStatusFilter')?.value||'';
     const p=getPeriod();
-    return window.allServiceRows().filter(x=>{
+    return window.allServiceRows().filter(x=>{if(x.order?.exclude_from_balance)return false;
       const text=norm([x.order?.client_name,x.order?.pedido,x.description,x.order?.vehicle_make_model,x.order?.plate].join(' '));
       if(q&&!text.includes(q))return false;
       if(pf&&(x.order?.payment_status||'EM ABERTO')!==pf)return false;
