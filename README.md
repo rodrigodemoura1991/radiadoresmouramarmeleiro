@@ -3,7 +3,7 @@
 Aplicação web de gestão da Radiadores Moura.
 
 ## Estado
-- V34 — auditoria final de projeto.
+- V45 — versão principal com relatório PDF por período personalizado, filtros e balanço geral.
 - CSS mobile consolidado.
 - Service Worker atualizado.
 - Configuração do Supabase separada da lógica da aplicação.
