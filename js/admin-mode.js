@@ -9,5 +9,20 @@ function decorate(){const list=$('allServicesList');if(!list)return;list.querySe
 const st=document.createElement('style');st.textContent='.admin-balance-control{background:#fff8df;color:#5a4700}.admin-balance-control input{width:16px;height:16px}';document.head.appendChild(st);
 let n=0;const t=setInterval(()=>{install();decorate();if(++n>120)clearInterval(t)},300);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
-window.__adminMode=()=>admin;
+function installBalance(){
+ const head=document.querySelector('#balance .head'); if(!head||$('balanceAdminBtn'))return;
+ const b=document.createElement('button');b.id='balanceAdminBtn';b.className='btn';b.textContent='🔒 Administrador';
+ b.onclick=()=>{if(admin){admin=false;b.textContent='🔒 Administrador';renderBalanceAdmin();return}const p=prompt('Senha de administrador:');if(p===PASS){admin=true;b.textContent='🔓 Administrador ativo';renderBalanceAdmin();if(typeof toast==='function')toast('Modo administrador ativado')}else if(p!==null&&typeof toast==='function')toast('Senha incorreta')};
+ head.appendChild(b);renderBalanceAdmin();
+}
+function renderBalanceAdmin(){
+ let box=$('balanceAdminPanel');if(!box)return;
+ if(!admin){box.classList.add('hidden');return} box.classList.remove('hidden');
+ const rows=[];(window.orders||[]).filter(o=>typeof inPeriod!=='function'||inPeriod(o)).forEach(o=>(o.order_items||[]).forEach(i=>rows.push({o,i})));
+ box.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><b>Controle administrativo dos serviços</b><button class="btn" id="balanceAdminExit">Sair</button></div><p style="color:var(--muted);font-size:13px">Desmarque os serviços que não devem entrar no balanço. Eles continuam salvos no sistema.</p>'+(rows.map(r=>'<label style="display:flex;gap:8px;align-items:center;padding:8px;border-bottom:1px solid var(--line)"><input type="checkbox" data-admin-order="'+r.o.id+'" '+(r.o.exclude_from_balance?'':'checked')+'><span>'+esc(r.o.exit_date||'—')+' • '+esc(r.o.client_name||'Sem cliente')+' • '+esc(r.i.description||'')+' • '+money(r.i.sale_value||0)+'</span></label>').join('')||'<div class="empty">Nenhum serviço no período.</div>');
+ $('balanceAdminExit').onclick=()=>{admin=false;$('balanceAdminBtn').textContent='🔒 Administrador';renderBalanceAdmin()};
+ box.querySelectorAll('[data-admin-order]').forEach(ch=>ch.onchange=async()=>{const id=ch.dataset.adminOrder;const excluded=!ch.checked;const r=await sb.from('orders').update({exclude_from_balance:excluded}).eq('id',id);if(r.error){ch.checked=!excluded;toast('Erro ao salvar: '+r.error.message);return}const o=(window.orders||[]).find(x=>x.id===id);if(o)o.exclude_from_balance=excluded;renderBalanceAdmin();renderBalance()});
+}
+window.__adminMode=()=>admin;window.renderBalanceAdmin=renderBalanceAdmin;
+let btries=0;const bt=setInterval(()=>{installBalance();if(++btries>120)clearInterval(bt)},300);
 })();
