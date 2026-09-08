@@ -1,4 +1,4 @@
-const CACHE_NAME = 'radiadores-moura-v44-pdf';
+const CACHE_NAME = 'radiadores-moura-v45-pdf-date';
 const APP_SHELL = [
   './',
   './index.html',
@@ -15,7 +15,7 @@ const APP_SHELL = [
   './supabase-config.js?v=stable5',
   './js/launch-reference-test.js?v=v30-popup',
   './js/servicos-popup-edicao.js?v=v30-popup',
-  './js/servicos-pdf.js?v=pdf1',
+  './js/servicos-pdf.js?v=pdf2',
   './assets/logo-radiadores-moura.svg',
   './manifest.webmanifest',
   './8857A320-4E57-4A00-933D-C76434BC6953.png'
