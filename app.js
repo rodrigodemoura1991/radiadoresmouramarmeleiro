@@ -169,7 +169,7 @@ function renderAllServices(){const q=($('allServicesSearch')?.value||'').toLower
 function balancePeriodOrders(){return orders.filter(inPeriod)}
 function balancePeriodServices(){
   const rows=[];
-  orders.filter(inPeriod).forEach(o=>{
+  orders.filter(o=>inPeriod(o)&&!o.exclude_from_balance).forEach(o=>{
     const items=Array.isArray(o.order_items)?o.order_items:[];
     if(!items.length)return;
     const hasItemFreight=items.some(i=>Number(i?.freight_value)||0);
