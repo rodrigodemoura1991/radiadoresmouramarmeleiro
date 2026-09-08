@@ -30,7 +30,7 @@ function selected(){
   });
 }
 function data(){
-  const os=selected();let sale=0,cost=0,freight=0,tax=0,count=0;
+  const os=selected().filter(o=>!o.exclude_from_balance);let sale=0,cost=0,freight=0,tax=0,count=0;
   os.forEach(o=>{
     const items=Array.isArray(o.order_items)?o.order_items.filter(ready):[];
     const all=Array.isArray(o.order_items)?o.order_items:[];
