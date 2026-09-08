@@ -15,20 +15,23 @@
     const active=document.querySelector('#services .services-period-buttons [data-period].active');
     const mode=active?.dataset.period||'all';
     const ref=$('servicesPeriodDate')?.value||'';
+    const customStart=$('pdfDateStart')?.value||'';
+    const customEnd=$('pdfDateEnd')?.value||'';
+    if(customStart||customEnd){
+      return {mode:'custom',start:customStart||null,end:customEnd||null,
+        label:'Período personalizado: '+(customStart?dateBR(customStart):'início')+' até '+(customEnd?dateBR(customEnd):'fim')};
+    }
     if(mode==='all')return {mode,label:'Todos os períodos',start:null,end:null};
     const d=ref?new Date(ref+'T00:00:00'):new Date();
     if(Number.isNaN(d.getTime()))return {mode,label:'Todos os períodos',start:null,end:null};
     let start,end;
     if(mode==='week'){
-      const day=d.getDay()||7;
-      start=new Date(d);start.setDate(d.getDate()-day+1);
-      end=new Date(start);end.setDate(start.getDate()+6);
+      const day=d.getDay()||7; start=new Date(d); start.setDate(d.getDate()-day+1);
+      end=new Date(start); end.setDate(start.getDate()+6);
     }else if(mode==='month'){
-      start=new Date(d.getFullYear(),d.getMonth(),1);
-      end=new Date(d.getFullYear(),d.getMonth()+1,0);
+      start=new Date(d.getFullYear(),d.getMonth(),1); end=new Date(d.getFullYear(),d.getMonth()+1,0);
     }else{
-      start=new Date(d.getFullYear(),0,1);
-      end=new Date(d.getFullYear(),11,31);
+      start=new Date(d.getFullYear(),0,1); end=new Date(d.getFullYear(),11,31);
     }
     const iso=x=>x.toISOString().slice(0,10);
     return {mode,start:iso(start),end:iso(end),label:(mode==='week'?'Semana: ':mode==='month'?'Mês: ':'Ano: ')+dateBR(iso(start))+' até '+dateBR(iso(end))};
@@ -77,7 +80,14 @@
 
   function addButton(){
     const toolbar=document.querySelector('#services .service-toolbar');
-    if(!toolbar||$('generateServicesPdf'))return;
+    if(!toolbar)return;
+    if(!$('pdfDateStart')){
+      const box=document.createElement('div'); box.id='pdfDateFilter'; box.style.cssText='display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:8px';
+      box.innerHTML='<label style="font-size:12px;font-weight:600">PDF de:</label><input id="pdfDateStart" type="date" title="Data inicial do PDF"><label style="font-size:12px;font-weight:600">até:</label><input id="pdfDateEnd" type="date" title="Data final do PDF">';
+      toolbar.appendChild(box);
+      $('pdfDateStart').addEventListener('change',()=>{if($('pdfDateEnd').value&&$('pdfDateStart').value>$('pdfDateEnd').value){$('pdfDateEnd').value=$('pdfDateStart').value}});
+    }
+    if($('generateServicesPdf'))return;
     const b=document.createElement('button');
     b.type='button';b.id='generateServicesPdf';b.className='btn primary';
     b.textContent='📄 Gerar PDF';
