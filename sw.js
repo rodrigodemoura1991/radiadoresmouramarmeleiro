@@ -1,4 +1,4 @@
-const CACHE_NAME = 'radiadores-moura-v48-balance-fix';
+const CACHE_NAME = 'radiadores-moura-v49-real-balance';
 const APP_SHELL = [
   './',
   './index.html',
@@ -16,7 +16,7 @@ const APP_SHELL = [
   './js/launch-reference-test.js?v=v30-popup',
   './js/servicos-popup-edicao.js?v=v30-popup',
   './js/servicos-pdf.js?v=pdf3',
-  './js/admin-mode.js?v=admin3',
+  './js/admin-mode.js?v=admin4',
   './assets/logo-radiadores-moura.svg',
   './manifest.webmanifest',
   './8857A320-4E57-4A00-933D-C76434BC6953.png'
