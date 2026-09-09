@@ -61,10 +61,10 @@ function syncHistoricalAdminUI(){
    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));$('balance').classList.add('active');
    document.querySelectorAll('.nav').forEach(v=>v.classList.toggle('active',v.dataset.view==='balance'));
  }
- if(ok && $('adminHistorical')?.classList.contains('active'))loadHistoricalBalance();
+ /* carregamento ocorre apenas ao entrar na aba ou clicar em Atualizar */
 }
 window.loadHistoricalBalance=loadHistoricalBalance;
 
 window.__adminMode=()=>admin;window.renderBalanceAdmin=renderBalanceAdmin;
-$('adminHistoricalRefresh')?.addEventListener('click',loadHistoricalBalance);document.querySelector('[data-view="adminHistorical"]')?.addEventListener('click',()=>{if(!admin)return;loadHistoricalBalance()});syncHistoricalAdminUI();let btries=0;const bt=setInterval(()=>{installBalance();syncHistoricalAdminUI();if(++btries>120)clearInterval(bt)},300);
+$('adminHistoricalRefresh')?.addEventListener('click',loadHistoricalBalance);document.querySelector('[data-view="adminHistorical"]')?.addEventListener('click',()=>{if(!admin)return;loadHistoricalBalance()});syncHistoricalAdminUI();let btries=0;const bt=setInterval(()=>{installBalance();if(++btries>120)clearInterval(bt)},300);
 })();
