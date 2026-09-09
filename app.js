@@ -167,9 +167,9 @@ const paymentColors={'EM ABERTO':'pending','FALTA ACERTAR':'falta-acertar','Dinh
 function allServiceRows(){return orders.flatMap(o=>(o.order_items||[]).map(i=>({...i,order:o})))}
 function renderAllServices(){const q=($('allServicesSearch')?.value||'').toLowerCase().trim();const pf=$('servicePaymentFilter')?.value||'';const sf=$('serviceStatusFilter')?.value||'';let a=allServiceRows().filter(x=>{const text=[x.order.client_name,x.order.pedido,x.description,x.order.vehicle_make_model,x.order.plate].join(' ').toLowerCase();return (!q||text.includes(q))&&(!pf||(x.order.payment_status||'EM ABERTO')===pf)&&(!sf||x.service_status===sf)});a.sort((x,y)=>String(y.order.exit_date||'').localeCompare(String(x.order.exit_date||'')));$('allServicesList').innerHTML=a.map(x=>{const pay=x.order.payment_status||'EM ABERTO';const cls=paymentColors[pay]||'other';const profit=Number(x.sale_value||0)-Number(x.cost_value||0)-Number(x.freight_value||0)-(Number(x.sale_value||0)*Number(x.tax_rate||0)/100);return `<article class="service-card payment-${cls}"><div class="service-date"><b>${esc(x.order.exit_date||'—')}</b><small>Entrada ${esc(x.order.entry_date||'—')}</small></div><div class="service-main"><b>${esc(x.order.client_name||'Sem cliente')}</b><small>Pedido ${esc(x.order.pedido||'—')} ${x.order.vehicle_make_model?'• '+esc(x.order.vehicle_make_model):''}</small><div class="service-desc">${esc(x.description||'Sem descrição')}</div></div><div class="service-values"><span>Venda <b>${money(x.sale_value)}</b></span><span>Custo <b>${money(x.cost_value)}</b></span><span>Lucro <b>${money(profit)}</b></span></div><div class="service-badges"><span class="status-badge status-${slug(x.service_status)}">${esc(x.service_status||'—')}</span><span class="payment-badge">${esc(pay)}</span></div></article>`}).join('')||'<div class="empty">Nenhum serviço encontrado.</div>'}
 function balancePeriodOrders(){return orders.filter(inPeriod)}
-function balancePeriodServices(){
+function balancePeriodServices(includeHidden=false){
   const rows=[];
-  orders.filter(o=>inPeriod(o)&&!o.exclude_from_balance).forEach(o=>{
+  orders.filter(o=>inPeriod(o)&&(includeHidden||!o.exclude_from_balance)).forEach(o=>{
     const items=Array.isArray(o.order_items)?o.order_items:[];
     if(!items.length)return;
     const hasItemFreight=items.some(i=>Number(i?.freight_value)||0);
@@ -190,7 +190,16 @@ function balancePeriodServices(){
   return rows;
 }
 function renderAdvancedBalance(){
-  const rows=balancePeriodServices();
+  const rows=balancePeriodServices(false);
+  const realRows=balancePeriodServices(true);
+  const realSale=realRows.reduce((s,r)=>s+r.sale,0),realCost=realRows.reduce((s,r)=>s+r.cost,0),realFreight=realRows.reduce((s,r)=>s+r.freight,0),realTax=realRows.reduce((s,r)=>s+r.tax,0);
+  const realProfit=realSale-realCost-realFreight-realTax;
+  const hiddenRows=realRows.filter(r=>r.order.exclude_from_balance);
+  const hiddenSale=hiddenRows.reduce((s,r)=>s+r.sale,0);
+  const hiddenProfit=hiddenRows.reduce((s,r)=>s+(r.profit||0),0);
+  const summary=$('realBalanceSummary');
+  if(summary) summary.innerHTML='<div style="margin-bottom:12px"><h3 style="margin:0">Resumo financeiro</h3><p style="margin:4px 0 0;color:var(--muted);font-size:13px">Comparação do período selecionado, com e sem os serviços ocultados pelo Administrador.</p></div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px"><div style="padding:14px;border:1px solid var(--line);border-radius:12px"><small>💰 Valor real — todos os serviços</small><b style="display:block;font-size:22px;margin-top:5px">'+money(realSale)+'</b><span style="font-size:12px;color:var(--muted)">Lucro líquido: '+money(realProfit)+' • '+realRows.length+' serviços</span></div><div style="padding:14px;border:1px solid var(--line);border-radius:12px"><small>📊 Após retirar os ocultados</small><b style="display:block;font-size:22px;margin-top:5px">'+money(sale)+'</b><span style="font-size:12px;color:var(--muted)">Lucro líquido: '+money(profit)+' • '+rows.length+' serviços</span></div><div style="padding:12px;border:1px dashed var(--line);border-radius:12px"><small>Valor retirado</small><b style="display:block;margin-top:4px">'+money(hiddenSale)+'</b></div><div style="padding:12px;border:1px dashed var(--line);border-radius:12px"><small>Lucro retirado</small><b style="display:block;margin-top:4px">'+money(hiddenProfit)+'</b></div></div>';
+
   const sale=rows.reduce((s,r)=>s+r.sale,0);
   const cost=rows.reduce((s,r)=>s+r.cost,0);
   const freight=rows.reduce((s,r)=>s+r.freight,0);
