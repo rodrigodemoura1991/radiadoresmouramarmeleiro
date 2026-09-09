@@ -1,0 +1,1 @@
+(function(){'use strict';function clean(){var b=document.getElementById('balanceAdminBtn');if(b)b.remove();var p=document.getElementById('balanceAdminPanel');if(p)p.remove();var r=document.getElementById('realBalanceSummary');if(r)r.remove();}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',clean);else clean();setInterval(clean,1000);})();
