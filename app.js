@@ -45,8 +45,31 @@ function renderClients(){const q=($('clientSearch').value||'').toLowerCase();con
 function openClient(id=''){const c=clients.find(x=>x.id===id);$('clientTitle').textContent=c?'Editar cliente':'Novo cliente';$('clientId').value=c?.id||'';$('clientName').value=c?.name||'';$('doc').value=c?.cpf_cnpj||'';$('phone').value=c?.phone||'';$('whatsapp').value=c?.whatsapp||'';$('mail').value=c?.email||'';$('address').value=c?.address||'';$('city').value=c?.city||'';$('uf').value=c?.uf||'';$('notes').value=c?.notes||'';$('clientModal').classList.remove('hidden')}$('newClient').onclick=()=>openClient();$('closeClient').onclick=$('cancelClient').onclick=()=>$('clientModal').classList.add('hidden');
 $('clientForm').onsubmit=async e=>{e.preventDefault();const p={company_id:company.id,name:$('clientName').value.trim(),cpf_cnpj:$('doc').value.trim(),phone:$('phone').value.trim(),whatsapp:$('whatsapp').value.trim(),email:$('mail').value.trim(),address:$('address').value.trim(),city:$('city').value.trim(),uf:$('uf').value.trim().toUpperCase(),notes:$('notes').value.trim()},id=$('clientId').value,r=id?await sb.from('clients').update(p).eq('id',id).select().single():await sb.from('clients').insert(p).select().single();if(r.error)return toast(r.error.message);$('clientModal').classList.add('hidden');await loadData();toast('Cliente salvo')};
 function balancePeriodBounds(){const refValue=$('balanceDate')?.value||today();const ref=new Date(refValue+'T00:00:00');if(period==='all')return [null,null];if(period==='custom'){const a=$('balanceStart')?.value||'',b=$('balanceEnd')?.value||'';return [a||null,b||null]}if(period==='day')return [refValue,refValue];if(period==='month'){const start=new Date(ref.getFullYear(),ref.getMonth(),1),end=new Date(ref.getFullYear(),ref.getMonth()+1,0);return [start.toISOString().slice(0,10),end.toISOString().slice(0,10)]}if(period==='year'){return [ref.getFullYear()+'-01-01',ref.getFullYear()+'-12-31']}const start=new Date(ref);const day=start.getDay()||7;start.setDate(start.getDate()-day+1);const end=new Date(start);end.setDate(start.getDate()+6);return [start.toISOString().slice(0,10),end.toISOString().slice(0,10)]}
+function setupBalanceMonthFilter(){
+  const yearSel=$('balanceMonthYear'),box=$('balanceMonths');if(!yearSel||!box)return;
+  const ref=$('balanceDate')?.value||today(), currentYear=Number(String(ref).slice(0,4))||new Date().getFullYear();
+  const years=[currentYear-2,currentYear-1,currentYear,currentYear+1,currentYear+2];
+  yearSel.innerHTML=years.map(y=>'<option value="'+y+'"'+(y===currentYear?' selected':'')+'>'+y+'</option>').join('');
+  const names=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  function draw(){
+    const y=Number(yearSel.value);
+    box.innerHTML=names.map((name,m)=>{
+      const active=period==='month'&&String($('balanceDate')?.value||'').slice(0,7)===y+'-'+String(m+1).padStart(2,'0');
+      return '<button type="button" class="btn month-choice'+(active?' active':'')+'" data-month="'+m+'">'+name+'</button>';
+    }).join('');
+    box.querySelectorAll('.month-choice').forEach(btn=>btn.addEventListener('click',()=>{
+      const m=Number(btn.dataset.month),y=Number(yearSel.value);
+      $('balanceDate').value=y+'-'+String(m+1).padStart(2,'0')+'-01';
+      $('balanceStart').value='';$('balanceEnd').value='';
+      period='month';
+      document.querySelectorAll('.period').forEach(x=>x.classList.toggle('active',x.dataset.p==='month'));
+      draw();renderBalance();
+    }));
+  }
+  yearSel.addEventListener('change',draw);draw();
+}
 function inPeriod(o){const d=String(o?.exit_date||'').slice(0,10);if(!d)return false;const [a,b]=balancePeriodBounds();return (!a||d>=a)&&(!b||d<=b)}
-function renderBalance(){renderAdvancedBalance()}
+function renderBalance(){renderAdvancedBalance();setupBalanceMonthFilter()}
 function renderAll(){renderLaunches();renderClients();calc();renderBalance()}$('balanceDate').onchange=renderBalance;document.querySelectorAll('.period').forEach(b=>b.onclick=()=>{document.querySelectorAll('.period').forEach(x=>x.classList.remove('active'));b.classList.add('active');period=b.dataset.p;renderBalance()});document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$(b.dataset.view).classList.add('active');if(b.dataset.view==='balance')renderBalance()});init();
 
 
