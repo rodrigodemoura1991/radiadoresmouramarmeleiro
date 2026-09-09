@@ -130,6 +130,21 @@ function syncHistoricalAdminUI(){
  /* carregamento ocorre apenas ao entrar na aba ou clicar em Atualizar */
 }
 window.loadHistoricalBalance=loadHistoricalBalance;
+window.__forceAdminHistorical=async function(){
+  if(!admin)return;
+  const view=$('adminHistorical'), box=$('adminHistoricalContent');
+  if(view)view.classList.add('active');
+  if(box){
+    box.innerHTML='<div class="card">Carregando balanço histórico...</div>';
+    try{
+      const cid=company?.id||sessionStorage.getItem('companyId');
+      const rr=await sb.from('admin_historical_balance').select('*').eq('company_id',cid).order('balance_year',{ascending:false}).order('is_annual_total',{ascending:true}).order('balance_month',{ascending:true});
+      if(rr.error){box.innerHTML='<div class="card"><b>Erro ao carregar:</b> '+esc(rr.error.message)+'</div>';return}
+      // Use the existing renderer by temporarily ensuring its target is visible.
+      await loadHistoricalBalance();
+    }catch(e){box.innerHTML='<div class="card"><b>Erro:</b> '+esc(e?.message||e)+'</div>}
+  }
+};
 
 window.__activateAdmin=()=>{admin=true;const b=$('balanceAdminBtn');if(b)b.textContent='🔓 Administrador ativo';const n=$('adminHistoricalNav');if(n)n.classList.remove('hidden');renderBalanceAdmin();syncHistoricalAdminUI();decorate();if(typeof window.renderBalance==='function')window.renderBalance();setTimeout(()=>{if(admin)loadHistoricalBalance()},0)};window.__adminMode=()=>admin;window.renderBalanceAdmin=renderBalanceAdmin;
 $('adminHistoricalRefresh')?.addEventListener('click',loadHistoricalBalance);document.querySelector('[data-view="adminHistorical"]')?.addEventListener('click',()=>{if(!admin)return;loadHistoricalBalance()});document.addEventListener('click',e=>{const n=e.target.closest?.('#adminHistoricalNav');if(n&&admin)setTimeout(()=>loadHistoricalBalance(),0)});syncHistoricalAdminUI();let btries=0;const bt=setInterval(()=>{installBalance();if(++btries>120)clearInterval(bt)},300);
