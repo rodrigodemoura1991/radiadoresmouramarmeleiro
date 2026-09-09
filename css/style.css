@@ -103,3 +103,11 @@
   outline:3px solid var(--brand,#173b67)!important;
   outline-offset:2px!important;
 }
+
+/* FIX — largura da tela de lançamentos */
+.shell>main,.shell>.view{min-width:0!important;width:auto!important}
+#launch{width:100%!important;min-width:0!important}
+#launch>.card{display:block!important;width:100%!important;max-width:none!important;box-sizing:border-box!important}
+#launch>.card form{width:100%!important;box-sizing:border-box!important}
+#launch>.card .grid{width:100%!important;box-sizing:border-box!important}
+#launchAdminAccess{display:block!important;width:100%!important;box-sizing:border-box!important}
