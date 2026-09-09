@@ -134,7 +134,7 @@
     const ir=await sb.from('order_items').insert(a.map(x=>({...x,order_id:r.data.id,freight_value:Number(x.freight_value)||0})));
     if(ir.error){cloud('Erro ao salvar',false);return toast('Lançamento salvo, mas os serviços falharam: '+ir.error.message)}
     if(typeof saveCatalog==='function')await saveCatalog(a);
-    editing=null;clearOrder();await loadData();toast('Lançamento salvo na nuvem');
+    const wasEditing=!!editing; editing=null;clearOrder();await loadData();if(wasEditing&&typeof window.closeServiceEditPopup==='function')window.closeServiceEditPopup();toast('Lançamento salvo na nuvem');
   }
 
   function patchEditRows(){
