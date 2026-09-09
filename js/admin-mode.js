@@ -12,7 +12,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 function installBalance(){
  const head=document.querySelector('#balance .head'); if(!head||$('balanceAdminBtn'))return;
  const b=document.createElement('button');b.id='balanceAdminBtn';b.className='btn';b.textContent='🔒 Administrador';
- b.onclick=()=>{if(admin){admin=false;b.textContent='🔒 Administrador';renderBalanceAdmin();if(typeof window.renderBalance==='function')window.renderBalance();return}const p=prompt('Senha de administrador:');if(p===PASS){admin=true;b.textContent='🔓 Administrador ativo';renderBalanceAdmin();if(typeof window.renderBalance==='function')window.renderBalance();if(typeof toast==='function')toast('Modo administrador ativado')}else if(p!==null&&typeof toast==='function')toast('Senha incorreta')};
+ b.onclick=()=>{if(admin){admin=false;b.textContent='🔒 Administrador';renderBalanceAdmin();syncHistoricalAdminUI();if(typeof window.renderBalance==='function')window.renderBalance();return}const p=prompt('Senha de administrador:');if(p===PASS){admin=true;b.textContent='🔓 Administrador ativo';renderBalanceAdmin();syncHistoricalAdminUI();if(typeof window.renderBalance==='function')window.renderBalance();if(typeof toast==='function')toast('Modo administrador ativado')}else if(p!==null&&typeof toast==='function')toast('Senha incorreta')};
  head.appendChild(b);renderBalanceAdmin();
 }
 function renderBalanceAdmin(){
@@ -20,7 +20,7 @@ function renderBalanceAdmin(){
  if(!admin){box.classList.add('hidden');return} box.classList.remove('hidden');
  const rows=[];(window.orders||[]).filter(o=>typeof inPeriod!=='function'||inPeriod(o)).forEach(o=>(o.order_items||[]).forEach(i=>rows.push({o,i})));
  box.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><b>Controle administrativo dos serviços</b><div><button class="btn" id="realBalanceBtn">💰 Ver valor real</button> <button class="btn" id="balanceAdminExit">Sair</button></div></div><p style="color:var(--muted);font-size:13px">Desmarque os serviços que não devem entrar no balanço. Eles continuam salvos no sistema.</p>'+(rows.map(r=>'<label style="display:flex;gap:8px;align-items:center;padding:8px;border-bottom:1px solid var(--line)"><input type="checkbox" data-admin-order="'+r.o.id+'" '+(r.o.exclude_from_balance?'':'checked')+'><span>'+esc(r.o.exit_date||'—')+' • '+esc(r.o.client_name||'Sem cliente')+' • '+esc(r.i.description||'')+' • '+money(r.i.sale_value||0)+'</span></label>').join('')||'<div class="empty">Nenhum serviço no período.</div>');
- $('realBalanceBtn').onclick=showRealBalance;$('balanceAdminExit').onclick=()=>{admin=false;$('balanceAdminBtn').textContent='🔒 Administrador';renderBalanceAdmin()};
+ $('realBalanceBtn').onclick=showRealBalance;$('balanceAdminExit').onclick=()=>{admin=false;$('balanceAdminBtn').textContent='🔒 Administrador';renderBalanceAdmin();syncHistoricalAdminUI()};
  box.querySelectorAll('[data-admin-order]').forEach(ch=>ch.onchange=async()=>{const id=ch.dataset.adminOrder;const excluded=!ch.checked;const r=await sb.from('orders').update({exclude_from_balance:excluded}).eq('id',id);if(r.error){ch.checked=!excluded;toast('Erro ao salvar: '+r.error.message);return}const o=(window.orders||[]).find(x=>x.id===id);if(o)o.exclude_from_balance=excluded;renderBalanceAdmin();renderBalance()});
 }
 function showRealBalance(){
@@ -32,6 +32,39 @@ function showRealBalance(){
  m.innerHTML='<div style="background:var(--card,#fff);color:var(--text,#222);border-radius:14px;padding:22px;max-width:520px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">Balanço real</h2><button class="btn" id="closeRealBalance">Fechar</button></div><p style="color:var(--muted)">Serviços ocultados do balanço normal.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><small>Vendas ocultadas</small><b style="display:block;font-size:20px">'+fmt(sale)+'</b></div><div><small>Custos</small><b style="display:block;font-size:20px">'+fmt(cost)+'</b></div><div><small>Fretes</small><b style="display:block;font-size:20px">'+fmt(freight)+'</b></div><div><small>Impostos</small><b style="display:block;font-size:20px">'+fmt(tax)+'</b></div><div style="grid-column:1/-1"><small>Lucro líquido dos ocultados</small><b style="display:block;font-size:26px">'+fmt(profit)+'</b></div><div style="grid-column:1/-1"><small>Serviços ocultados</small><b style="display:block">'+count+'</b></div></div></div>';
  m.style.display='flex';$('closeRealBalance').onclick=()=>m.style.display='none';
 }
+
+async function loadHistoricalBalance(){
+ const box=$('adminHistoricalContent'); if(!box)return;
+ const companyId=sessionStorage.getItem('companyId'); if(!companyId){box.innerHTML='<div class="empty">Nenhuma empresa selecionada.</div>';return}
+ box.innerHTML='<div class="card">Carregando balanço histórico...</div>';
+ const r=await sb.from('admin_historical_balance').select('*').eq('company_id',companyId).order('balance_year',{ascending:false}).order('is_annual_total',{ascending:true}).order('balance_month',{ascending:true});
+ if(r.error){box.innerHTML='<div class="card"><b>Erro ao carregar:</b> '+esc(r.error.message)+'</div>';return}
+ const data=r.data||[], months=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+ const years=[...new Set(data.map(x=>x.balance_year))].sort((a,b)=>b-a);
+ let html='<div class="card" style="margin-bottom:16px"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><h3 style="margin:0">Resumo histórico</h3><p style="margin:4px 0 0;color:var(--muted);font-size:13px">Os valores abaixo são os dados importados da planilha e ficam isolados do financeiro operacional.</p></div><span class="pill">'+data.filter(x=>!x.is_annual_total).length+' meses registrados</span></div></div>';
+ years.forEach(y=>{
+   const annual=data.find(x=>x.balance_year===y&&x.is_annual_total);
+   const monthly=data.filter(x=>x.balance_year===y&&!x.is_annual_total).sort((a,b)=>a.balance_month-b.balance_month);
+   html+='<div class="card" style="margin-bottom:16px"><h2 style="margin-top:0">'+y+'</h2>';
+   if(annual) html+='<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:14px"><div style="padding:14px;border:1px solid var(--line);border-radius:12px"><small>Total anual — Valor 1</small><b style="display:block;font-size:21px;margin-top:5px">'+money(annual.value_1)+'</b></div><div style="padding:14px;border:1px solid var(--line);border-radius:12px"><small>Total anual — Valor 2</small><b style="display:block;font-size:21px;margin-top:5px">'+money(annual.value_2)+'</b></div></div>';
+   html+='<div style="overflow:auto"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:9px;border-bottom:1px solid var(--line)">Mês</th><th style="text-align:right;padding:9px;border-bottom:1px solid var(--line)">Valor 1</th><th style="text-align:right;padding:9px;border-bottom:1px solid var(--line)">Valor 2</th></tr></thead><tbody>';
+   monthly.forEach(x=>html+='<tr><td style="padding:9px;border-bottom:1px solid var(--line)">'+months[x.balance_month-1]+'</td><td style="padding:9px;text-align:right;border-bottom:1px solid var(--line)">'+money(x.value_1)+'</td><td style="padding:9px;text-align:right;border-bottom:1px solid var(--line)">'+(x.value_2==null?'—':money(x.value_2))+'</td></tr>');
+   html+='</tbody></table></div></div>';
+ });
+ box.innerHTML=html;
+}
+function syncHistoricalAdminUI(){
+ const n=$('adminHistoricalNav'); if(!n)return;
+ const ok=admin;
+ n.classList.toggle('hidden',!ok);
+ if(!ok && $('adminHistorical')?.classList.contains('active')){
+   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));$('balance').classList.add('active');
+   document.querySelectorAll('.nav').forEach(v=>v.classList.toggle('active',v.dataset.view==='balance'));
+ }
+ if(ok && $('adminHistorical')?.classList.contains('active'))loadHistoricalBalance();
+}
+window.loadHistoricalBalance=loadHistoricalBalance;
+
 window.__adminMode=()=>admin;window.renderBalanceAdmin=renderBalanceAdmin;
-let btries=0;const bt=setInterval(()=>{installBalance();if(++btries>120)clearInterval(bt)},300);
+$('adminHistoricalRefresh')?.addEventListener('click',loadHistoricalBalance);document.querySelector('[data-view="adminHistorical"]')?.addEventListener('click',()=>{if(!admin)return;loadHistoricalBalance()});syncHistoricalAdminUI();let btries=0;const bt=setInterval(()=>{installBalance();syncHistoricalAdminUI();if(++btries>120)clearInterval(bt)},300);
 })();
