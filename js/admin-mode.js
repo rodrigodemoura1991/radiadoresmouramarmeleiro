@@ -131,6 +131,6 @@ function syncHistoricalAdminUI(){
 }
 window.loadHistoricalBalance=loadHistoricalBalance;
 
-window.__activateAdmin=()=>{admin=true;const b=$('balanceAdminBtn');if(b)b.textContent='🔓 Administrador ativo';const n=$('adminHistoricalNav');if(n)n.classList.remove('hidden');renderBalanceAdmin();syncHistoricalAdminUI();decorate();if(typeof window.renderBalance==='function')window.renderBalance();};window.__adminMode=()=>admin;window.renderBalanceAdmin=renderBalanceAdmin;
-$('adminHistoricalRefresh')?.addEventListener('click',loadHistoricalBalance);document.querySelector('[data-view="adminHistorical"]')?.addEventListener('click',()=>{if(!admin)return;loadHistoricalBalance()});syncHistoricalAdminUI();let btries=0;const bt=setInterval(()=>{installBalance();if(++btries>120)clearInterval(bt)},300);
+window.__activateAdmin=()=>{admin=true;const b=$('balanceAdminBtn');if(b)b.textContent='🔓 Administrador ativo';const n=$('adminHistoricalNav');if(n)n.classList.remove('hidden');renderBalanceAdmin();syncHistoricalAdminUI();decorate();if(typeof window.renderBalance==='function')window.renderBalance();setTimeout(()=>{if(admin)loadHistoricalBalance()},0)};window.__adminMode=()=>admin;window.renderBalanceAdmin=renderBalanceAdmin;
+$('adminHistoricalRefresh')?.addEventListener('click',loadHistoricalBalance);document.querySelector('[data-view="adminHistorical"]')?.addEventListener('click',()=>{if(!admin)return;loadHistoricalBalance()});document.addEventListener('click',e=>{const n=e.target.closest?.('#adminHistoricalNav');if(n&&admin)setTimeout(()=>loadHistoricalBalance(),0)});syncHistoricalAdminUI();let btries=0;const bt=setInterval(()=>{installBalance();if(++btries>120)clearInterval(bt)},300);
 })();
