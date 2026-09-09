@@ -12,7 +12,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 function installBalance(){
  const head=document.querySelector('#balance .head'); if(!head||$('balanceAdminBtn'))return;
  const b=document.createElement('button');b.id='balanceAdminBtn';b.className='btn';b.textContent='🔒 Administrador';
- b.onclick=()=>{if(admin){admin=false;b.textContent='🔒 Administrador';renderBalanceAdmin();return}const p=prompt('Senha de administrador:');if(p===PASS){admin=true;b.textContent='🔓 Administrador ativo';renderBalanceAdmin();if(typeof toast==='function')toast('Modo administrador ativado')}else if(p!==null&&typeof toast==='function')toast('Senha incorreta')};
+ b.onclick=()=>{if(admin){admin=false;b.textContent='🔒 Administrador';renderBalanceAdmin();if(typeof window.renderBalance==='function')window.renderBalance();return}const p=prompt('Senha de administrador:');if(p===PASS){admin=true;b.textContent='🔓 Administrador ativo';renderBalanceAdmin();if(typeof window.renderBalance==='function')window.renderBalance();if(typeof toast==='function')toast('Modo administrador ativado')}else if(p!==null&&typeof toast==='function')toast('Senha incorreta')};
  head.appendChild(b);renderBalanceAdmin();
 }
 function renderBalanceAdmin(){
