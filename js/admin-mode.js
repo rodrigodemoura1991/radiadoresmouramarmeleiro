@@ -41,17 +41,56 @@ async function loadHistoricalBalance(){
  if(r.error){box.innerHTML='<div class="card"><b>Erro ao carregar:</b> '+esc(r.error.message)+'</div>';return}
  const data=r.data||[], months=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
  const years=[...new Set(data.map(x=>x.balance_year))].sort((a,b)=>b-a);
- let html='<div class="card" style="margin-bottom:16px"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><h3 style="margin:0">Resumo histórico</h3><p style="margin:4px 0 0;color:var(--muted);font-size:13px">Os valores abaixo são os dados importados da planilha e ficam isolados do financeiro operacional.</p></div><span class="pill">'+data.filter(x=>!x.is_annual_total).length+' meses registrados</span></div></div>';
+ const fmt=n=>money(Number(n)||0);
+ const overall1=data.filter(x=>x.is_annual_total).reduce((s,x)=>s+(Number(x.value_1)||0),0);
+ const overall2=data.filter(x=>x.is_annual_total).reduce((s,x)=>s+(Number(x.value_2)||0),0);
+ let html='<div class="card" style="margin-bottom:16px"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><h3 style="margin:0">📊 Balanço histórico administrativo</h3><p style="margin:4px 0 0;color:var(--muted);font-size:13px">Marmeleiro e Francisco Beltrão. Estes valores ficam totalmente separados dos lançamentos normais.</p></div><button class="btn" id="histAddYear">＋ Adicionar ano</button></div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px"><div style="padding:14px;border:1px solid var(--line);border-radius:12px"><small>Total geral — Marmeleiro</small><b id="histOverall1" style="display:block;font-size:24px;margin-top:5px">'+fmt(overall1)+'</b></div><div style="padding:14px;border:1px solid var(--line);border-radius:12px"><small>Total geral — Francisco Beltrão</small><b id="histOverall2" style="display:block;font-size:24px;margin-top:5px">'+fmt(overall2)+'</b></div></div></div>';
  years.forEach(y=>{
    const annual=data.find(x=>x.balance_year===y&&x.is_annual_total);
    const monthly=data.filter(x=>x.balance_year===y&&!x.is_annual_total).sort((a,b)=>a.balance_month-b.balance_month);
-   html+='<div class="card" style="margin-bottom:16px"><h2 style="margin-top:0">'+y+'</h2>';
-   if(annual) html+='<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:14px"><div style="padding:14px;border:1px solid var(--line);border-radius:12px"><small>Total anual — Valor 1</small><b style="display:block;font-size:21px;margin-top:5px">'+money(annual.value_1)+'</b></div><div style="padding:14px;border:1px solid var(--line);border-radius:12px"><small>Total anual — Valor 2</small><b style="display:block;font-size:21px;margin-top:5px">'+money(annual.value_2)+'</b></div></div>';
-   html+='<div style="overflow:auto"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:9px;border-bottom:1px solid var(--line)">Mês</th><th style="text-align:right;padding:9px;border-bottom:1px solid var(--line)">Valor 1</th><th style="text-align:right;padding:9px;border-bottom:1px solid var(--line)">Valor 2</th></tr></thead><tbody>';
-   monthly.forEach(x=>html+='<tr><td style="padding:9px;border-bottom:1px solid var(--line)">'+months[x.balance_month-1]+'</td><td style="padding:9px;text-align:right;border-bottom:1px solid var(--line)">'+money(x.value_1)+'</td><td style="padding:9px;text-align:right;border-bottom:1px solid var(--line)">'+(x.value_2==null?'—':money(x.value_2))+'</td></tr>');
+   html+='<div class="card hist-year" data-year="'+y+'" style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h2 style="margin:0">'+y+'</h2><button class="btn histAddMonth" data-year="'+y+'">＋ Adicionar mês</button></div>';
+   html+='<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0"><label><small>Total anual — Marmeleiro</small><input class="histAnnual1" type="number" step="0.01" value="'+(annual?.value_1??0)+'"></label><label><small>Total anual — Francisco Beltrão</small><input class="histAnnual2" type="number" step="0.01" value="'+(annual?.value_2??0)+'"></label></div>';
+   html+='<div style="text-align:right;margin-bottom:10px"><button class="btn histSaveAnnual" data-year="'+y+'">💾 Salvar total '+y+'</button></div>';
+   html+='<div style="overflow:auto"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:9px;border-bottom:1px solid var(--line)">Mês</th><th style="text-align:right;padding:9px;border-bottom:1px solid var(--line)">Marmeleiro</th><th style="text-align:right;padding:9px;border-bottom:1px solid var(--line)">Francisco Beltrão</th><th style="text-align:right;padding:9px;border-bottom:1px solid var(--line)">Ação</th></tr></thead><tbody>';
+   monthly.forEach(x=>html+='<tr data-id="'+x.id+'"><td style="padding:8px;border-bottom:1px solid var(--line)">'+months[x.balance_month-1]+'</td><td style="padding:8px;border-bottom:1px solid var(--line)"><input class="histM1" type="number" step="0.01" value="'+(x.value_1??0)+'" style="width:150px;text-align:right"></td><td style="padding:8px;border-bottom:1px solid var(--line)"><input class="histM2" type="number" step="0.01" value="'+(x.value_2??0)+'" style="width:150px;text-align:right"></td><td style="padding:8px;text-align:right;border-bottom:1px solid var(--line)"><button class="btn histSaveMonth" data-id="'+x.id+'" data-year="'+y+'">Salvar</button></td></tr>');
    html+='</tbody></table></div></div>';
  });
  box.innerHTML=html;
+ box.querySelector('#histAddYear')?.addEventListener('click',async()=>{
+   const y=Number(prompt('Qual ano deseja adicionar? Ex.: 2027')); if(!Number.isInteger(y)||y<2000||y>2100)return;
+   const exists=data.some(x=>x.balance_year===y&&x.is_annual_total); if(exists){toast('Esse ano já existe.');return}
+   const ins=await sb.from('admin_historical_balance').insert({company_id:companyId,balance_year:y,balance_month:null,value_1:0,value_2:0,is_annual_total:true,source_file:'Cadastro administrativo'});
+   if(ins.error){toast('Erro: '+ins.error.message);return}
+   toast('Ano '+y+' criado.');loadHistoricalBalance();
+ });
+ box.querySelectorAll('.histAddMonth').forEach(btn=>btn.addEventListener('click',async()=>{
+   const y=Number(btn.dataset.year); const m=Number(prompt('Digite o mês (1 a 12) para '+y)); if(!Number.isInteger(m)||m<1||m>12)return;
+   if(data.some(x=>x.balance_year===y&&x.balance_month===m&&!x.is_annual_total)){toast('Esse mês já existe.');return}
+   const ins=await sb.from('admin_historical_balance').insert({company_id:companyId,balance_year:y,balance_month:m,value_1:0,value_2:0,is_annual_total:false,source_file:'Cadastro administrativo'});
+   if(ins.error){toast('Erro: '+ins.error.message);return}
+   toast(months[m-1]+' de '+y+' criado.');loadHistoricalBalance();
+ }));
+ box.querySelectorAll('.histSaveAnnual').forEach(btn=>btn.addEventListener('click',async()=>{
+   const card=btn.closest('.hist-year'),y=Number(btn.dataset.year),annualRow=data.find(x=>x.balance_year===y&&x.is_annual_total);
+   const value1=Number(card.querySelector('.histAnnual1').value)||0,value2=Number(card.querySelector('.histAnnual2').value)||0;
+   let rr=annualRow?await sb.from('admin_historical_balance').update({value_1:value1,value_2:value2}).eq('id',annualRow.id):await sb.from('admin_historical_balance').insert({company_id:companyId,balance_year:y,balance_month:null,value_1:value1,value_2:value2,is_annual_total:true,source_file:'Cadastro administrativo'});
+   if(rr.error){toast('Erro ao salvar: '+rr.error.message);return} toast('Total de '+y+' salvo.');loadHistoricalBalance();
+ }));
+ box.querySelectorAll('.histSaveMonth').forEach(btn=>btn.addEventListener('click',async()=>{
+   const row=btn.closest('tr'),id=btn.dataset.id,y=Number(btn.dataset.year);
+   const value1=Number(row.querySelector('.histM1').value)||0,value2=Number(row.querySelector('.histM2').value)||0;
+   const rr=await sb.from('admin_historical_balance').update({value_1:value1,value_2:value2}).eq('id',id);
+   if(rr.error){toast('Erro ao salvar: '+rr.error.message);return}
+   // Ao alterar um mês, o total anual passa a refletir a soma dos meses cadastrados.
+   const mr=await sb.from('admin_historical_balance').select('value_1,value_2').eq('company_id',companyId).eq('balance_year',y).eq('is_annual_total',false);
+   if(!mr.error){
+     const t1=(mr.data||[]).reduce((s,x)=>s+(Number(x.value_1)||0),0),t2=(mr.data||[]).reduce((s,x)=>s+(Number(x.value_2)||0),0);
+     const ar=data.find(x=>x.balance_year===y&&x.is_annual_total);
+     if(ar) await sb.from('admin_historical_balance').update({value_1:t1,value_2:t2}).eq('id',ar.id);
+     else await sb.from('admin_historical_balance').insert({company_id:companyId,balance_year:y,balance_month:null,value_1:t1,value_2:t2,is_annual_total:true,source_file:'Cadastro administrativo'});
+   }
+   toast('Valor do mês salvo e total de '+y+' atualizado.');loadHistoricalBalance();
+ }));
 }
 function syncHistoricalAdminUI(){
  const n=$('adminHistoricalNav'); if(!n)return;
