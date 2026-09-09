@@ -1,4 +1,4 @@
-const CACHE_NAME = 'radiadores-moura-v52-summary-real-fix';
+const CACHE_NAME = 'radiadores-moura-v53-month-filter';
 const APP_SHELL = [
   './',
   './index.html',
