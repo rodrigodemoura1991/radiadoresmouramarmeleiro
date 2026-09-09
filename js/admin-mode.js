@@ -33,6 +33,32 @@ function showRealBalance(){
  m.style.display='flex';$('closeRealBalance').onclick=()=>m.style.display='none';
 }
 
+function renderHistoricalServiceControl(){
+ const box=$('adminHistoricalServices'); if(!box)return;
+ const os=(window.orders||[]).filter(o=>typeof inPeriod!=='function'||inPeriod(o));
+ const rows=os.map(o=>{const items=(o.order_items||[]).filter(i=>['pronto entregue'].includes(String(i.service_status||'').trim().toLowerCase()));const sale=items.reduce((s,i)=>s+(Number(i.sale_value)||0),0);const cost=items.reduce((s,i)=>s+(Number(i.cost_value)||0),0);const tax=items.reduce((s,i)=>s+sale*(Number(i.tax_rate)||0)/100,0);return{o,items,sale,cost,tax}}).filter(x=>x.items.length);
+ const fmt=n=>money(Number(n)||0);
+ let html='<div class="card" style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><h3 style="margin:0">🔐 Controle dos serviços</h3><p style="margin:4px 0 0;color:var(--muted);font-size:13px">Aqui você decide quais serviços entram no Balanço normal. Os ocultados continuam registrados e aparecem nos valores reais.</p></div><span class="pill">'+rows.filter(x=>x.o.exclude_from_balance).length+' ocultados</span></div>';
+ if(!rows.length){html+='<div class="empty" style="margin-top:12px">Nenhum serviço PRONTO/ENTREGUE no período selecionado.</div></div>';box.innerHTML=html;return}
+ html+='<div style="margin-top:12px;overflow:auto"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:8px;border-bottom:1px solid var(--line)">Considerar</th><th style="text-align:left;padding:8px;border-bottom:1px solid var(--line)">Data</th><th style="text-align:left;padding:8px;border-bottom:1px solid var(--line)">Cliente</th><th style="text-align:left;padding:8px;border-bottom:1px solid var(--line)">Serviço</th><th style="text-align:right;padding:8px;border-bottom:1px solid var(--line)">Venda</th></tr></thead><tbody>';
+ rows.forEach(x=>{const desc=x.items.map(i=>i.description||'').filter(Boolean).join(' + ');html+='<tr><td style="padding:8px;border-bottom:1px solid var(--line)"><input type="checkbox" class="histExclude" data-id="'+x.o.id+'" '+(x.o.exclude_from_balance?'':'checked')+'></td><td style="padding:8px;border-bottom:1px solid var(--line)">'+esc(x.o.exit_date||'—')+'</td><td style="padding:8px;border-bottom:1px solid var(--line)">'+esc(x.o.client_name||'Sem cliente')+'</td><td style="padding:8px;border-bottom:1px solid var(--line)">'+esc(desc)+'</td><td style="padding:8px;text-align:right;border-bottom:1px solid var(--line)">'+fmt(x.sale)+'</td></tr>});
+ html+='</tbody></table></div></div>';
+ box.innerHTML=html;
+ box.querySelectorAll('.histExclude').forEach(ch=>ch.addEventListener('change',async()=>{const id=ch.dataset.id,excluded=!ch.checked;const rr=await sb.from('orders').update({exclude_from_balance:excluded}).eq('id',id);if(rr.error){ch.checked=!excluded;toast('Erro ao salvar: '+rr.error.message);return}const o=(window.orders||[]).find(x=>x.id===id);if(o)o.exclude_from_balance=excluded;renderHistoricalAdminSummary();renderHistoricalServiceControl();}));
+}
+function renderHistoricalAdminSummary(){
+ const box=$('adminHistoricalSummary');if(!box)return;
+ const os=(window.orders||[]).filter(o=>typeof inPeriod!=='function'||inPeriod(o));
+ let real={sale:0,cost:0,freight:0,tax:0,count:0},normal={sale:0,cost:0,freight:0,tax:0,count:0};
+ os.forEach(o=>(o.order_items||[]).filter(i=>String(i.service_status||'').trim().toLowerCase()==='pronto entregue').forEach(i=>{
+  const target=o.exclude_from_balance?real:normal; const s=Number(i.sale_value)||0;
+  target.sale+=s;target.cost+=Number(i.cost_value)||0;target.freight+=Number(i.freight_value)||0;target.tax+=s*(Number(i.tax_rate)||0)/100;target.count++;
+ }));
+ // normal starts as included only; add hidden into real, then real is all.
+ const all={sale:real.sale+normal.sale,cost:real.cost+normal.cost,freight:real.freight+normal.freight,tax:real.tax+normal.tax,count:real.count+normal.count};
+ const p=x=>x.sale-x.cost-x.freight-x.tax,fmt=n=>money(n);
+ box.innerHTML='<div class="card" style="margin-bottom:16px"><h3 style="margin:0 0 12px">📊 Resumo real dos serviços</h3><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px"><div style="padding:14px;border:1px solid var(--line);border-radius:12px"><small>💰 Valor real — todos os serviços</small><b style="display:block;font-size:23px;margin-top:4px">'+fmt(all.sale)+'</b><span style="font-size:12px;color:var(--muted)">Lucro líquido: '+fmt(p(all))+' • '+all.count+' serviços</span></div><div style="padding:14px;border:1px solid var(--line);border-radius:12px"><small>📋 Valor após retirar os ocultos</small><b style="display:block;font-size:23px;margin-top:4px">'+fmt(normal.sale)+'</b><span style="font-size:12px;color:var(--muted)">Lucro líquido: '+fmt(p(normal))+' • '+normal.count+' serviços</span></div><div style="padding:12px;border:1px dashed var(--line);border-radius:12px"><small>Valor dos serviços ocultos</small><b style="display:block;margin-top:4px">'+fmt(real.sale)+'</b></div><div style="padding:12px;border:1px dashed var(--line);border-radius:12px"><small>Lucro dos serviços ocultos</small><b style="display:block;margin-top:4px">'+fmt(p(real))+'</b></div></div><p style="margin:12px 0 0;color:var(--muted);font-size:12px">Este resumo existe somente no Balanço Administrativo e não altera os lançamentos.</p></div>';
+}
 async function loadHistoricalBalance(){
  const box=$('adminHistoricalContent'); if(!box)return;
  const companyId=sessionStorage.getItem('companyId'); if(!companyId){box.innerHTML='<div class="empty">Nenhuma empresa selecionada.</div>';return}
@@ -56,6 +82,7 @@ async function loadHistoricalBalance(){
    html+='</tbody></table></div></div>';
  });
  box.innerHTML=html;
+ renderHistoricalAdminSummary(); renderHistoricalServiceControl();
  box.querySelector('#histAddYear')?.addEventListener('click',async()=>{
    const y=Number(prompt('Qual ano deseja adicionar? Ex.: 2027')); if(!Number.isInteger(y)||y<2000||y>2100)return;
    const exists=data.some(x=>x.balance_year===y&&x.is_annual_total); if(exists){toast('Esse ano já existe.');return}
