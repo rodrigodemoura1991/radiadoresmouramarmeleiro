@@ -1,4 +1,4 @@
-const CACHE_NAME = 'radiadores-gestao-v41';
+const CACHE_NAME = 'radiadores-gestao-v42';
 const APP_SHELL = ['./','./index.html','./app.js?v=v36-month-filter','./launch-summary.js?v=summary3','./sale-calculator.js?v=calc4','./auth-fix.js?v=auth3','./stability.js?v=stable3','./freight.js?v=freight9','./freight-ui.js?v=freight9','./tenant-fix.js?v=tenant3','./js/launch-reference-test.js?v=v30-popup','./js/servicos-popup-edicao.js?v=v30-popup','./js/servicos-pdf.js?v=pdf3','./js/admin-mode.js?v=adminfix14','./js/admin-only-fix.js?v=2','./assets/logo-radiadores-moura.svg','./manifest.webmanifest','./8857A320-4E57-4A00-933D-C76434BC6953.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE_NAME).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
