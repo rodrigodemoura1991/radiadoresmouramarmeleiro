@@ -74,9 +74,10 @@
       `;document.head.appendChild(s);
     }
 
+    const clientList=()=>{try{return typeof clients!=='undefined'&&Array.isArray(clients)?clients:[]}catch(_){return[]}};
     const getClient=()=>{
       const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();
-      return (window.clients||[]).find(c=>String(c.name||'').trim().toLowerCase()===name)||null;
+      return clientList().find(c=>String(c.name||'').trim().toLowerCase()===name)||null;
     };
     const setFields=c=>{
       const legal=document.getElementById('launchClientLegalName');
@@ -84,39 +85,35 @@
       const phone=document.getElementById('launchClientPhone');
       const address=document.getElementById('launchClientAddress');
       if(!legal)return;
-      legal.value=c?.legal_name||c?.razao_social||c?.name||'';
-      cnpj.value=c?.cpf_cnpj||c?.cnpj||'';
+      legal.value=c?.razao_social||c?.name||'';
+      cnpj.value=c?.cpf_cnpj||'';
       phone.value=c?.phone||c?.whatsapp||'';
-      address.value=c?.address||[c?.street,c?.number,c?.neighborhood,c?.city,c?.uf].filter(Boolean).join(', ')||'';
+      address.value=c?.address||'';
     };
     const fillFromName=()=>{const c=getClient();if(c)setFields(c)};
 
     document.getElementById('clientInput')?.addEventListener('input',()=>setTimeout(fillFromName,0));
     document.addEventListener('click',e=>{if(e.target.closest('#clientSug button'))setTimeout(fillFromName,20)});
-    const originalClear=window.clearOrder;
-    setInterval(()=>{if(document.getElementById('clientInput')?.value.trim()&&!document.activeElement?.closest('#launchClientDetails'))fillFromName()},700);
+    setInterval(()=>{if(document.getElementById('clientInput')?.value.trim())fillFromName()},700);
 
     order.addEventListener('submit',()=>{
       const name=document.getElementById('clientInput');
       const legal=document.getElementById('launchClientLegalName');
       if(name&&!name.value.trim()&&legal?.value.trim())name.value=legal.value.trim();
       setTimeout(async()=>{
-        if(!window.company||!window.sb)return;
-        const clientName=(document.getElementById('clientInput')?.value||'').trim();
-        if(!clientName)return;
-        const payload={
-          cpf_cnpj:(document.getElementById('launchClientCnpj')?.value||'').trim(),
-          phone:(document.getElementById('launchClientPhone')?.value||'').trim(),
-          address:(document.getElementById('launchClientAddress')?.value||'').trim()
-        };
-        const legalName=(document.getElementById('launchClientLegalName')?.value||'').trim();
-        if(legalName)payload.name=legalName;
-        let q=await sb.from('clients').select('id').eq('company_id',window.company.id).ilike('name',clientName).limit(1);
-        if(!q.error&&q.data?.[0]){
-          const upd={...payload};
-          if(!upd.name)delete upd.name;
-          await sb.from('clients').update(upd).eq('id',q.data[0].id);
-        }
+        try{
+          if(typeof company==='undefined'||!company||typeof sb==='undefined')return;
+          const clientName=(document.getElementById('clientInput')?.value||'').trim();
+          if(!clientName)return;
+          const payload={
+            razao_social:(document.getElementById('launchClientLegalName')?.value||'').trim(),
+            cpf_cnpj:(document.getElementById('launchClientCnpj')?.value||'').trim(),
+            phone:(document.getElementById('launchClientPhone')?.value||'').trim(),
+            address:(document.getElementById('launchClientAddress')?.value||'').trim()
+          };
+          const q=await sb.from('clients').select('id').eq('company_id',company.id).ilike('name',clientName).limit(1);
+          if(!q.error&&q.data?.[0])await sb.from('clients').update(payload).eq('id',q.data[0].id);
+        }catch(err){console.error('[Radiadores Moura] Dados do cliente:',err)}
       },1800);
     },true);
 
