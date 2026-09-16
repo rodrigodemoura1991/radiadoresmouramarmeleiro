@@ -20,12 +20,13 @@
 .launch.payment-open::before{content:none!important;display:none!important}
 
 .launch .ltop{gap:4px;align-items:center}
-.launch .lname{font-size:13px;line-height:1.05;font-weight:800}
+.launch .lname{font-size:15px;line-height:1.1;font-weight:900}
 /* Dados principais: data, pedido, entrada/saída e marca/modelo no mesmo tamanho */
 .launch .meta{font-size:13px;margin-top:0;line-height:1.05;font-weight:800}
 .launch .ltop>b{font-size:13px;white-space:nowrap;font-weight:800}
-.launch .chips{gap:2px;margin-top:2px}
-.launch .chip{padding:1px 4px;font-size:8px;line-height:1.05}
+.launch .chips{gap:3px;margin-top:3px}
+/* Descrição dos serviços um pouco maior e mais legível */
+.launch .chip{padding:2px 5px;font-size:10px;line-height:1.15;font-weight:700}
 .launch .chip:first-child{margin-left:0}
 
 /* Todos os Serviços: sem estrelas */
@@ -37,10 +38,10 @@
 
 @media(max-width:700px){
   .launch{padding:3px 6px 3px 7px}
-  .launch .lname{font-size:12px;font-weight:800}
+  .launch .lname{font-size:14px;font-weight:900}
   .launch .meta{font-size:12px;font-weight:800}
   .launch .ltop>b{font-size:12px;font-weight:800}
-  .launch .chip{font-size:7px;padding:1px 3px}
+  .launch .chip{font-size:9px;padding:2px 4px;line-height:1.1}
 }
 @media(max-width:800px){.service-card.payment-pending::before,.service-card.payment-wallet::before{content:none!important;display:none!important}}
 @media(max-width:520px){.service-card.payment-pending::before,.service-card.payment-wallet::before{content:none!important;display:none!important}}
