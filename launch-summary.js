@@ -126,8 +126,9 @@
       const exited=exitedOrders.flatMap(o=>Array.isArray(o.order_items)?o.order_items:[]);
       const sales=exited.reduce((s,i)=>s+(Number(i.sale_value)||0),0);
       const costs=exited.reduce((s,i)=>s+(Number(i.cost_value)||0),0);
+      const freight=exited.reduce((s,i)=>s+(Number(i.freight_value)||0),0);
       const taxes=exited.reduce((s,i)=>s+(Number(i.sale_value)||0)*(Number(i.tax_rate)||0)/100,0);
-      const profit=sales-costs-taxes;
+      const profit=sales-costs-freight-taxes;
 
       document.getElementById('sumEntered').textContent=entered.length;
       document.getElementById('sumExited').textContent=exited.length;
