@@ -3,10 +3,23 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
-const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const esc=s=>String(s??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
 const norm=s=>String(s??'').toLowerCase().trim();
 window.addEventListener('error',e=>console.error('[Radiadores Moura]',e.error||e.message));
 window.addEventListener('unhandledrejection',e=>console.error('[Radiadores Moura]',e.reason));
+
+/* Evita que o navegador preencha o campo de pesquisa de Serviços com o e-mail da conta. */
+function clearServiceSearchAutofill(){
+ const el=$('allServicesSearch');
+ if(!el)return;
+ el.setAttribute('autocomplete','off');
+ el.setAttribute('name','service-search');
+ const value=String(el.value||'').trim();
+ if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)){
+  el.value='';
+  el.dispatchEvent(new Event('input',{bubbles:true}));
+ }
+}
 
 /* Evita duplo salvamento. */
 const order=$('order');
@@ -47,6 +60,7 @@ function serviceRows(){
 }
 window.allServiceRows=serviceRows;
 function renderServices(){
+ clearServiceSearchAutofill();
  const list=$('allServicesList');if(!list)return;
  const q=norm($('allServicesSearch')?.value),pf=$('servicePaymentFilter')?.value||'',sf=$('serviceStatusFilter')?.value||'';
  const rows=serviceRows().filter(r=>{const o=r.order,i=r.item,text=norm([o.client_name,o.pedido,i.description,o.vehicle_make_model,o.plate].join(' '));return(!q||text.includes(q))&&(!pf||r.payment===pf)&&(!sf||r.status===sf)}).sort((a,b)=>String(b.order.exit_date||b.order.entry_date||'').localeCompare(String(a.order.exit_date||a.order.entry_date||'')));
@@ -56,12 +70,22 @@ function renderServices(){
 }
 window.renderAllServices=renderServices;
 function installServices(){
+ clearServiceSearchAutofill();
  noExitStyles();
  ['allServicesSearch','servicePaymentFilter','serviceStatusFilter'].forEach(id=>{const el=$(id);if(!el||el.dataset.servicesBound==='1')return;el.dataset.servicesBound='1';el.addEventListener(el.tagName==='SELECT'?'change':'input',renderServices);});
  document.querySelectorAll('.nav[data-view="services"]').forEach(b=>{if(b.dataset.servicesNavBound==='1')return;b.dataset.servicesNavBound='1';b.addEventListener('click',()=>setTimeout(renderServices,50));});
  renderServices();
 }
-function boot(){installServices();setTimeout(installServices,300);setTimeout(installServices,1000);setTimeout(installServices,2000);}
+function boot(){
+ clearServiceSearchAutofill();
+ installServices();
+ setTimeout(clearServiceSearchAutofill,100);
+ setTimeout(installServices,300);
+ setTimeout(clearServiceSearchAutofill,600);
+ setTimeout(installServices,1000);
+ setTimeout(clearServiceSearchAutofill,1500);
+ setTimeout(installServices,2000);
+}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 
 /* Depois do carregamento do Supabase, atualiza automaticamente a lista. */
