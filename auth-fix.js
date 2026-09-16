@@ -62,6 +62,14 @@
         const q=await sb.from('clients').select('id').eq('company_id',company.id).ilike('name',clientName).limit(1);if(!q.error&&q.data?.[0])await sb.from('clients').update(payload).eq('id',q.data[0].id);
       }catch(err){console.error('[Radiadores Moura] Dados do cliente:',err)}},1800);
     },true);
+
+    /* Hierarquia visual dos cartões de lançamentos: cliente e serviço mais legíveis. */
+    if(!document.getElementById('launch-card-typography-style')){const s=document.createElement('style');s.id='launch-card-typography-style';s.textContent=`
+      #launchList .launch .lname{font-size:18px!important;font-weight:900!important;line-height:1.2!important}
+      #launchList .launch .meta{font-size:13px!important;font-weight:400!important;line-height:1.25!important}
+      #launchList .launch .chips{gap:6px!important;margin-top:5px!important}
+      #launchList .launch .chip{font-size:13px!important;font-weight:800!important;line-height:1.3!important;padding:4px 8px!important;white-space:normal!important}
+    `;document.head.appendChild(s)}
   }
   function boot(){installLaunchClientFields();setTimeout(installLaunchClientFields,500);setTimeout(installLaunchClientFields,1500)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{install();boot()},{once:true});else{install();boot()}
