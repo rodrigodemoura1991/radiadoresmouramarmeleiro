@@ -79,7 +79,6 @@
     return document.querySelector('.period.active')?.dataset.p||'day';
   }
 
-  /* No Balanço, o período é determinado exclusivamente pela data de entrega/saída. */
   function balanceOrders(){
     const p=selectedBalancePeriod();
     const ref=$('balanceDate')?.value||'';
@@ -128,35 +127,35 @@
     setTimeout(renderBalanceServices,250);
   });
 
-  /* ===== Ajuste de legibilidade dos cartões de lançamentos ===== */
+  /* ===== Tipografia final dos cartões de lançamentos ===== */
   document.addEventListener('DOMContentLoaded',()=>{
     const style=document.createElement('style');
     style.textContent=`
-      html body #launchList .launch-card-v3{padding:10px 12px!important;border-radius:10px!important}
-      html body #launchList .launch-card-v3 .grouped-top{grid-template-columns:82px minmax(0,1fr) auto!important;gap:8px!important}
+      html body #launchList .launch-card-v3{padding:12px 14px!important;border-radius:10px!important}
+      html body #launchList .launch-card-v3 .grouped-top{grid-template-columns:88px minmax(0,1fr) auto!important;gap:10px!important}
       html body #launchList .launch-card-v3 .grouped-date b{font-size:11px!important;line-height:1.2!important}
       html body #launchList .launch-card-v3 .grouped-date small{font-size:9px!important;line-height:1.2!important;margin:2px 0 0!important}
-      html body #launchList .launch-card-v3 .grouped-main .lname{font-size:14px!important;line-height:1.2!important;font-weight:800!important}
-      html body #launchList .launch-card-v3 .grouped-main .meta{font-size:9.5px!important;line-height:1.25!important;margin:3px 0 0!important}
+      html body #launchList .launch-card-v3 .grouped-main .lname{font-size:15px!important;line-height:1.25!important;font-weight:800!important}
+      html body #launchList .launch-card-v3 .grouped-main .meta{font-size:10px!important;line-height:1.3!important;margin:4px 0 0!important}
       html body #launchList .launch-card-v3 .grouped-total{font-size:12px!important;line-height:1.2!important}
       html body #launchList .launch-card-v3 .launch-number{font-size:9px!important;padding:2px 5px!important;margin-right:3px!important}
-      html body #launchList .launch-card-v3 .grouped-items{gap:4px!important;margin-top:7px!important}
-      html body #launchList .launch-card-v3 .grouped-item{gap:3px!important;padding:4px 7px!important;border-radius:5px!important;font-size:10px!important;line-height:1.25!important}
-      html body #launchList .launch-card-v3 .grouped-item b{font-size:10px!important;line-height:1.25!important}
-      html body #launchList .launch-card-v3 .grouped-payment{gap:4px!important;margin-top:6px!important}
+      html body #launchList .launch-card-v3 .grouped-items{gap:5px!important;margin-top:8px!important}
+      html body #launchList .launch-card-v3 .grouped-item{gap:4px!important;padding:5px 8px!important;border-radius:6px!important;font-size:13px!important;line-height:1.3!important}
+      html body #launchList .launch-card-v3 .grouped-item b{font-size:13px!important;line-height:1.3!important}
+      html body #launchList .launch-card-v3 .grouped-payment{gap:5px!important;margin-top:7px!important}
       html body #launchList .launch-card-v3 .payment-badge{padding:3px 7px!important;border-radius:5px!important;font-size:9px!important;line-height:1.2!important}
-      html body #launchList .launch-card-v3 .service-actions-v2{gap:4px!important}
+      html body #launchList .launch-card-v3 .service-actions-v2{gap:5px!important}
       html body #launchList .launch-card-v3 .service-actions-v2 button{padding:3px 7px!important;font-size:9px!important;border-radius:5px!important;line-height:1.2!important}
       @media(max-width:700px){
-        html body #launchList .launch-card-v3{padding:8px 9px!important}
-        html body #launchList .launch-card-v3 .grouped-top{grid-template-columns:70px minmax(0,1fr) auto!important;gap:6px!important}
+        html body #launchList .launch-card-v3{padding:10px 10px!important}
+        html body #launchList .launch-card-v3 .grouped-top{grid-template-columns:72px minmax(0,1fr) auto!important;gap:7px!important}
         html body #launchList .launch-card-v3 .grouped-date b{font-size:10px!important}
         html body #launchList .launch-card-v3 .grouped-date small{font-size:8px!important}
-        html body #launchList .launch-card-v3 .grouped-main .lname{font-size:13px!important}
+        html body #launchList .launch-card-v3 .grouped-main .lname{font-size:14px!important}
         html body #launchList .launch-card-v3 .grouped-main .meta{font-size:9px!important}
         html body #launchList .launch-card-v3 .grouped-total{font-size:11px!important}
-        html body #launchList .launch-card-v3 .grouped-item{font-size:9px!important;padding:4px 6px!important}
-        html body #launchList .launch-card-v3 .grouped-item b{font-size:9px!important}
+        html body #launchList .launch-card-v3 .grouped-item{font-size:12px!important;padding:5px 7px!important}
+        html body #launchList .launch-card-v3 .grouped-item b{font-size:12px!important}
         html body #launchList .launch-card-v3 .payment-badge{font-size:8px!important}
       }
     `;
