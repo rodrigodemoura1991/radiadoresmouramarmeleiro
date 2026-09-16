@@ -13,178 +13,70 @@
     const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})/);
     return m?new Date(Number(m[1]),Number(m[2])-1,Number(m[3])):null;
   }
-  function iso(d){
-    return d.toISOString().slice(0,10);
-  }
+  function iso(d){ return d.toISOString().slice(0,10); }
   function bounds(mode){
-    const today=localToday();
-    const ref=dateObj(today);
+    const today=localToday(), ref=dateObj(today);
     if(mode==='day') return [today,today];
-    if(mode==='yesterday'){
-      const d=new Date(ref); d.setDate(d.getDate()-1);
-      const v=iso(d); return [v,v];
-    }
-    if(mode==='week'){
-      const d=new Date(ref);
-      const day=d.getDay()||7;
-      d.setDate(d.getDate()-day+1);
-      const e=new Date(d); e.setDate(e.getDate()+6);
-      return [iso(d),iso(e)];
-    }
-    if(mode==='month'){
-      const d=new Date(ref.getFullYear(),ref.getMonth(),1);
-      const e=new Date(ref.getFullYear(),ref.getMonth()+1,0);
-      return [iso(d),iso(e)];
-    }
-    if(mode==='prev-month'){
-      const d=new Date(ref.getFullYear(),ref.getMonth()-1,1);
-      const e=new Date(ref.getFullYear(),ref.getMonth(),0);
-      return [iso(d),iso(e)];
-    }
-    const s=document.getElementById('launchSummaryStart')?.value||today;
-    const e=document.getElementById('launchSummaryEnd')?.value||today;
-    return [s<=e?s:e,s<=e?e:s];
+    if(mode==='yesterday'){const d=new Date(ref);d.setDate(d.getDate()-1);const v=iso(d);return[v,v];}
+    if(mode==='week'){const d=new Date(ref),day=d.getDay()||7;d.setDate(d.getDate()-day+1);const e=new Date(d);e.setDate(e.getDate()+6);return[iso(d),iso(e)];}
+    if(mode==='month'){const d=new Date(ref.getFullYear(),ref.getMonth(),1),e=new Date(ref.getFullYear(),ref.getMonth()+1,0);return[iso(d),iso(e)];}
+    if(mode==='prev-month'){const d=new Date(ref.getFullYear(),ref.getMonth()-1,1),e=new Date(ref.getFullYear(),ref.getMonth(),0);return[iso(d),iso(e)];}
+    const s=document.getElementById('launchSummaryStart')?.value||today,e=document.getElementById('launchSummaryEnd')?.value||today;
+    return[s<=e?s:e,s<=e?e:s];
   }
-  function inRange(v,a,b){
-    const d=String(v||'').slice(0,10);
-    return !!d && d>=a && d<=b;
-  }
-  function normStatus(v){
-    return String(v??'').trim().toLowerCase().replace(/[\/_-]+/g,' ').replace(/\s+/g,' ');
-  }
+  function inRange(v,a,b){const d=String(v||'').slice(0,10);return!!d&&d>=a&&d<=b;}
+  function normStatus(v){return String(v??'').trim().toLowerCase().replace(/[\/_-]+/g,' ').replace(/\s+/g,' ');}
+
+  // MESMA REGRA DO BALANÇO: entram os serviços PRONTO e PRONTO/ENTREGUE.
   function isReady(item){
-    return normStatus(item?.service_status)==='pronto entregue';
+    const s=normStatus(item?.service_status);
+    return s==='pronto' || s==='pronto entregue';
   }
 
   function build(){
     const launch=document.getElementById('launch');
-    if(!launch || document.getElementById('launchSummary')) return;
-
+    if(!launch||document.getElementById('launchSummary'))return;
     const head=launch.querySelector('.head');
     const cards=[...launch.children].filter(x=>x!==head);
-    const layout=document.createElement('div');
-    layout.className='launch-dashboard-layout';
-    const main=document.createElement('div');
-    main.className='launch-dashboard-main';
-    const right=document.createElement('div');
-    right.className='launch-dashboard-side';
-    const aside=document.createElement('aside');
-    aside.id='launchSummary';
-    aside.className='launch-summary card';
-
-    if(head) layout.appendChild(head);
-    cards.forEach(x=>main.appendChild(x));
-    layout.appendChild(main);
-    right.appendChild(aside);
-    layout.appendChild(right);
-    launch.appendChild(layout);
-
+    const layout=document.createElement('div');layout.className='launch-dashboard-layout';
+    const main=document.createElement('div');main.className='launch-dashboard-main';
+    const right=document.createElement('div');right.className='launch-dashboard-side';
+    const aside=document.createElement('aside');aside.id='launchSummary';aside.className='launch-summary card';
+    if(head)layout.appendChild(head);cards.forEach(x=>main.appendChild(x));layout.appendChild(main);right.appendChild(aside);layout.appendChild(right);launch.appendChild(layout);
     aside.innerHTML=`
-      <div class="launch-summary-head">
-        <div>
-          <h3>Resumo do período</h3>
-          <small id="launchSummaryLabel">Hoje</small>
-        </div>
-        <select id="launchSummaryPeriod" aria-label="Período do resumo">
-          <option value="day">Hoje</option>
-          <option value="yesterday">Ontem</option>
-          <option value="week">Esta semana</option>
-          <option value="month">Este mês</option>
-          <option value="prev-month">Mês anterior</option>
-          <option value="custom">Personalizado</option>
-        </select>
-      </div>
-      <div id="launchSummaryCustom" class="launch-summary-custom hidden">
-        <label>De <input id="launchSummaryStart" type="date"></label>
-        <label>Até <input id="launchSummaryEnd" type="date"></label>
-      </div>
-      <div class="launch-summary-section">
-        <div class="launch-summary-title">Serviços concluídos</div>
-        <div class="launch-summary-stats">
-          <div class="summary-stat"><span>Entraram</span><b id="sumEntered">0</b></div>
-          <div class="summary-stat"><span>Saíram</span><b id="sumExited">0</b></div>
-        </div>
-      </div>
-      <div class="launch-summary-section">
-        <div class="launch-summary-title">Financeiro</div>
-        <div class="summary-finance">
-          <div><span>Valor bruto</span><b id="sumSales">R$ 0,00</b></div>
-          <div><span>Valor líquido</span><b id="sumProfit">R$ 0,00</b></div>
-        </div>
-      </div>
-      <small class="launch-summary-note">Valores calculados somente sobre serviços PRONTO/ENTREGUE que possuem data de saída dentro do período selecionado e que permanecem no balanço.</small>
-    `;
-
-    const select=document.getElementById('launchSummaryPeriod');
-    const custom=document.getElementById('launchSummaryCustom');
-    const start=document.getElementById('launchSummaryStart');
-    const end=document.getElementById('launchSummaryEnd');
-
+      <div class="launch-summary-head"><div><h3>Resumo do período</h3><small id="launchSummaryLabel">Hoje</small></div>
+      <select id="launchSummaryPeriod" aria-label="Período do resumo"><option value="day">Hoje</option><option value="yesterday">Ontem</option><option value="week">Esta semana</option><option value="month">Este mês</option><option value="prev-month">Mês anterior</option><option value="custom">Personalizado</option></select></div>
+      <div id="launchSummaryCustom" class="launch-summary-custom hidden"><label>De <input id="launchSummaryStart" type="date"></label><label>Até <input id="launchSummaryEnd" type="date"></label></div>
+      <div class="launch-summary-section"><div class="launch-summary-title">Serviços concluídos</div><div class="launch-summary-stats"><div class="summary-stat"><span>Entraram</span><b id="sumEntered">0</b></div><div class="summary-stat"><span>Saíram</span><b id="sumExited">0</b></div></div></div>
+      <div class="launch-summary-section"><div class="launch-summary-title">Financeiro</div><div class="summary-finance"><div><span>Valor bruto</span><b id="sumSales">R$ 0,00</b></div><div><span>Valor líquido</span><b id="sumProfit">R$ 0,00</b></div></div></div>
+      <small class="launch-summary-note">Valores calculados com a mesma regra do Balanço: serviços PRONTO ou PRONTO/ENTREGUE, pela data de saída, excluindo lançamentos retirados do balanço.</small>`;
+    const select=document.getElementById('launchSummaryPeriod'),custom=document.getElementById('launchSummaryCustom'),start=document.getElementById('launchSummaryStart'),end=document.getElementById('launchSummaryEnd');
     function refresh(){
-      const mode=select.value;
-      custom.classList.toggle('hidden',mode!=='custom');
-      if(mode==='custom' && !start.value){start.value=localToday();end.value=localToday();}
-      const [a,b]=bounds(mode);
-      const data=Array.isArray(orders)?orders:[];
-
-      // O resumo deve usar exatamente a mesma base do Balanço:
-      // data de saída + item PRONTO/ENTREGUE + lançamento não ocultado.
+      const mode=select.value;custom.classList.toggle('hidden',mode!=='custom');
+      if(mode==='custom'&&!start.value){start.value=localToday();end.value=localToday();}
+      const[a,b]=bounds(mode),data=Array.isArray(orders)?orders:[];
       const enteredOrders=data.filter(o=>inRange(o.entry_date,a,b));
       const exitedOrders=data.filter(o=>inRange(o.exit_date,a,b)&&!o.exclude_from_balance);
       const entered=enteredOrders.flatMap(o=>(Array.isArray(o.order_items)?o.order_items:[]).filter(isReady));
       const exitedByOrder=exitedOrders.map(o=>({o,items:(Array.isArray(o.order_items)?o.order_items:[]).filter(isReady)})).filter(x=>x.items.length);
       const exited=exitedByOrder.flatMap(x=>x.items);
-
       const sales=exited.reduce((s,i)=>s+(Number(i.sale_value)||0),0);
       const costs=exited.reduce((s,i)=>s+(Number(i.cost_value)||0),0);
       const freight=exited.reduce((s,i)=>s+(Number(i.freight_value)||0),0);
       const taxes=exited.reduce((s,i)=>s+(Number(i.sale_value)||0)*(Number(i.tax_rate)||0)/100,0);
-
-      // Compatibilidade com lançamentos antigos que guardam o frete no pedido,
-      // e não em freight_value do item.
-      exitedByOrder.forEach(({o,items})=>{
-        const all=Array.isArray(o.order_items)?o.order_items:[];
-        const hasItemFreight=items.some(i=>Number(i?.freight_value)||0);
-        if(!hasItemFreight && all.length && items.length===all.length){
-          // Só aplica o total do pedido quando todos os itens do pedido estão
-          // no balanço, evitando duplicar frete em pedidos parcialmente filtrados.
-          // O Balanço utiliza a mesma regra.
-          const legacyFreight=Number(o.total_freight)||0;
-          if(legacyFreight) o.__launchSummaryLegacyFreight=legacyFreight;
-        }
-      });
-
-      const legacyFreight=exitedByOrder.reduce((sum,{o})=>sum+(Number(o.__launchSummaryLegacyFreight)||0),0);
-      const totalFreight=freight+legacyFreight;
+      exitedByOrder.forEach(({o,items})=>{const all=Array.isArray(o.order_items)?o.order_items:[],hasItemFreight=items.some(i=>Number(i?.freight_value)||0);if(!hasItemFreight&&all.length&&items.length===all.length){const legacyFreight=Number(o.total_freight)||0;if(legacyFreight)o.__launchSummaryLegacyFreight=legacyFreight;}});
+      const legacyFreight=exitedByOrder.reduce((sum,{o})=>sum+(Number(o.__launchSummaryLegacyFreight)||0),0),totalFreight=freight+legacyFreight;
       const profit=sales-costs-totalFreight-taxes;
-
-      // Remove o campo temporário para não alterar o estado dos lançamentos.
       exitedByOrder.forEach(({o})=>{try{delete o.__launchSummaryLegacyFreight}catch(e){}});
-
       document.getElementById('sumEntered').textContent=entered.length;
       document.getElementById('sumExited').textContent=exited.length;
       document.getElementById('sumSales').textContent=moneyLocal(sales);
       document.getElementById('sumProfit').textContent=moneyLocal(profit);
-
       const labels={day:'Hoje',yesterday:'Ontem',week:'Esta semana',month:'Este mês','prev-month':'Mês anterior',custom:'Período personalizado'};
       document.getElementById('launchSummaryLabel').textContent=mode==='custom'?('De '+a.split('-').reverse().join('/')+' até '+b.split('-').reverse().join('/')):labels[mode];
     }
-
-    select.addEventListener('change',refresh);
-    start.addEventListener('change',refresh);
-    end.addEventListener('change',refresh);
-    refresh();
-
-    window.renderLaunchSummary=refresh;
-    if(typeof renderAll==='function'){
-      const oldRenderAll=renderAll;
-      renderAll=function(){
-        oldRenderAll();
-        refresh();
-      };
-    }
+    select.addEventListener('change',refresh);start.addEventListener('change',refresh);end.addEventListener('change',refresh);refresh();window.renderLaunchSummary=refresh;
+    if(typeof renderAll==='function'){const oldRenderAll=renderAll;renderAll=function(){oldRenderAll();refresh();};}
   }
-
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build);
-  else build();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);else build();
 })();
