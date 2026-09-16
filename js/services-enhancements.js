@@ -16,9 +16,11 @@ function css(){if(document.getElementById('falta-acertar-css'))return;const s=do
 .payment-falta-acertar .grouped-item div{color:#111827!important;-webkit-text-fill-color:#111827!important;text-shadow:none!important}
 .payment-falta-acertar .grouped-item{background:#e6f7ef!important;border-color:#d1eadf!important}
 
-/* Destaque dos dados principais: cliente maior/negrito; informações secundárias normais e menores. */
-#launchList .launch .lname{font-size:16px!important;font-weight:800!important;line-height:1.15!important}
+/* Cliente em destaque e descrição dos serviços legível nos cartões. */
+#launchList .launch .lname{font-size:18px!important;font-weight:900!important;line-height:1.2!important}
 #launchList .launch .meta{font-size:13px!important;font-weight:400!important;line-height:1.2!important}
+#launchList .launch .chips{gap:5px!important;margin-top:4px!important}
+#launchList .launch .chip{font-size:13px!important;font-weight:800!important;line-height:1.25!important;padding:3px 7px!important;white-space:normal!important}
 
 /* Sem data de saída: verde claro sempre, independentemente do pagamento. */
 #launchList .launch.no-exit-date,
