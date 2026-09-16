@@ -1,7 +1,6 @@
 /* Todos os Serviços: mesma linguagem visual dos Lançamentos recentes, agrupado por lançamento. */
 .all-services{display:grid;gap:6px;padding-left:0}
-.grouped-service{display:block!important;position:relative;padding:7px 10px 6px 10px!important;min-height:0!important;border-radius:10px!important;cursor:default!important}
-/* FALTA ACERTAR: cartão inteiro azul, com contraste forte para todas as informações. */
+.grouped-service{display:block!important;position:relative;padding:9px 11px 8px 11px!important;min-height:0!important;border-radius:10px!important;cursor:default!important}
 .grouped-service.payment-falta-acertar{background:#2563eb!important;background-color:#2563eb!important;border:2px solid #1d4ed8!important;border-left-color:#1d4ed8!important;color:#fff!important;box-shadow:0 3px 10px rgba(37,99,235,.28)!important}
 .grouped-service.payment-falta-acertar *{color:#fff!important}
 .grouped-service.payment-falta-acertar .grouped-date small,.grouped-service.payment-falta-acertar .meta{color:#eaf2ff!important}
@@ -22,25 +21,24 @@
 .grouped-top{display:grid;grid-template-columns:82px minmax(0,1fr) auto;gap:8px;align-items:center;padding-right:112px}
 .grouped-date b{display:block;font-size:13px;line-height:1.15}
 .grouped-date small{display:block;color:var(--muted);font-size:10px;line-height:1.2;margin-top:1px}
-.grouped-main .lname{font-size:13px;line-height:1.15;font-weight:900}
-.grouped-main .meta{font-size:10px;line-height:1.2;margin-top:1px}
+.grouped-main .lname{font-size:15px;line-height:1.25;font-weight:900}
+.grouped-main .meta{font-size:10px;line-height:1.2;margin-top:2px}
 .grouped-total{font-size:13px;white-space:nowrap}
 .grouped-star-inside{display:none}
-.grouped-items{display:grid;gap:2px;margin-top:4px}
-.grouped-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:2px 5px;border-radius:5px;font-size:9px;line-height:1.15;font-weight:800}
-.grouped-item b{font-size:9px;white-space:nowrap}
+.grouped-items{display:grid;gap:4px;margin-top:6px}
+.grouped-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 7px;border-radius:5px;font-size:13px;line-height:1.3;font-weight:800}
+.grouped-item b{font-size:13px;white-space:nowrap}
 .grouped-item.Liberado{background:#e8f2ff;color:#2364a9}
 .grouped-item.Parado{background:#fff3df;color:#9b5c00}
 .grouped-item.Pronto{background:#eee9ff;color:#6444ad}
 .grouped-item.Prontoentregue{background:#e6f7ef;color:#087249}
-.grouped-payment{margin-top:3px}
+.grouped-payment{margin-top:4px}
 .grouped-payment .payment-badge{display:inline-block;padding:2px 5px;border-radius:6px;background:#eef2f7;font-size:9px;line-height:1.1;font-weight:900}
 .grouped-service .service-actions-v2{top:7px;right:8px;transform:none}
 .grouped-service .service-actions-v2 button{padding:5px 8px;font-size:11px}
 .grouped-service.keyboard-selected{outline:3px solid var(--brand2);outline-offset:2px;box-shadow:0 0 0 2px rgba(37,99,235,.12)!important;position:relative;z-index:2}
 .launch.keyboard-selected{outline:3px solid var(--brand2);outline-offset:2px;box-shadow:0 0 0 2px rgba(37,99,235,.12)!important;position:relative;z-index:2}
 
-/* CORREÇÃO DEFINITIVA: no cartão azul, nenhum estilo global pode deixar a descrição branca. */
 article.grouped-service.launch.payment-falta-acertar div.grouped-items div.grouped-item span,
 article.grouped-service.launch.payment-falta-acertar div.grouped-items div.grouped-item b,
 article.grouped-service.launch.payment-falta-acertar div.grouped-items div.grouped-item span::before,
@@ -55,11 +53,14 @@ article.grouped-service.launch.payment-falta-acertar div.grouped-items div.group
   .grouped-top{grid-template-columns:72px minmax(0,1fr) auto;padding-right:108px}
 }
 @media(max-width:520px){
-  .grouped-service{padding:6px 8px!important}
+  .grouped-service{padding:8px 9px!important}
   .grouped-top{grid-template-columns:1fr auto;padding-right:0}
   .grouped-date{grid-column:1/-1}
   .grouped-main{grid-column:1}
   .grouped-total{grid-column:2;grid-row:2}
   .grouped-service .service-actions-v2{position:absolute;top:6px;right:7px;margin:0}
   .grouped-service.payment-pending::before{left:-15px}
+  .grouped-main .lname{font-size:14px}
+  .grouped-item{font-size:12px;padding:5px 7px}
+  .grouped-item b{font-size:12px}
 }
