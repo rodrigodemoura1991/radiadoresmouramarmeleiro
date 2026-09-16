@@ -145,10 +145,96 @@
     };
   }
 
-  document.addEventListener('DOMContentLoaded',()=>{
+  /* CORREÇÃO DA ABA TODOS OS SERVIÇOS.
+     A tela deve sempre usar o mesmo array orders carregado do Supabase.
+     Alguns módulos antigos dependiam de allServiceRows/renderAllServices e
+     podiam deixar a lista vazia. Aqui reconstruímos a visualização diretamente. */
+  function escService(v){
+    if(typeof esc==='function') return esc(v);
+    return String(v??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
+  }
+  function moneyService(v){
+    if(typeof money==='function') return money(v);
+    return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v)||0);
+  }
+  function serviceDate(v){
+    const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return m?`${m[3]}/${m[2]}/${m[1]}`:'Sem data de saída';
+  }
+  function serviceData(){
+    const data=(typeof orders!=='undefined'&&Array.isArray(orders))?orders:[];
+    const q=(document.getElementById('allServicesSearch')?.value||'').toLowerCase().trim();
+    const pf=document.getElementById('servicePaymentFilter')?.value||'';
+    const sf=document.getElementById('serviceStatusFilter')?.value||'';
+    const rows=[];
+    data.forEach(o=>{
+      (Array.isArray(o.order_items)?o.order_items:[]).forEach(item=>{
+        const text=[o.client_name,o.pedido,o.vehicle_make_model,o.plate,item.description].join(' ').toLowerCase();
+        const pay=String(o.payment_status||'EM ABERTO').trim();
+        const st=String(item.service_status||'Liberado').trim();
+        if(q&&!text.includes(q)) return;
+        if(pf&&pay!==pf) return;
+        if(sf&&st!==sf) return;
+        rows.push({order:o,item,payment:pay,status:st});
+      });
+    });
+    rows.sort((a,b)=>{
+      const ad=String(a.order.exit_date||'');
+      const bd=String(b.order.exit_date||'');
+      if(!ad&&!bd) return String(b.order.entry_date||'').localeCompare(String(a.order.entry_date||''));
+      if(!ad) return 1;
+      if(!bd) return -1;
+      return bd.localeCompare(ad);
+    });
+    return rows;
+  }
+  function renderServicesFixed(){
+    const list=document.getElementById('allServicesList');
+    if(!list) return;
+    const rows=serviceData();
+    list.innerHTML=rows.map(r=>{
+      const o=r.order,i=r.item;
+      const noExit=!o.exit_date;
+      return `<article class="service-card ${noExit?'no-exit-date':''} payment-${String(r.payment).toLowerCase().replace(/\s+/g,'-')}" data-order-id="${escService(o.id)}">
+        <div class="service-date"><small>Entrega</small><b>${escService(serviceDate(o.exit_date))}</b></div>
+        <div class="service-main"><b>${escService(o.client_name||'Sem cliente')}</b><small>${o.pedido?'Pedido '+escService(o.pedido)+' • ':''}${escService(o.vehicle_make_model||'')}${o.plate?' • '+escService(o.plate):''}</small><div class="service-desc">${escService(i.description||'Sem descrição')}</div></div>
+        <div class="service-values"><b>${moneyService(i.sale_value)}</b><span>Custo ${moneyService(i.cost_value)}</span></div>
+        <div class="service-badges"><span class="service-status-badge">${escService(r.status)}</span><span class="payment-badge">${escService(r.payment)}</span></div>
+      </article>`;
+    }).join('') || '<div class="empty">Nenhum serviço encontrado.</div>';
+    postRender();
+  }
+  function installServicesFix(){
+    const list=document.getElementById('allServicesList');
+    if(!list) return false;
+    window.renderAllServices=renderServicesFixed;
+    const run=()=>{ if(document.getElementById('services')?.classList.contains('active')) renderServicesFixed(); };
+    document.getElementById('allServicesSearch')?.addEventListener('input',run);
+    document.getElementById('servicePaymentFilter')?.addEventListener('change',run);
+    document.getElementById('serviceStatusFilter')?.addEventListener('change',run);
+    document.querySelectorAll('.nav[data-view="services"]').forEach(b=>b.addEventListener('click',()=>setTimeout(renderServicesFixed,30)));
+    setTimeout(renderServicesFixed,100);
+    setTimeout(renderServicesFixed,600);
+    return true;
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>{
+      addNoExitStyles();
+      setTimeout(decorateNoExitCards,100);
+      setTimeout(decorateNoExitCards,500);
+      setTimeout(decorateNoExitCards,1200);
+      setTimeout(installServicesFix,150);
+      setTimeout(installServicesFix,700);
+      setTimeout(installServicesFix,1500);
+    });
+  }else{
     addNoExitStyles();
     setTimeout(decorateNoExitCards,100);
     setTimeout(decorateNoExitCards,500);
     setTimeout(decorateNoExitCards,1200);
-  });
+    setTimeout(installServicesFix,150);
+    setTimeout(installServicesFix,700);
+    setTimeout(installServicesFix,1500);
+  }
 })();
