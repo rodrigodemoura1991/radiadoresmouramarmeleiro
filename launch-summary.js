@@ -49,6 +49,12 @@
     const d=String(v||'').slice(0,10);
     return !!d && d>=a && d<=b;
   }
+  function normStatus(v){
+    return String(v??'').trim().toLowerCase().replace(/[\/_-]+/g,' ').replace(/\s+/g,' ');
+  }
+  function isReady(item){
+    return normStatus(item?.service_status)==='pronto entregue';
+  }
 
   function build(){
     const launch=document.getElementById('launch');
@@ -106,7 +112,7 @@
           <div><span>Valor líquido</span><b id="sumProfit">R$ 0,00</b></div>
         </div>
       </div>
-      <small class="launch-summary-note">Valores calculados somente sobre serviços que possuem data de saída dentro do período selecionado.</small>
+      <small class="launch-summary-note">Valores calculados somente sobre serviços PRONTO/ENTREGUE que possuem data de saída dentro do período selecionado e que permanecem no balanço.</small>
     `;
 
     const select=document.getElementById('launchSummaryPeriod');
@@ -120,15 +126,40 @@
       if(mode==='custom' && !start.value){start.value=localToday();end.value=localToday();}
       const [a,b]=bounds(mode);
       const data=Array.isArray(orders)?orders:[];
+
+      // O resumo deve usar exatamente a mesma base do Balanço:
+      // data de saída + item PRONTO/ENTREGUE + lançamento não ocultado.
       const enteredOrders=data.filter(o=>inRange(o.entry_date,a,b));
-      const exitedOrders=data.filter(o=>inRange(o.exit_date,a,b));
-      const entered=enteredOrders.flatMap(o=>Array.isArray(o.order_items)?o.order_items:[]);
-      const exited=exitedOrders.flatMap(o=>Array.isArray(o.order_items)?o.order_items:[]);
+      const exitedOrders=data.filter(o=>inRange(o.exit_date,a,b)&&!o.exclude_from_balance);
+      const entered=enteredOrders.flatMap(o=>(Array.isArray(o.order_items)?o.order_items:[]).filter(isReady));
+      const exitedByOrder=exitedOrders.map(o=>({o,items:(Array.isArray(o.order_items)?o.order_items:[]).filter(isReady)})).filter(x=>x.items.length);
+      const exited=exitedByOrder.flatMap(x=>x.items);
+
       const sales=exited.reduce((s,i)=>s+(Number(i.sale_value)||0),0);
       const costs=exited.reduce((s,i)=>s+(Number(i.cost_value)||0),0);
       const freight=exited.reduce((s,i)=>s+(Number(i.freight_value)||0),0);
       const taxes=exited.reduce((s,i)=>s+(Number(i.sale_value)||0)*(Number(i.tax_rate)||0)/100,0);
-      const profit=sales-costs-freight-taxes;
+
+      // Compatibilidade com lançamentos antigos que guardam o frete no pedido,
+      // e não em freight_value do item.
+      exitedByOrder.forEach(({o,items})=>{
+        const all=Array.isArray(o.order_items)?o.order_items:[];
+        const hasItemFreight=items.some(i=>Number(i?.freight_value)||0);
+        if(!hasItemFreight && all.length && items.length===all.length){
+          // Só aplica o total do pedido quando todos os itens do pedido estão
+          // no balanço, evitando duplicar frete em pedidos parcialmente filtrados.
+          // O Balanço utiliza a mesma regra.
+          const legacyFreight=Number(o.total_freight)||0;
+          if(legacyFreight) o.__launchSummaryLegacyFreight=legacyFreight;
+        }
+      });
+
+      const legacyFreight=exitedByOrder.reduce((sum,{o})=>sum+(Number(o.__launchSummaryLegacyFreight)||0),0);
+      const totalFreight=freight+legacyFreight;
+      const profit=sales-costs-totalFreight-taxes;
+
+      // Remove o campo temporário para não alterar o estado dos lançamentos.
+      exitedByOrder.forEach(({o})=>{try{delete o.__launchSummaryLegacyFreight}catch(e){}});
 
       document.getElementById('sumEntered').textContent=entered.length;
       document.getElementById('sumExited').textContent=exited.length;
