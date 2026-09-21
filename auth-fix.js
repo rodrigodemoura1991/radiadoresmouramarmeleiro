@@ -1,7 +1,4 @@
-/* Radiadores Moura - correção de criação/troca de contas.
-   O Supabase mantém a sessão atual quando signUp é chamado.
-   Por isso, antes de criar outra conta, encerramos a sessão anterior.
-*/
+/* Radiadores Moura - correção de criação/troca de contas e persistência dos dados do cliente no editor. */
 (function(){
   'use strict';
   function install(){
@@ -53,15 +50,36 @@
     document.getElementById('clientInput')?.addEventListener('input',()=>fillFromName(false));
     document.addEventListener('click',e=>{if(e.target.closest('#clientSug button')){lastClientName='';setTimeout(()=>fillFromName(true),20)}});
     setInterval(()=>fillFromName(false),900);
-    order.addEventListener('submit',()=>{
-      const name=document.getElementById('clientInput');
-      setTimeout(async()=>{try{
-        if(typeof company==='undefined'||!company||typeof sb==='undefined')return;
-        const clientName=(name?.value||'').trim();if(!clientName)return;
-        const payload={cpf_cnpj:(document.getElementById('launchClientCnpj')?.value||'').trim(),phone:(document.getElementById('launchClientPhone')?.value||'').trim(),cep:(document.getElementById('launchClientCep')?.value||'').trim(),address:(document.getElementById('launchClientAddress')?.value||'').trim()};
-        const q=await sb.from('clients').select('id').eq('company_id',company.id).ilike('name',clientName).limit(1);if(!q.error&&q.data?.[0])await sb.from('clients').update(payload).eq('id',q.data[0].id);
-      }catch(err){console.error('[Radiadores Moura] Dados do cliente:',err)}},1800);
-    },true);
+
+    /* CORREÇÃO DEFINITIVA: o salvamento do lançamento também persiste os campos
+       CNPJ, telefone, CEP e endereço no registro do cliente. Antes, esses dados
+       eram enviados por um setTimeout posterior, depois que o formulário já
+       havia sido limpo pelo save original, causando perda ao editar. */
+    if(order.dataset.clientPersistenceBound!=='1'){
+      const originalSubmit=order.onsubmit;
+      if(typeof originalSubmit==='function'){
+        order.onsubmit=async function(ev){
+          const clientName=(document.getElementById('clientInput')?.value||'').trim();
+          const clientData={
+            cpf_cnpj:(document.getElementById('launchClientCnpj')?.value||'').trim(),
+            phone:(document.getElementById('launchClientPhone')?.value||'').trim(),
+            cep:(document.getElementById('launchClientCep')?.value||'').trim(),
+            address:(document.getElementById('launchClientAddress')?.value||'').trim()
+          };
+          try{
+            await originalSubmit.call(this,ev);
+            if(!clientName||typeof sb==='undefined'||typeof company==='undefined'||!company)return;
+            const q=await sb.from('clients').select('id').eq('company_id',company.id).ilike('name',clientName).limit(1);
+            if(q.error||!q.data?.[0])return;
+            const upd=await sb.from('clients').update(clientData).eq('id',q.data[0].id);
+            if(upd.error){console.error('[Radiadores Moura] Erro ao salvar dados do cliente:',upd.error);toast('Lançamento salvo, mas os dados do cliente não foram atualizados: '+upd.error.message);return}
+            const idx=clientList().findIndex(c=>c.id===q.data[0].id);
+            if(idx>=0)Object.assign(clients[idx],clientData);
+          }catch(err){console.error('[Radiadores Moura] Persistência do cliente:',err);if(typeof toast==='function')toast('Lançamento salvo, mas houve erro nos dados do cliente.');}
+        };
+        order.dataset.clientPersistenceBound='1';
+      }
+    }
 
     /* Hierarquia visual dos cartões de lançamentos: cliente e serviço mais legíveis. */
     if(!document.getElementById('launch-card-typography-style')){const s=document.createElement('style');s.id='launch-card-typography-style';s.textContent=`
