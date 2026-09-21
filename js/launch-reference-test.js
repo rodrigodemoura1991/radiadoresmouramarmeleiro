@@ -1,4 +1,4 @@
-/* TESTE V26 — cartões no padrão de referência + filtros completos de lançamentos. */
+/* TESTE V27 — cartões no padrão de referência + filtros completos + exclusão independente. */
 (function(){
 'use strict';
 
@@ -11,6 +11,43 @@ function shortDate2(v){ const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})/);
 function fullDate2(v){ const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}` : 'Sem data'; }
 function dateKey2(o){ const v=String(o?.exit_date||'').trim(); return /^\d{4}-\d{2}-\d{2}/.test(v) ? v.slice(0,10) : ''; }
 
+/* EXCLUSÃO NA RAIZ: não depende de servicos-actions.js/servicos-edicao.js. */
+let deletingLaunchId=null;
+async function deleteLaunchDirect(id){
+  if(!id || deletingLaunchId) return;
+  const order=getOrders().find(x=>String(x.id)===String(id));
+  if(!order){ if(typeof toast==='function') toast('Lançamento não encontrado.'); return; }
+  if(!confirm(`Excluir o lançamento de ${order.client_name||'este cliente'}?\n\nEsta ação não pode ser desfeita.`)) return;
+  deletingLaunchId=String(id);
+  const buttons=[...document.querySelectorAll(`[data-delete="${CSS.escape(String(id))}"]`)];
+  buttons.forEach(b=>{b.disabled=true;b.textContent='Excluindo...';});
+  try{
+    if(typeof cloud==='function') cloud('Excluindo lançamento...');
+    /* Primeiro os filhos, depois o registro principal. */
+    const itemsResult=await sb.from('order_items').delete().eq('order_id',id);
+    if(itemsResult.error) throw new Error('Erro ao excluir os serviços: '+itemsResult.error.message);
+    const orderResult=await sb.from('orders').delete().eq('id',id);
+    if(orderResult.error) throw new Error('Erro ao excluir o lançamento: '+orderResult.error.message);
+    /* Remove imediatamente da memória para a tela responder mesmo antes do reload. */
+    const idx=getOrders().findIndex(x=>String(x.id)===String(id));
+    if(idx>=0) getOrders().splice(idx,1);
+    if(typeof loadData==='function') await loadData();
+    if(typeof window.renderLaunches==='function') window.renderLaunches();
+    if(typeof toast==='function') toast('Lançamento excluído com sucesso.');
+    if(typeof cloud==='function') cloud('Salvo na nuvem');
+  }catch(err){
+    console.error('Erro ao excluir lançamento:',err);
+    if(typeof toast==='function') toast(err?.message||'Erro ao excluir lançamento.');
+    if(typeof cloud==='function') cloud('Erro ao excluir');
+    buttons.forEach(b=>{b.disabled=false;b.textContent='Excluir';});
+  }finally{
+    deletingLaunchId=null;
+  }
+}
+window.removeLaunchDirect=deleteLaunchDirect;
+/* Alias mantido para qualquer outro script que tente usar a exclusão. */
+window.removeServiceOrder=window.removeServiceOrder||deleteLaunchDirect;
+
 function updateLaunchFilters(){
   const pay=document.getElementById('launchPaymentFilter'), svc=document.getElementById('launchStatusFilter');
   if(!pay || !svc) return;
@@ -19,8 +56,8 @@ function updateLaunchFilters(){
   const statuses=['Liberado','Pronto','Parado','Pronto entregue'];
   pay.innerHTML='<option value="">Todos os pagamentos</option>'+payments.map(v=>`<option value="${esc2(v)}">${esc2(v)}</option>`).join('');
   svc.innerHTML='<option value="">Todas as situações</option>'+statuses.map(v=>`<option value="${esc2(v)}">${esc2(v)==='Pronto entregue'?'Pronto/Entregue':esc2(v)}</option>`).join('');
-  if(pay.querySelector(`option[value="${CSS.escape(currentPay)}"]`)) pay.value=currentPay; else pay.value='';
-  if(svc.querySelector(`option[value="${CSS.escape(currentSvc)}"]`)) svc.value=currentSvc; else svc.value='';
+  try{ if(pay.querySelector(`option[value="${CSS.escape(currentPay)}"]`)) pay.value=currentPay; else pay.value=''; }catch(e){pay.value='';}
+  try{ if(svc.querySelector(`option[value="${CSS.escape(currentSvc)}"]`)) svc.value=currentSvc; else svc.value=''; }catch(e){svc.value='';}
 }
 
 function renderLaunchesReference(){
@@ -42,7 +79,7 @@ function renderLaunchesReference(){
     const noExitClass=!String(o.exit_date||'').trim()?'no-exit-service':'';
     const gross=Number(o.total_sale||0),net=Number(o.net_profit||0),vehicle=String(o.vehicle_make_model||'').trim(),plate=String(o.plate||'').trim(),pedido=String(o.pedido||'').trim(),os=String(o.numero_lancamento||'').trim();
     const entry=shortDate2(o.entry_date),exit=shortDate2(o.exit_date),vehicleLine=[vehicle,plate].filter(Boolean).join(' • '),statusText=o.exit_date?`Saída ${exit}`:'Serviço ainda não entregue',statusClass=slug2(first?.service_status||'Pronto entregue');
-    const card=`<article class="launch launch-reference-card ${statusClass} ${paymentClass} ${noExitClass}" data-id="${esc2(o.id)}">
+    return sep+`<article class="launch launch-reference-card ${statusClass} ${paymentClass} ${noExitClass}" data-id="${esc2(o.id)}">
       <div class="launch-reference-top">
         <div class="launch-reference-left">
           ${pedido?`<div class="launch-pedido"><span>Pedido</span> <b>${esc2(pedido)}</b></div>`:''}
@@ -62,12 +99,20 @@ function renderLaunchesReference(){
       <div class="launch-services">${(o.order_items||[]).map(i=>{const st=String(i?.service_status||'Pronto entregue');return `<div class="service-line status-${slug2(st)}"><span><b>${esc2(i.description||'Sem descrição')}</b> • ${money2(i.sale_value)}</span><span class="service-status">${esc2(st)}</span></div>`;}).join('')}</div>
       ${String(o.notes||'').trim()?`<div class="launch-observation-card"><span>⚠ Observação:</span> ${esc2(o.notes.trim())}</div>`:''}
     </article>`;
-    return sep+card;
   }).join('')||'<div class="empty">Nenhum lançamento encontrado.</div>';
+
   list.querySelectorAll('[data-edit]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof openFix==='function')openFix(b.dataset.edit);else if(typeof editOrder==='function')editOrder(b.dataset.edit);});
-  list.querySelectorAll('[data-delete]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof window.removeServiceOrder==='function')window.removeServiceOrder(b.dataset.delete);});
+  /* Exclusão chama diretamente a rotina residente neste mesmo arquivo. */
+  list.querySelectorAll('[data-delete]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();deleteLaunchDirect(b.dataset.delete);});
   list.querySelectorAll('.launch-reference-card').forEach(x=>x.onclick=e=>{if(e.target.closest('[data-edit],[data-delete]'))return;if(typeof openFix==='function')openFix(x.dataset.id);else if(typeof editOrder==='function')editOrder(x.dataset.id);});
 }
-function install(){const search=document.getElementById('launchSearch'),pf=document.getElementById('launchPaymentFilter'),sf=document.getElementById('launchStatusFilter');[search,pf,sf].forEach(el=>{if(!el||el.dataset.refFilterBound==='1')return;el.dataset.refFilterBound='1';el.addEventListener('input',renderLaunchesReference);el.addEventListener('change',renderLaunchesReference);});window.renderLaunches=renderLaunchesReference;updateLaunchFilters();setTimeout(renderLaunchesReference,0);setTimeout(renderLaunchesReference,300);}
+function install(){
+  const search=document.getElementById('launchSearch'),pf=document.getElementById('launchPaymentFilter'),sf=document.getElementById('launchStatusFilter');
+  [search,pf,sf].forEach(el=>{if(!el||el.dataset.refFilterBound==='1')return;el.dataset.refFilterBound='1';el.addEventListener('input',renderLaunchesReference);el.addEventListener('change',renderLaunchesReference);});
+  window.renderLaunches=renderLaunchesReference;
+  updateLaunchFilters();
+  setTimeout(renderLaunchesReference,0);
+  setTimeout(renderLaunchesReference,300);
+}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
