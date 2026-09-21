@@ -24,7 +24,7 @@
       if(order.error){if(typeof toast==='function')toast('Erro ao excluir lançamento: '+order.error.message);if(typeof cloud==='function')cloud('Erro ao excluir',false);return}
       if(typeof loadData==='function')await loadData();
       if(typeof toast==='function')toast('Lançamento excluído com sucesso');
-    })();
+    })().catch(err=>{if(typeof toast==='function')toast('Erro ao excluir lançamento: '+(err?.message||err));if(typeof cloud==='function')cloud('Erro ao excluir',false);});
   }
 
   function openEditor(id){
