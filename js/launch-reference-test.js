@@ -1,4 +1,4 @@
-/* TESTE V27 — cartões no padrão de referência + filtros completos + exclusão independente. */
+/* TESTE V28 — cartões no padrão de referência + filtros completos + exclusão independente + persistência raiz dos dados do cliente. */
 (function(){
 'use strict';
 
@@ -10,6 +10,67 @@ function slug2(v){ if(typeof slug==='function') return slug(v); return String(v|
 function shortDate2(v){ const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}` : '—'; }
 function fullDate2(v){ const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}` : 'Sem data'; }
 function dateKey2(o){ const v=String(o?.exit_date||'').trim(); return /^\d{4}-\d{2}-\d{2}/.test(v) ? v.slice(0,10) : ''; }
+
+/* PERSISTÊNCIA RAIZ DOS DADOS DO CLIENTE.
+   Este listener fica no documento e não depende da ordem em que os outros
+   arquivos registram o onsubmit. Captura os valores antes de o formulário
+   ser limpo e, depois que o salvamento do lançamento termina, atualiza o
+   cadastro do cliente diretamente no Supabase. */
+let clientSaveBusy=false;
+async function persistLaunchClientAfterSubmit(snapshot){
+  if(clientSaveBusy || !snapshot?.name || typeof sb==='undefined' || typeof company==='undefined' || !company) return;
+  clientSaveBusy=true;
+  try{
+    const wanted=String(snapshot.name).trim();
+    let clientId=snapshot.clientId||null;
+    if(!clientId){
+      for(let attempt=0;attempt<5&&!clientId;attempt++){
+        const q=await sb.from('clients').select('id').eq('company_id',company.id).ilike('name',wanted).limit(1);
+        if(!q.error&&q.data?.[0]) clientId=q.data[0].id;
+        if(!clientId) await new Promise(r=>setTimeout(r,300));
+      }
+    }
+    if(!clientId){console.warn('[Radiadores Moura] Cliente não localizado para persistência:',wanted);return;}
+    const payload={cpf_cnpj:snapshot.cpf_cnpj,phone:snapshot.phone,cep:snapshot.cep,address:snapshot.address};
+    const upd=await sb.from('clients').update(payload).eq('id',clientId).eq('company_id',company.id);
+    if(upd.error){console.error('[Radiadores Moura] Erro ao atualizar cliente:',upd.error);if(typeof toast==='function')toast('Lançamento salvo, mas os dados do cliente não foram atualizados: '+upd.error.message);return;}
+    try{
+      if(typeof clients!=='undefined'&&Array.isArray(clients)){
+        const idx=clients.findIndex(c=>String(c.id)===String(clientId));
+        if(idx>=0)Object.assign(clients[idx],payload);
+      }
+    }catch(_){ }
+    if(typeof cloud==='function') cloud('Salvo na nuvem');
+  }catch(err){
+    console.error('[Radiadores Moura] Persistência dos dados do cliente:',err);
+    if(typeof toast==='function')toast('Lançamento salvo, mas houve erro ao salvar os dados do cliente.');
+  }finally{clientSaveBusy=false;}
+}
+function installClientPersistence(){
+  const form=document.getElementById('order');
+  if(!form || form.dataset.rootClientPersistence==='1') return;
+  form.dataset.rootClientPersistence='1';
+  form.addEventListener('submit',function(){
+    const name=(document.getElementById('clientInput')?.value||'').trim();
+    const vehicle=(document.getElementById('vehicle')?.value||'').trim();
+    const plate=(document.getElementById('plate')?.value||'').trim();
+    const pedido=(document.getElementById('pedido')?.value||'').trim();
+    let clientId=null;
+    const existing=getOrders().find(o=>String(o.client_name||'').trim().toLowerCase()===name.toLowerCase()&&String(o.vehicle_make_model||'').trim()===vehicle&&String(o.plate||'').trim()===plate&&String(o.pedido||'').trim()===pedido);
+    if(existing?.client_id) clientId=existing.client_id;
+    const snapshot={
+      name,
+      clientId,
+      cpf_cnpj:(document.getElementById('launchClientCnpj')?.value||'').trim(),
+      phone:(document.getElementById('launchClientPhone')?.value||'').trim(),
+      cep:(document.getElementById('launchClientCep')?.value||'').trim(),
+      address:(document.getElementById('launchClientAddress')?.value||'').trim()
+    };
+    /* O app.js limpa o formulário após salvar. A captura acima ocorre antes
+       disso; aguardamos a conclusão do save e então persistimos o cliente. */
+    setTimeout(()=>persistLaunchClientAfterSubmit(snapshot),1200);
+  },true);
+}
 
 /* EXCLUSÃO NA RAIZ: não depende de servicos-actions.js/servicos-edicao.js. */
 let deletingLaunchId=null;
@@ -23,12 +84,10 @@ async function deleteLaunchDirect(id){
   buttons.forEach(b=>{b.disabled=true;b.textContent='Excluindo...';});
   try{
     if(typeof cloud==='function') cloud('Excluindo lançamento...');
-    /* Primeiro os filhos, depois o registro principal. */
     const itemsResult=await sb.from('order_items').delete().eq('order_id',id);
     if(itemsResult.error) throw new Error('Erro ao excluir os serviços: '+itemsResult.error.message);
     const orderResult=await sb.from('orders').delete().eq('id',id);
     if(orderResult.error) throw new Error('Erro ao excluir o lançamento: '+orderResult.error.message);
-    /* Remove imediatamente da memória para a tela responder mesmo antes do reload. */
     const idx=getOrders().findIndex(x=>String(x.id)===String(id));
     if(idx>=0) getOrders().splice(idx,1);
     if(typeof loadData==='function') await loadData();
@@ -40,12 +99,9 @@ async function deleteLaunchDirect(id){
     if(typeof toast==='function') toast(err?.message||'Erro ao excluir lançamento.');
     if(typeof cloud==='function') cloud('Erro ao excluir');
     buttons.forEach(b=>{b.disabled=false;b.textContent='Excluir';});
-  }finally{
-    deletingLaunchId=null;
-  }
+  }finally{deletingLaunchId=null;}
 }
 window.removeLaunchDirect=deleteLaunchDirect;
-/* Alias mantido para qualquer outro script que tente usar a exclusão. */
 window.removeServiceOrder=window.removeServiceOrder||deleteLaunchDirect;
 
 function updateLaunchFilters(){
@@ -56,21 +112,20 @@ function updateLaunchFilters(){
   const statuses=['Liberado','Pronto','Parado','Pronto entregue'];
   pay.innerHTML='<option value="">Todos os pagamentos</option>'+payments.map(v=>`<option value="${esc2(v)}">${esc2(v)}</option>`).join('');
   svc.innerHTML='<option value="">Todas as situações</option>'+statuses.map(v=>`<option value="${esc2(v)}">${esc2(v)==='Pronto entregue'?'Pronto/Entregue':esc2(v)}</option>`).join('');
-  try{ if(pay.querySelector(`option[value="${CSS.escape(currentPay)}"]`)) pay.value=currentPay; else pay.value=''; }catch(e){pay.value='';}
-  try{ if(svc.querySelector(`option[value="${CSS.escape(currentSvc)}"]`)) svc.value=currentSvc; else svc.value=''; }catch(e){svc.value='';}
+  try{if(pay.querySelector(`option[value="${CSS.escape(currentPay)}"]`))pay.value=currentPay;else pay.value='';}catch(e){pay.value='';}
+  try{if(svc.querySelector(`option[value="${CSS.escape(currentSvc)}"]`))svc.value=currentSvc;else svc.value='';}catch(e){svc.value='';}
 }
-
 function renderLaunchesReference(){
   if(typeof updateCatalog==='function') updateCatalog();
-  const list=document.getElementById('launchList'); if(!list) return;
+  const list=document.getElementById('launchList');if(!list)return;
   updateLaunchFilters();
   const q=(document.getElementById('launchSearch')?.value||'').toLowerCase().trim();
   const pf=(document.getElementById('launchPaymentFilter')?.value||'').trim();
   const sf=(document.getElementById('launchStatusFilter')?.value||'').trim();
   const normalizeStatus=v=>{const t=String(v||'').trim().toLowerCase().replace(/\s+/g,' ');if(t==='pronto/entregue'||t==='pronto entregue')return 'Pronto entregue';if(t==='liberado')return 'Liberado';if(t==='pronto')return 'Pronto';if(t==='parado')return 'Parado';return String(v||'').trim();};
-  const a=getOrders().filter(o=>{const items=o.order_items||[];const text=[o.client_name,o.vehicle_make_model,o.plate,o.pedido,o.numero_lancamento,...items.map(i=>i.description)].join(' ').toLowerCase();const pay=String(o.payment_status||'EM ABERTO').trim();return (!q||text.includes(q))&&(!pf||pay===pf)&&(!sf||items.some(i=>normalizeStatus(i?.service_status||'Pronto entregue')===sf));});
+  const a=getOrders().filter(o=>{const items=o.order_items||[];const text=[o.client_name,o.vehicle_make_model,o.plate,o.pedido,o.numero_lancamento,...items.map(i=>i.description)].join(' ').toLowerCase();const pay=String(o.payment_status||'EM ABERTO').trim();return(!q||text.includes(q))&&(!pf||pay===pf)&&(!sf||items.some(i=>normalizeStatus(i?.service_status||'Pronto entregue')===sf));});
   const sorted=[...a].sort((x,y)=>{const dx=dateKey2(x),dy=dateKey2(y);if(!dx&&!dy)return String(y.entry_date||'').localeCompare(String(x.entry_date||''));if(!dx)return -1;if(!dy)return 1;if(dx!==dy)return dy.localeCompare(dx);return String(y.entry_date||'').localeCompare(String(x.entry_date||''));});
-  const count=document.getElementById('count'); if(count) count.textContent=sorted.length+' lançamento(s)';
+  const count=document.getElementById('count');if(count)count.textContent=sorted.length+' lançamento(s)';
   let lastDay=null;
   list.innerHTML=sorted.map(o=>{
     const day=dateKey2(o),sep=day!==lastDay?`<div class="launch-day-separator"><span>${fullDate2(day)}</span></div>`:'';lastDay=day;
@@ -100,19 +155,20 @@ function renderLaunchesReference(){
       ${String(o.notes||'').trim()?`<div class="launch-observation-card"><span>⚠ Observação:</span> ${esc2(o.notes.trim())}</div>`:''}
     </article>`;
   }).join('')||'<div class="empty">Nenhum lançamento encontrado.</div>';
-
   list.querySelectorAll('[data-edit]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof openFix==='function')openFix(b.dataset.edit);else if(typeof editOrder==='function')editOrder(b.dataset.edit);});
-  /* Exclusão chama diretamente a rotina residente neste mesmo arquivo. */
   list.querySelectorAll('[data-delete]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();deleteLaunchDirect(b.dataset.delete);});
   list.querySelectorAll('.launch-reference-card').forEach(x=>x.onclick=e=>{if(e.target.closest('[data-edit],[data-delete]'))return;if(typeof openFix==='function')openFix(x.dataset.id);else if(typeof editOrder==='function')editOrder(x.dataset.id);});
 }
 function install(){
+  installClientPersistence();
   const search=document.getElementById('launchSearch'),pf=document.getElementById('launchPaymentFilter'),sf=document.getElementById('launchStatusFilter');
   [search,pf,sf].forEach(el=>{if(!el||el.dataset.refFilterBound==='1')return;el.dataset.refFilterBound='1';el.addEventListener('input',renderLaunchesReference);el.addEventListener('change',renderLaunchesReference);});
   window.renderLaunches=renderLaunchesReference;
   updateLaunchFilters();
   setTimeout(renderLaunchesReference,0);
   setTimeout(renderLaunchesReference,300);
+  setTimeout(installClientPersistence,500);
+  setTimeout(installClientPersistence,1500);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
