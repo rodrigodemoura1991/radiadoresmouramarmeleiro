@@ -64,8 +64,8 @@ function renderLaunchesReference(){
     </article>`;
     return sep+card;
   }).join('')||'<div class="empty">Nenhum lançamento encontrado.</div>';
-  list.querySelectorAll('[data-edit]').forEach(b=>b.onclick=e=>{e.stopPropagation();if(typeof openFix==='function')openFix(b.dataset.edit);else if(typeof editOrder==='function')editOrder(b.dataset.edit);});
-  list.querySelectorAll('[data-delete]').forEach(b=>b.onclick=e=>{e.stopPropagation();if(typeof removeOrder==='function')removeOrder(b.dataset.delete);});
+  list.querySelectorAll('[data-edit]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof openFix==='function')openFix(b.dataset.edit);else if(typeof editOrder==='function')editOrder(b.dataset.edit);});
+  list.querySelectorAll('[data-delete]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof window.removeServiceOrder==='function')window.removeServiceOrder(b.dataset.delete);});
   list.querySelectorAll('.launch-reference-card').forEach(x=>x.onclick=e=>{if(e.target.closest('[data-edit],[data-delete]'))return;if(typeof openFix==='function')openFix(x.dataset.id);else if(typeof editOrder==='function')editOrder(x.dataset.id);});
 }
 function install(){const search=document.getElementById('launchSearch'),pf=document.getElementById('launchPaymentFilter'),sf=document.getElementById('launchStatusFilter');[search,pf,sf].forEach(el=>{if(!el||el.dataset.refFilterBound==='1')return;el.dataset.refFilterBound='1';el.addEventListener('input',renderLaunchesReference);el.addEventListener('change',renderLaunchesReference);});window.renderLaunches=renderLaunchesReference;updateLaunchFilters();setTimeout(renderLaunchesReference,0);setTimeout(renderLaunchesReference,300);}
