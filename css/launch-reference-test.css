@@ -104,3 +104,25 @@
 #launchList .launch-services .service-line b{font-size:9px!important}
 #launchList .launch-services .service-status{font-size:8px!important}
 }
+
+/* V32 — datas maiores visualmente, sem alterar posição, espaçamento ou altura do cartão */
+#launchList .launch-reference-left .launch-dates{
+  font-size:13px!important;
+  font-weight:800!important;
+  line-height:1!important;
+  transform:scale(1.12)!important;
+  transform-origin:left center!important;
+}
+#launchList .launch-reference-left .launch-dates b{
+  font-size:14px!important;
+  font-weight:900!important;
+  line-height:1!important;
+}
+@media(max-width:700px){
+  #launchList .launch-reference-left .launch-dates{
+    font-size:11px!important;
+    transform:scale(1.08)!important;
+    transform-origin:left center!important;
+  }
+  #launchList .launch-reference-left .launch-dates b{font-size:12px!important}
+}
