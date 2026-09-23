@@ -126,3 +126,28 @@
   }
   #launchList .launch-reference-left .launch-dates b{font-size:12px!important}
 }
+
+/* V33 — seleção do cartão: destaque forte sem alterar dimensões */
+#launchList .launch-reference-card.launch-card-selected{
+  background:#e7f0ff!important;
+  background-color:#e7f0ff!important;
+  border:2px solid #2563eb!important;
+  border-left:4px solid #1d4ed8!important;
+  box-shadow:0 0 0 2px rgba(37,99,235,.28),0 4px 12px rgba(37,99,235,.18)!important;
+  position:relative!important;
+  z-index:2!important;
+}
+#launchList .launch-reference-card.launch-card-selected .launch-services .service-line{
+  background:#f5f8ff!important;
+  border-color:#c7d7f7!important;
+}
+#launchList .launch-reference-card.launch-card-selected .launch-payment{
+  box-shadow:0 0 0 1px rgba(37,99,235,.22)!important;
+}
+@media(max-width:700px){
+  #launchList .launch-reference-card.launch-card-selected{
+    border-width:2px!important;
+    border-left-width:4px!important;
+    box-shadow:0 0 0 2px rgba(37,99,235,.25),0 3px 9px rgba(37,99,235,.16)!important;
+  }
+}
