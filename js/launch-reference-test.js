@@ -115,6 +115,7 @@ function updateLaunchFilters(){
   try{if(pay.querySelector(`option[value="${CSS.escape(currentPay)}"]`))pay.value=currentPay;else pay.value='';}catch(e){pay.value='';}
   try{if(svc.querySelector(`option[value="${CSS.escape(currentSvc)}"]`))svc.value=currentSvc;else svc.value='';}catch(e){svc.value='';}
 }
+let selectedLaunchCardId=null;
 function renderLaunchesReference(){
   if(typeof updateCatalog==='function') updateCatalog();
   const list=document.getElementById('launchList');if(!list)return;
@@ -157,7 +158,7 @@ function renderLaunchesReference(){
   }).join('')||'<div class="empty">Nenhum lançamento encontrado.</div>';
   list.querySelectorAll('[data-edit]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof openFix==='function')openFix(b.dataset.edit);else if(typeof editOrder==='function')editOrder(b.dataset.edit);});
   list.querySelectorAll('[data-delete]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();deleteLaunchDirect(b.dataset.delete);});
-  list.querySelectorAll('.launch-reference-card').forEach(x=>x.onclick=e=>{if(e.target.closest('[data-edit],[data-delete]'))return;if(typeof openFix==='function')openFix(x.dataset.id);else if(typeof editOrder==='function')editOrder(x.dataset.id);});
+  list.querySelectorAll('.launch-reference-card').forEach(x=>x.onclick=e=>{if(e.target.closest('[data-edit],[data-delete]'))return;const id=String(x.dataset.id||'');if(!id)return;if(selectedLaunchCardId===id){x.classList.remove('launch-card-selected');selectedLaunchCardId=null;if(typeof openFix==='function')openFix(id);else if(typeof editOrder==='function')editOrder(id);return;}list.querySelectorAll('.launch-reference-card.launch-card-selected').forEach(card=>card.classList.remove('launch-card-selected'));selectedLaunchCardId=id;x.classList.add('launch-card-selected');});
 }
 function install(){
   installClientPersistence();
