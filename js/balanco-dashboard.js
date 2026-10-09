@@ -1,10 +1,10 @@
-/* BALANÇO FINAL — somente itens PRONTO ENTREGUE pela DATA DE SAÍDA */
+/* BALANÇO FINAL — contabiliza todos os serviços que possuem DATA DE SAÍDA, independentemente do status */
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
 const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
 const norm=s=>String(s??'').trim().toLowerCase().replace(/[\/_-]+/g,' ').replace(/\s+/g,' ');
-const ready=i=>norm(i?.service_status)==='pronto entregue';
+const eligibleItems=o=>Array.isArray(o?.order_items)?o.order_items:[];
 const dateOnly=v=>String(v||'').slice(0,10);
 const parseDate=v=>{const s=dateOnly(v),m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?new Date(+m[1],+m[2]-1,+m[3]):null};
 function allOrders(){try{return Array.isArray(orders)?orders:[]}catch(e){return[]}}
@@ -23,7 +23,7 @@ function periodBounds(){
 function selected(){
   const b=periodBounds();
   return allOrders().filter(o=>{
-    const items=Array.isArray(o.order_items)?o.order_items.filter(ready):[];
+    const items=eligibleItems(o);
     if(!items.length)return false;
     const d=parseDate(o.exit_date);if(!d)return false;
     return !b || (d>=b[0]&&d<=b[1]);
@@ -32,7 +32,7 @@ function selected(){
 function data(){
   const os=selected().filter(o=>!o.exclude_from_balance);let sale=0,discount=0,cost=0,freight=0,tax=0,count=0;
   os.forEach(o=>{
-    const items=Array.isArray(o.order_items)?o.order_items.filter(ready):[];
+    const items=eligibleItems(o);
     const all=Array.isArray(o.order_items)?o.order_items:[];
     const hasItemFreight=items.some(i=>Number(i?.freight_value)||0);
     const discountPercent=Math.min(100,Math.max(0,Number(o.discount_percent)||0));
@@ -49,7 +49,7 @@ function data(){
 function realData(){
   const os=selected();let sale=0,discount=0,cost=0,freight=0,tax=0,count=0;
   os.forEach(o=>{
-    const items=Array.isArray(o.order_items)?o.order_items.filter(ready):[];
+    const items=eligibleItems(o);
     const all=Array.isArray(o.order_items)?o.order_items:[];
     const hasItemFreight=items.some(i=>Number(i?.freight_value)||0);
     const discountFactor=Math.max(0,1-Math.min(100,Math.max(0,Number(o.discount_percent)||0))/100);
@@ -69,7 +69,7 @@ function renderRealSummary(d){
     <div style="padding:12px;border:1px dashed var(--line);border-radius:12px"><small>Venda líquida retirada do balanço</small><b style="display:block;margin-top:4px">${money(diff)}</b></div>
     <div style="padding:12px;border:1px dashed var(--line);border-radius:12px"><small>Lucro retirado do balanço</small><b style="display:block;margin-top:4px">${money(diffProfit)}</b></div>
   </div>
-  <div style="margin-top:12px;font-size:12px;color:var(--muted)">O valor real inclui todos os serviços PRONTO ENTREGUE do período. O lucro é calculado como venda bruta − custo − frete − imposto − desconto; os impostos são calculados sobre a venda após desconto.</div>`;
+  <div style="margin-top:12px;font-size:12px;color:var(--muted)">O valor real inclui todos os serviços com data de saída no período, independentemente do status. O lucro é calculado como venda bruta − custo − frete − imposto − desconto; os impostos são calculados sobre a venda após desconto.</div>`;
 }
 function render(){
   const d=data();
@@ -77,7 +77,7 @@ function render(){
   const cards=$('balanceCards');
   if(cards)cards.innerHTML=`<div class="bcard"><small>Venda bruta</small><b>${money(d.sale)}</b></div><div class="bcard"><small>Descontos</small><b>${money(d.discount)}</b></div><div class="bcard"><small>Custo de peças</small><b>${money(d.cost)}</b></div><div class="bcard"><small>Fretes</small><b>${money(d.freight)}</b></div><div class="bcard"><small>Impostos</small><b>${money(d.tax)}</b></div><div class="bcard"><small>Lucro líquido</small><b>${money(d.profit)}</b></div><div class="bcard"><small>Margem líquida</small><b>${d.margin.toFixed(1)}%</b></div><div class="bcard"><small>Serviços entregues</small><b>${d.count}</b></div><div class="bcard"><small>Lançamentos</small><b>${d.os.length}</b></div>`;
   const p=$('profitManagement');if(p)p.innerHTML=`<div class="profit-grid"><div><small>Venda bruta</small><b>${money(d.sale)}</b></div><div><small>Descontos</small><b>${money(d.discount)}</b></div><div><small>Custo de peças + fretes</small><b>${money(d.cost+d.freight)}</b></div><div><small>Impostos</small><b>${money(d.tax)}</b></div><div><small>Lucro líquido</small><b>${money(d.profit)}</b></div></div><p style="margin:12px 0 0;color:var(--muted);font-size:13px">Lucro = venda bruta − custo − frete − imposto − desconto. Impostos calculados sobre a venda após desconto.</p>`;
-  const br=$('breakdown');if(br)br.innerHTML=`<div class="break-row"><b>PRONTO ENTREGUE</b><div class="bar"><i style="width:${d.count?100:0}%"></i></div><span>${d.count}</span></div>`;
+  const br=$('breakdown');if(br)br.innerHTML=`<div class="break-row"><b>Serviços com data de saída</b><div class="bar"><i style="width:${d.count?100:0}%"></i></div><span>${d.count}</span></div>`;
   const pay=$('paymentBreakdown');if(pay){pay.innerHTML='';const card=pay.closest('.card');if(card)card.style.display='none';}
 }
 function setMode(m){window.__finalBalanceMode=m;document.querySelectorAll('.period').forEach(b=>b.classList.toggle('active',b.dataset.p===m));render();}
