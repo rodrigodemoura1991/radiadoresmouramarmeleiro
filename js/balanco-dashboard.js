@@ -4,7 +4,7 @@
 const $=id=>document.getElementById(id);
 const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
 const norm=s=>String(s??'').trim().toLowerCase().replace(/[\/_-]+/g,' ').replace(/\s+/g,' ');
-const ready=i=>norm(i?.service_status)==='pronto entregue';
+const ready=i=>{const s=norm(i?.service_status);return s==='pronto'||s==='pronto entregue'};
 const dateOnly=v=>String(v||'').slice(0,10);
 const parseDate=v=>{const s=dateOnly(v),m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?new Date(+m[1],+m[2]-1,+m[3]):null};
 function allOrders(){try{return Array.isArray(orders)?orders:[]}catch(e){return[]}}
@@ -35,9 +35,10 @@ function data(){
     const items=Array.isArray(o.order_items)?o.order_items.filter(ready):[];
     const all=Array.isArray(o.order_items)?o.order_items:[];
     const hasItemFreight=items.some(i=>Number(i?.freight_value)||0);
+    const discountFactor=Math.max(0,1-Math.min(100,Math.max(0,Number(o.discount_percent)||0))/100);
     items.forEach(i=>{
       const s=Number(i?.sale_value)||0,c=Number(i?.cost_value)||0,f=Number(i?.freight_value)||0,t=s*(Number(i?.tax_rate)||0)/100;
-      sale+=s;cost+=c;freight+=f;tax+=t;count++;
+      sale+=s*discountFactor;cost+=c;freight+=f;tax+=t*discountFactor;count++;
     });
     if(!hasItemFreight && all.length && items.length===all.length)freight+=Number(o.total_freight)||0;
   });
@@ -50,7 +51,8 @@ function realData(){
     const items=Array.isArray(o.order_items)?o.order_items.filter(ready):[];
     const all=Array.isArray(o.order_items)?o.order_items:[];
     const hasItemFreight=items.some(i=>Number(i?.freight_value)||0);
-    items.forEach(i=>{const s=Number(i?.sale_value)||0,c=Number(i?.cost_value)||0,f=Number(i?.freight_value)||0,t=s*(Number(i?.tax_rate)||0)/100;sale+=s;cost+=c;freight+=f;tax+=t;count++});
+    const discountFactor=Math.max(0,1-Math.min(100,Math.max(0,Number(o.discount_percent)||0))/100);
+    items.forEach(i=>{const s=Number(i?.sale_value)||0,c=Number(i?.cost_value)||0,f=Number(i?.freight_value)||0,t=s*(Number(i?.tax_rate)||0)/100;sale+=s*discountFactor;cost+=c;freight+=f;tax+=t*discountFactor;count++});
     if(!hasItemFreight&&all.length&&items.length===all.length)freight+=Number(o.total_freight)||0;
   });
   const profit=sale-cost-freight-tax;return{sale,cost,freight,tax,profit,count,margin:sale?profit/sale*100:0,os};
@@ -66,14 +68,14 @@ function renderRealSummary(d){
     <div style="padding:12px;border:1px dashed var(--line);border-radius:12px"><small>Valor retirado do balanço</small><b style="display:block;margin-top:4px">${money(diff)}</b></div>
     <div style="padding:12px;border:1px dashed var(--line);border-radius:12px"><small>Lucro retirado do balanço</small><b style="display:block;margin-top:4px">${money(diffProfit)}</b></div>
   </div>
-  <div style="margin-top:12px;font-size:12px;color:var(--muted)">O valor real inclui todos os serviços PRONTO/ENTREGUE do período. O valor após retirar considera apenas os serviços que permanecem no balanço.</div>`;
+  <div style="margin-top:12px;font-size:12px;color:var(--muted)">O valor real inclui todos os serviços PRONTO ou PRONTO/ENTREGUE do período. Vendas e impostos consideram o desconto do lançamento; o valor após retirar considera apenas os lançamentos que permanecem no balanço.</div>`;
 }
 function render(){
   const d=data();
   renderRealSummary(d);
   const cards=$('balanceCards');
   if(cards)cards.innerHTML=`<div class="bcard"><small>Vendas</small><b>${money(d.sale)}</b></div><div class="bcard"><small>Custo de peças</small><b>${money(d.cost)}</b></div><div class="bcard"><small>Fretes</small><b>${money(d.freight)}</b></div><div class="bcard"><small>Impostos</small><b>${money(d.tax)}</b></div><div class="bcard"><small>Lucro líquido</small><b>${money(d.profit)}</b></div><div class="bcard"><small>Margem líquida</small><b>${d.margin.toFixed(1)}%</b></div><div class="bcard"><small>Serviços entregues</small><b>${d.count}</b></div><div class="bcard"><small>Lançamentos</small><b>${d.os.length}</b></div>`;
-  const p=$('profitManagement');if(p)p.innerHTML=`<div class="profit-grid"><div><small>Vendas</small><b>${money(d.sale)}</b></div><div><small>Custo de peças + fretes</small><b>${money(d.cost+d.freight)}</b></div><div><small>Impostos</small><b>${money(d.tax)}</b></div><div><small>Lucro líquido</small><b>${money(d.profit)}</b></div></div><p style="margin:12px 0 0;color:var(--muted);font-size:13px">Somente serviços PRONTO/ENTREGUE, pela data de saída.</p>`;
+  const p=$('profitManagement');if(p)p.innerHTML=`<div class="profit-grid"><div><small>Vendas</small><b>${money(d.sale)}</b></div><div><small>Custo de peças + fretes</small><b>${money(d.cost+d.freight)}</b></div><div><small>Impostos</small><b>${money(d.tax)}</b></div><div><small>Lucro líquido</small><b>${money(d.profit)}</b></div></div><p style="margin:12px 0 0;color:var(--muted);font-size:13px">Serviços PRONTO ou PRONTO/ENTREGUE, pela data de saída, com descontos aplicados proporcionalmente às vendas e aos impostos.</p>`;
   const br=$('breakdown');if(br)br.innerHTML=`<div class="break-row"><b>PRONTO/ENTREGUE</b><div class="bar"><i style="width:${d.count?100:0}%"></i></div><span>${d.count}</span></div>`;
   const pay=$('paymentBreakdown');if(pay){pay.innerHTML='';const card=pay.closest('.card');if(card)card.style.display='none';}
 }
