@@ -1,4 +1,4 @@
-/* BALANÇO FINAL — itens PRONTO/ENTREGUE pela DATA DE SAÍDA */
+/* BALANÇO FINAL — somente itens PRONTO ENTREGUE pela DATA DE SAÍDA */
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
@@ -30,51 +30,54 @@ function selected(){
   });
 }
 function data(){
-  const os=selected().filter(o=>!o.exclude_from_balance);let sale=0,cost=0,freight=0,tax=0,count=0;
+  const os=selected().filter(o=>!o.exclude_from_balance);let sale=0,discount=0,cost=0,freight=0,tax=0,count=0;
   os.forEach(o=>{
     const items=Array.isArray(o.order_items)?o.order_items.filter(ready):[];
     const all=Array.isArray(o.order_items)?o.order_items:[];
     const hasItemFreight=items.some(i=>Number(i?.freight_value)||0);
+    const discountPercent=Math.min(100,Math.max(0,Number(o.discount_percent)||0));
+    const discountFactor=1-discountPercent/100;
     items.forEach(i=>{
       const s=Number(i?.sale_value)||0,c=Number(i?.cost_value)||0,f=Number(i?.freight_value)||0,t=s*(Number(i?.tax_rate)||0)/100;
-      sale+=s;cost+=c;freight+=f;tax+=t;count++;
+      sale+=s;discount+=s*discountPercent/100;cost+=c;freight+=f;tax+=t*discountFactor;count++;
     });
     if(!hasItemFreight && all.length && items.length===all.length)freight+=Number(o.total_freight)||0;
   });
-  const profit=sale-cost-freight-tax;
-  return {os,sale,cost,freight,tax,profit,count,margin:sale?profit/sale*100:0};
+  const netSales=sale-discount,profit=sale-cost-freight-tax-discount;
+  return {os,sale,discount,cost,freight,tax,profit,count,margin:netSales?profit/netSales*100:0};
 }
 function realData(){
-  const os=selected();let sale=0,cost=0,freight=0,tax=0,count=0;
+  const os=selected();let sale=0,discount=0,cost=0,freight=0,tax=0,count=0;
   os.forEach(o=>{
     const items=Array.isArray(o.order_items)?o.order_items.filter(ready):[];
     const all=Array.isArray(o.order_items)?o.order_items:[];
     const hasItemFreight=items.some(i=>Number(i?.freight_value)||0);
-    items.forEach(i=>{const s=Number(i?.sale_value)||0,c=Number(i?.cost_value)||0,f=Number(i?.freight_value)||0,t=s*(Number(i?.tax_rate)||0)/100;sale+=s;cost+=c;freight+=f;tax+=t;count++});
+    const discountFactor=Math.max(0,1-Math.min(100,Math.max(0,Number(o.discount_percent)||0))/100);
+    items.forEach(i=>{const s=Number(i?.sale_value)||0,c=Number(i?.cost_value)||0,f=Number(i?.freight_value)||0,t=s*(Number(i?.tax_rate)||0)/100;sale+=s;discount+=s*(1-discountFactor);cost+=c;freight+=f;tax+=t*discountFactor;count++});
     if(!hasItemFreight&&all.length&&items.length===all.length)freight+=Number(o.total_freight)||0;
   });
-  const profit=sale-cost-freight-tax;return{sale,cost,freight,tax,profit,count,margin:sale?profit/sale*100:0,os};
+  const netSales=sale-discount,profit=sale-cost-freight-tax-discount;return{sale,discount,cost,freight,tax,profit,count,margin:netSales?profit/netSales*100:0,os};
 }
 function renderRealSummary(d){
   const box=$('realBalanceSummary');if(!box)return;
-  const r=realData(), diff=r.sale-d.sale, diffProfit=r.profit-d.profit;
+  const r=realData(), diff=(r.sale-r.discount)-(d.sale-d.discount), diffProfit=r.profit-d.profit;
   if(!r.os.length){box.innerHTML='<h3 style="margin:0 0 10px">Resumo financeiro</h3><div style="color:var(--muted)">Nenhum serviço no período.</div>';return}
   box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px"><div><h3 style="margin:0">Resumo financeiro</h3><p style="margin:4px 0 0;color:var(--muted);font-size:13px">Comparação do período selecionado, incluindo os serviços ocultados pelo Administrador.</p></div></div>
   <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
-    <div style="padding:14px;border:1px solid var(--line);border-radius:12px"><small>💰 Valor real — todos os serviços</small><b style="display:block;font-size:22px;margin-top:5px">${money(r.sale)}</b><span style="font-size:12px;color:var(--muted)">Lucro líquido: ${money(r.profit)} • ${r.count} serviços</span></div>
-    <div style="padding:14px;border:1px solid var(--line);border-radius:12px"><small>📊 Após retirar os ocultados</small><b style="display:block;font-size:22px;margin-top:5px">${money(d.sale)}</b><span style="font-size:12px;color:var(--muted)">Lucro líquido: ${money(d.profit)} • ${d.count} serviços</span></div>
-    <div style="padding:12px;border:1px dashed var(--line);border-radius:12px"><small>Valor retirado do balanço</small><b style="display:block;margin-top:4px">${money(diff)}</b></div>
+    <div style="padding:14px;border:1px solid var(--line);border-radius:12px"><small>💰 Venda bruta — todos os serviços</small><b style="display:block;font-size:22px;margin-top:5px">${money(r.sale)}</b><span style="font-size:12px;color:var(--muted)">Desconto: ${money(r.discount)} • Lucro líquido: ${money(r.profit)} • ${r.count} serviços</span></div>
+    <div style="padding:14px;border:1px solid var(--line);border-radius:12px"><small>📊 Venda bruta após retirar ocultados</small><b style="display:block;font-size:22px;margin-top:5px">${money(d.sale)}</b><span style="font-size:12px;color:var(--muted)">Desconto: ${money(d.discount)} • Lucro líquido: ${money(d.profit)} • ${d.count} serviços</span></div>
+    <div style="padding:12px;border:1px dashed var(--line);border-radius:12px"><small>Venda líquida retirada do balanço</small><b style="display:block;margin-top:4px">${money(diff)}</b></div>
     <div style="padding:12px;border:1px dashed var(--line);border-radius:12px"><small>Lucro retirado do balanço</small><b style="display:block;margin-top:4px">${money(diffProfit)}</b></div>
   </div>
-  <div style="margin-top:12px;font-size:12px;color:var(--muted)">O valor real inclui todos os serviços PRONTO/ENTREGUE do período. O valor após retirar considera apenas os serviços que permanecem no balanço.</div>`;
+  <div style="margin-top:12px;font-size:12px;color:var(--muted)">O valor real inclui todos os serviços PRONTO ENTREGUE do período. O lucro é calculado como venda bruta − custo − frete − imposto − desconto; os impostos são calculados sobre a venda após desconto.</div>`;
 }
 function render(){
   const d=data();
   renderRealSummary(d);
   const cards=$('balanceCards');
-  if(cards)cards.innerHTML=`<div class="bcard"><small>Vendas</small><b>${money(d.sale)}</b></div><div class="bcard"><small>Custo de peças</small><b>${money(d.cost)}</b></div><div class="bcard"><small>Fretes</small><b>${money(d.freight)}</b></div><div class="bcard"><small>Impostos</small><b>${money(d.tax)}</b></div><div class="bcard"><small>Lucro líquido</small><b>${money(d.profit)}</b></div><div class="bcard"><small>Margem líquida</small><b>${d.margin.toFixed(1)}%</b></div><div class="bcard"><small>Serviços entregues</small><b>${d.count}</b></div><div class="bcard"><small>Lançamentos</small><b>${d.os.length}</b></div>`;
-  const p=$('profitManagement');if(p)p.innerHTML=`<div class="profit-grid"><div><small>Vendas</small><b>${money(d.sale)}</b></div><div><small>Custo de peças + fretes</small><b>${money(d.cost+d.freight)}</b></div><div><small>Impostos</small><b>${money(d.tax)}</b></div><div><small>Lucro líquido</small><b>${money(d.profit)}</b></div></div><p style="margin:12px 0 0;color:var(--muted);font-size:13px">Somente serviços PRONTO/ENTREGUE, pela data de saída.</p>`;
-  const br=$('breakdown');if(br)br.innerHTML=`<div class="break-row"><b>PRONTO/ENTREGUE</b><div class="bar"><i style="width:${d.count?100:0}%"></i></div><span>${d.count}</span></div>`;
+  if(cards)cards.innerHTML=`<div class="bcard"><small>Venda bruta</small><b>${money(d.sale)}</b></div><div class="bcard"><small>Descontos</small><b>${money(d.discount)}</b></div><div class="bcard"><small>Custo de peças</small><b>${money(d.cost)}</b></div><div class="bcard"><small>Fretes</small><b>${money(d.freight)}</b></div><div class="bcard"><small>Impostos</small><b>${money(d.tax)}</b></div><div class="bcard"><small>Lucro líquido</small><b>${money(d.profit)}</b></div><div class="bcard"><small>Margem líquida</small><b>${d.margin.toFixed(1)}%</b></div><div class="bcard"><small>Serviços entregues</small><b>${d.count}</b></div><div class="bcard"><small>Lançamentos</small><b>${d.os.length}</b></div>`;
+  const p=$('profitManagement');if(p)p.innerHTML=`<div class="profit-grid"><div><small>Venda bruta</small><b>${money(d.sale)}</b></div><div><small>Descontos</small><b>${money(d.discount)}</b></div><div><small>Custo de peças + fretes</small><b>${money(d.cost+d.freight)}</b></div><div><small>Impostos</small><b>${money(d.tax)}</b></div><div><small>Lucro líquido</small><b>${money(d.profit)}</b></div></div><p style="margin:12px 0 0;color:var(--muted);font-size:13px">Lucro = venda bruta − custo − frete − imposto − desconto. Impostos calculados sobre a venda após desconto.</p>`;
+  const br=$('breakdown');if(br)br.innerHTML=`<div class="break-row"><b>PRONTO ENTREGUE</b><div class="bar"><i style="width:${d.count?100:0}%"></i></div><span>${d.count}</span></div>`;
   const pay=$('paymentBreakdown');if(pay){pay.innerHTML='';const card=pay.closest('.card');if(card)card.style.display='none';}
 }
 function setMode(m){window.__finalBalanceMode=m;document.querySelectorAll('.period').forEach(b=>b.classList.toggle('active',b.dataset.p===m));render();}
