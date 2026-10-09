@@ -32,7 +32,7 @@ function selected(){
 function data(){
   const os=selected().filter(o=>!o.exclude_from_balance);let sale=0,discount=0,cost=0,freight=0,tax=0,count=0;
   os.forEach(o=>{
-    const items=Array.isArray(o.order_items)?o.order_items.filter(ready):[];
+    const items=eligibleItems(o);
     const all=Array.isArray(o.order_items)?o.order_items:[];
     const hasItemFreight=items.some(i=>Number(i?.freight_value)||0);
     const discountPercent=Math.min(100,Math.max(0,Number(o.discount_percent)||0));
@@ -49,7 +49,7 @@ function data(){
 function realData(){
   const os=selected();let sale=0,discount=0,cost=0,freight=0,tax=0,count=0;
   os.forEach(o=>{
-    const items=Array.isArray(o.order_items)?o.order_items.filter(ready):[];
+    const items=eligibleItems(o);
     const all=Array.isArray(o.order_items)?o.order_items:[];
     const hasItemFreight=items.some(i=>Number(i?.freight_value)||0);
     const discountFactor=Math.max(0,1-Math.min(100,Math.max(0,Number(o.discount_percent)||0))/100);
