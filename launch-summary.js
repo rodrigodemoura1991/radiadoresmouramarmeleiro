@@ -27,10 +27,10 @@
   function inRange(v,a,b){const d=String(v||'').slice(0,10);return!!d&&d>=a&&d<=b;}
   function normStatus(v){return String(v??'').trim().toLowerCase().replace(/[\/_-]+/g,' ').replace(/\s+/g,' ');}
 
-  // MESMA REGRA DO BALANÇO: entram os serviços PRONTO e PRONTO/ENTREGUE.
+  // MESMA REGRA DO BALANÇO: entram somente serviços PRONTO ENTREGUE.
   function isReady(item){
     const s=normStatus(item?.service_status);
-    return s==='pronto' || s==='pronto entregue';
+    return s==='pronto entregue';
   }
 
   function build(){
@@ -49,7 +49,7 @@
       <div id="launchSummaryCustom" class="launch-summary-custom hidden"><label>De <input id="launchSummaryStart" type="date"></label><label>Até <input id="launchSummaryEnd" type="date"></label></div>
       <div class="launch-summary-section"><div class="launch-summary-title">Serviços concluídos</div><div class="launch-summary-stats"><div class="summary-stat"><span>Entraram</span><b id="sumEntered">0</b></div><div class="summary-stat"><span>Saíram</span><b id="sumExited">0</b></div></div></div>
       <div class="launch-summary-section"><div class="launch-summary-title">Financeiro</div><div class="summary-finance"><div><span>Valor bruto</span><b id="sumSales">R$ 0,00</b></div><div><span>Valor líquido</span><b id="sumProfit">R$ 0,00</b></div></div></div>
-      <small class="launch-summary-note">Valores calculados com a mesma regra do Balanço: serviços PRONTO ou PRONTO/ENTREGUE, pela data de saída, aplicando descontos e excluindo lançamentos retirados do balanço.</small>`;
+      <small class="launch-summary-note">Valores calculados com a mesma regra do Balanço: somente serviços PRONTO ENTREGUE, pela data de saída, aplicando descontos e excluindo lançamentos retirados do balanço.</small>`;
     const select=document.getElementById('launchSummaryPeriod'),custom=document.getElementById('launchSummaryCustom'),start=document.getElementById('launchSummaryStart'),end=document.getElementById('launchSummaryEnd');
     function refresh(){
       const mode=select.value;custom.classList.toggle('hidden',mode!=='custom');
