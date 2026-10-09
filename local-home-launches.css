@@ -1,0 +1,27 @@
+/* Painel de lançamento, nomes dos clientes e bloco de notas */
+.local-launch-panel{position:fixed!important;left:12px!important;top:12px!important;bottom:12px!important;width:min(1540px,calc(100vw - 24px))!important;max-height:calc(100vh - 24px)!important;z-index:2147483647!important;display:none!important;flex-direction:column!important;overflow:hidden!important;background:#f5f8fc!important;border:1px solid #94a3b8!important;border-radius:16px!important;box-shadow:0 24px 80px rgba(0,0,0,.45)!important}
+.local-launch-panel.is-open{display:flex!important}
+.local-launch-panel-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;padding:15px 18px!important;background:#102a43!important;color:#fff!important;flex:0 0 auto!important}
+.local-launch-panel-head strong{font-size:19px!important;font-weight:800!important}
+.local-launch-panel-sub{margin-top:4px!important;color:#dbeafe!important;font-size:13px!important}
+.local-launch-panel-close{width:40px!important;height:40px!important;flex:0 0 40px!important;border:0!important;border-radius:10px!important;background:#e0f2fe!important;color:#073763!important;font-size:30px!important;cursor:pointer!important}
+.local-launch-panel-layout{display:flex!important;min-height:0!important;flex:1 1 auto!important;overflow:hidden!important;padding:12px!important}
+.local-launch-panel-body{min-width:0!important;min-height:0!important;flex:1 1 auto!important;padding:0!important;overflow:auto!important;overscroll-behavior:contain!important}
+.local-launch-panel-body>.card{display:block!important;visibility:visible!important;margin:0!important;max-width:none!important}
+body.local-launch-panel-open{overflow:hidden!important}
+.local-launch-panel-body #order .foot{position:sticky!important;bottom:-1px!important;z-index:20!important;background:#fff!important;padding:10px 0 8px!important;margin-top:8px!important;border-top:1px solid #dbe4ef!important;box-shadow:0 -8px 16px rgba(255,255,255,.92)!important}
+.local-launch-panel-body #order .foot .btn.primary{min-height:44px!important;font-size:15px!important;font-weight:800!important}
+.local-launch-panel-body #order .grid{row-gap:8px!important}
+.local-launch-panel-body #order .field{margin-bottom:4px!important}
+.side{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:8px!important}
+.side>#localCreateLaunch{position:static!important;inset:auto!important;order:-100!important;align-self:stretch!important;display:block!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important;float:none!important;margin:0 0 12px 0!important;padding:12px 10px!important;text-align:left!important;white-space:normal!important;font-size:13px!important;line-height:1.35!important;font-weight:850!important}
+.side>.nav{flex:0 0 auto!important;width:100%!important}
+.side .local-home-notepad{order:100!important;display:flex!important;flex-direction:column!important;gap:8px!important;width:100%!important;box-sizing:border-box!important;margin:14px 0 0!important;padding:12px!important;border-radius:12px!important;background:#fff7d6!important;border:1px solid #e7c85b!important}
+.local-home-notepad-head{display:block!important;margin:0!important}
+.local-home-notepad-head strong{display:block!important;font-size:13px!important;line-height:1.35!important;color:#6b4e00!important}
+.local-home-notepad-head span{display:block!important;margin-top:4px!important;font-size:10px!important;color:#7c650e!important}
+.side #localHomeNotes{display:block!important;width:100%!important;min-height:180px!important;height:220px!important;box-sizing:border-box!important;resize:vertical!important;font-size:12px!important;padding:8px!important;border:1px solid #e4ce79!important;border-radius:9px!important;background:#fffdf4!important;color:#27220f!important}
+#launchList .lname,#launchList .launch .lname,#launchList .launch-card-center .lname,#launchList .launch .launch-card-center .lname,#launchList .launch .client-name,#launchList .launch .customer-name,#launchList .launch .launch-client,#launchList .launch .launch-customer{display:inline-block!important;background:#DBEAFE!important;color:#1E3A8A!important;border:1px solid #93C5FD!important;border-radius:7px!important;padding:4px 8px!important;font-size:17px!important;font-weight:850!important;line-height:1.3!important;box-shadow:inset 3px 0 0 #1D4ED8!important;overflow-wrap:anywhere!important}
+#launchList .launch-vehicle-highlight{font-size:12px!important;font-weight:500!important;color:#475569!important}
+@media(max-width:700px){.local-launch-panel{left:5px!important;top:5px!important;bottom:5px!important;width:calc(100vw - 10px)!important;max-height:calc(100vh - 10px)!important;border-radius:12px!important}.local-launch-panel-body{padding:0!important}.local-launch-panel-head{padding:12px!important}.side #localHomeNotes{height:130px!important;min-height:100px!important}.side>#localCreateLaunch{font-size:12px!important}}
+@media(max-width:650px){.local-launch-panel{width:calc(100vw - 10px)!important}}
