@@ -48,8 +48,8 @@
       <select id="launchSummaryPeriod" aria-label="Período do resumo"><option value="day">Hoje</option><option value="yesterday">Ontem</option><option value="week">Esta semana</option><option value="month">Este mês</option><option value="prev-month">Mês anterior</option><option value="custom">Personalizado</option></select></div>
       <div id="launchSummaryCustom" class="launch-summary-custom hidden"><label>De <input id="launchSummaryStart" type="date"></label><label>Até <input id="launchSummaryEnd" type="date"></label></div>
       <div class="launch-summary-section"><div class="launch-summary-title">Serviços concluídos</div><div class="launch-summary-stats"><div class="summary-stat"><span>Entraram</span><b id="sumEntered">0</b></div><div class="summary-stat"><span>Saíram</span><b id="sumExited">0</b></div></div></div>
-      <div class="launch-summary-section"><div class="launch-summary-title">Financeiro</div><div class="summary-finance"><div><span>Valor bruto</span><b id="sumSales">R$ 0,00</b></div><div><span>Valor líquido</span><b id="sumProfit">R$ 0,00</b></div></div></div>
-      <small class="launch-summary-note">Valores calculados com a mesma regra do Balanço: somente serviços PRONTO ENTREGUE, pela data de saída, aplicando descontos e excluindo lançamentos retirados do balanço.</small>`;
+      <div class="launch-summary-section"><div class="launch-summary-title">Financeiro</div><div class="summary-finance"><div><span>Venda bruta</span><b id="sumSales">R$ 0,00</b></div><div><span>Descontos</span><b id="sumDiscount">R$ 0,00</b></div><div><span>Lucro líquido</span><b id="sumProfit">R$ 0,00</b></div></div></div>
+      <small class="launch-summary-note">Valores calculados com a mesma regra do Balanço: somente serviços PRONTO ENTREGUE, pela data de saída, subtraindo custo, frete, imposto e desconto separadamente; o imposto considera a venda após desconto, excluindo lançamentos retirados do balanço.</small>`;
     const select=document.getElementById('launchSummaryPeriod'),custom=document.getElementById('launchSummaryCustom'),start=document.getElementById('launchSummaryStart'),end=document.getElementById('launchSummaryEnd');
     function refresh(){
       const mode=select.value;custom.classList.toggle('hidden',mode!=='custom');
@@ -60,17 +60,19 @@
       const entered=enteredOrders.flatMap(o=>(Array.isArray(o.order_items)?o.order_items:[]).filter(isReady));
       const exitedByOrder=exitedOrders.map(o=>({o,items:(Array.isArray(o.order_items)?o.order_items:[]).filter(isReady)})).filter(x=>x.items.length);
       const exited=exitedByOrder.flatMap(x=>x.items);
-      const sales=exitedByOrder.reduce((sum,{o,items})=>{const factor=Math.max(0,1-Math.min(100,Math.max(0,Number(o.discount_percent)||0))/100);return sum+items.reduce((s,i)=>s+(Number(i.sale_value)||0)*factor,0)},0);
+      const sales=exitedByOrder.reduce((sum,{items})=>sum+items.reduce((s,i)=>s+(Number(i.sale_value)||0),0),0);
+      const discounts=exitedByOrder.reduce((sum,{o,items})=>{const rate=Math.min(100,Math.max(0,Number(o.discount_percent)||0))/100;return sum+items.reduce((s,i)=>s+(Number(i.sale_value)||0)*rate,0)},0);
       const costs=exited.reduce((s,i)=>s+(Number(i.cost_value)||0),0);
       const freight=exited.reduce((s,i)=>s+(Number(i.freight_value)||0),0);
       const taxes=exitedByOrder.reduce((sum,{o,items})=>{const factor=Math.max(0,1-Math.min(100,Math.max(0,Number(o.discount_percent)||0))/100);return sum+items.reduce((s,i)=>s+(Number(i.sale_value)||0)*(Number(i.tax_rate)||0)/100*factor,0)},0);
       exitedByOrder.forEach(({o,items})=>{const all=Array.isArray(o.order_items)?o.order_items:[],hasItemFreight=items.some(i=>Number(i?.freight_value)||0);if(!hasItemFreight&&all.length&&items.length===all.length){const legacyFreight=Number(o.total_freight)||0;if(legacyFreight)o.__launchSummaryLegacyFreight=legacyFreight;}});
       const legacyFreight=exitedByOrder.reduce((sum,{o})=>sum+(Number(o.__launchSummaryLegacyFreight)||0),0),totalFreight=freight+legacyFreight;
-      const profit=sales-costs-totalFreight-taxes;
+      const profit=sales-costs-totalFreight-taxes-discounts;
       exitedByOrder.forEach(({o})=>{try{delete o.__launchSummaryLegacyFreight}catch(e){}});
       document.getElementById('sumEntered').textContent=entered.length;
       document.getElementById('sumExited').textContent=exited.length;
       document.getElementById('sumSales').textContent=moneyLocal(sales);
+      document.getElementById('sumDiscount').textContent=moneyLocal(discounts);
       document.getElementById('sumProfit').textContent=moneyLocal(profit);
       const labels={day:'Hoje',yesterday:'Ontem',week:'Esta semana',month:'Este mês','prev-month':'Mês anterior',custom:'Período personalizado'};
       document.getElementById('launchSummaryLabel').textContent=mode==='custom'?('De '+a.split('-').reverse().join('/')+' até '+b.split('-').reverse().join('/')):labels[mode];
