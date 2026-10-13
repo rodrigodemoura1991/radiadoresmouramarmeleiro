@@ -58,6 +58,14 @@
     panel.id = 'localLaunchPanel';
     panel.className = 'local-launch-panel';
     panel.setAttribute('aria-hidden', 'true');
+    panel.style.setProperty('position','fixed','important');
+    panel.style.setProperty('inset','0','important');
+    panel.style.setProperty('margin','auto','important');
+    panel.style.setProperty('left','0','important');
+    panel.style.setProperty('right','0','important');
+    panel.style.setProperty('top','0','important');
+    panel.style.setProperty('bottom','0','important');
+    panel.style.setProperty('transform','none','important');
     panel.innerHTML = '<div class="local-launch-panel-head"><div><strong>Novo lançamento de serviço</strong><div class="local-launch-panel-sub">Preencha os dados do cliente e do veículo</div></div><button type="button" class="local-launch-panel-close" aria-label="Fechar">×</button></div><div class="local-launch-panel-layout"><div class="local-launch-panel-body"></div></div>';
     document.body.appendChild(panel);
     panel.querySelector('.local-launch-panel-body').appendChild(formCard);
