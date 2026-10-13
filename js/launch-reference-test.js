@@ -167,7 +167,8 @@ function install(){
   if(filterBar){
     filterBar.classList.add('launch-filter-bar');
     [pf,sf].forEach((el,i)=>{if(el){el.classList.add('launch-filter-select');el.setAttribute('aria-label',i===0?'Filtrar lançamentos por pagamento':'Filtrar lançamentos por situação');}});
-    let clear=document.getElementById('launchClearFilters')||[...filterBar.querySelectorAll('button')].find(b=>/limpar filtros/i.test(b.textContent||''));
+    const clearButtons=[...filterBar.querySelectorAll('button')].filter(b=>/limpar filtros/i.test(b.textContent||''));
+    let clear=document.getElementById('launchClearFilters')||clearButtons[0]||null;
     if(!clear){
       clear=document.createElement('button');
       clear.type='button';clear.id='launchClearFilters';clear.className='launch-clear-filters';
@@ -176,6 +177,7 @@ function install(){
     }
     clear.id='launchClearFilters';
     clear.classList.add('launch-clear-filters');
+    clearButtons.forEach(b=>{if(b!==clear)b.remove();});
     if(clear.dataset.clearBound!=='1'){
       clear.dataset.clearBound='1';
       clear.addEventListener('click',function(){
