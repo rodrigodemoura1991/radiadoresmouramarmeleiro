@@ -105,14 +105,34 @@
     const list=$('balanceServicesList');
     const count=$('balanceServicesCount');
     if(!list||!count)return;
-    const rows=balanceOrders().flatMap(o=>(o.order_items||[]).map(i=>({...i,order:o})));
-    rows.sort((a,b)=>String(b.order.exit_date||'').localeCompare(String(a.order.exit_date||'')));
-    count.textContent=`${rows.length} ${rows.length===1?'serviço':'serviços'}`;
-    list.innerHTML=rows.map(x=>{
-      const pay=x.order.payment_status||'EM ABERTO';
-      const cls=String(pay).toLowerCase().replace(/\s+/g,'-').replace('ã','a');
-      const profit=Number(x.sale_value||0)-Number(x.cost_value||0)-Number(x.freight_value||0)-(Number(x.sale_value||0)*Number(x.tax_rate||0)/100);
-      return `<article class="service-card payment-${cls}"><div class="service-date"><b>Entrega ${esc(x.order.exit_date||'—')}</b></div><div class="service-main"><b>${esc(x.order.client_name||'Sem cliente')}</b><small>OS ${esc(x.order.numero_lancamento||'—')} • Pedido ${esc(x.order.pedido||'—')}${x.order.vehicle_make_model?' • '+esc(x.order.vehicle_make_model):''}</small><div class="service-desc">${esc(x.description||'Sem descrição')}</div></div><div class="service-values"><span>Venda <b>${money(x.sale_value)}</b></span><span>Custo <b>${money(x.cost_value)}</b></span><span>Lucro <b>${money(profit)}</b></span></div><div class="service-badges"><span class="status-badge status-${slug(x.service_status)}">${esc(x.service_status||'—')}</span><span class="payment-badge">${esc(pay)}</span></div></article>`;
+    const matched=balanceOrders().filter(o=>Array.isArray(o.order_items)&&o.order_items.length);
+    matched.sort((a,b)=>String(b.exit_date||'').localeCompare(String(a.exit_date||'')));
+    const serviceCount=matched.reduce((n,o)=>n+o.order_items.length,0);
+    count.textContent=`${serviceCount} ${serviceCount===1?'serviço':'serviços'}`;
+    list.innerHTML=matched.map(o=>{
+      const pay=String(o.payment_status||'EM ABERTO');
+      const payClass=pay.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'pending';
+      const items=o.order_items||[];
+      const totalSale=items.reduce((n,i)=>n+Number(i.sale_value||0),0);
+      const totalCost=items.reduce((n,i)=>n+Number(i.cost_value||0),0);
+      const totalFreight=items.reduce((n,i)=>n+Number(i.freight_value||0),0);
+      const totalTax=items.reduce((n,i)=>n+Number(i.sale_value||0)*Number(i.tax_rate||0)/100,0);
+      const profit=totalSale-totalCost-totalFreight-totalTax;
+      const os=o.numero_lancamento||'—';
+      const meta=[o.vehicle_make_model,o.plate?'Placa '+o.plate:'',o.pedido?'Pedido '+o.pedido:''].filter(Boolean).join(' • ');
+      return `<article class="balance-order-card payment-${esc(payClass)}">
+        <div class="balance-order-head">
+          <div class="balance-order-date"><small>ENTREGA</small><b>${esc(o.exit_date||'—')}</b><span>OS ${esc(os)}</span></div>
+          <div class="balance-order-info"><b class="balance-order-client">${esc(o.client_name||'Sem cliente')}</b><small>${esc(meta||'Sem dados adicionais')}</small><div class="balance-order-payment">${esc(pay)}</div></div>
+          <div class="balance-order-totals"><span>Venda <b>${money(totalSale)}</b></span><span>Custo <b>${money(totalCost)}</b></span><span>Lucro <b>${money(profit)}</b></span></div>
+          <div class="balance-order-badges">${[...new Set(items.map(i=>String(i.service_status||'—')))].map(st=>`<span class="status-badge status-${esc(slug(st))}">${esc(st)}</span>`).join('')}</div>
+        </div>
+        <div class="balance-order-items">${items.map(i=>{
+          const st=String(i.service_status||'—');
+          const itemProfit=Number(i.sale_value||0)-Number(i.cost_value||0)-Number(i.freight_value||0)-(Number(i.sale_value||0)*Number(i.tax_rate||0)/100);
+          return `<div class="balance-order-item"><b>${esc(i.description||'Sem descrição')}</b><div><span>Venda <strong>${money(i.sale_value)}</strong></span><span>Custo <strong>${money(i.cost_value)}</strong></span><span>Lucro <strong>${money(itemProfit)}</strong></span></div><span class="status-badge status-${esc(slug(st))}">${esc(st)}</span></div>`;
+        }).join('')}</div>
+      </article>`;
     }).join('')||'<div class="empty">Nenhum serviço encontrado no período.</div>';
   }
 
