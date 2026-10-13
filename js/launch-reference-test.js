@@ -163,6 +163,29 @@ function renderLaunchesReference(){
 function install(){
   installClientPersistence();
   const search=document.getElementById('launchSearch'),pf=document.getElementById('launchPaymentFilter'),sf=document.getElementById('launchStatusFilter');
+  const filterBar=document.getElementById('launchFilters');
+  if(filterBar){
+    filterBar.classList.add('launch-filter-bar');
+    [pf,sf].forEach((el,i)=>{if(el){el.classList.add('launch-filter-select');el.setAttribute('aria-label',i===0?'Filtrar lançamentos por pagamento':'Filtrar lançamentos por situação');}});
+    let clear=document.getElementById('launchClearFilters');
+    if(!clear){
+      clear=document.createElement('button');
+      clear.type='button';clear.id='launchClearFilters';clear.className='launch-clear-filters';
+      clear.innerHTML='<span aria-hidden="true">×</span> Limpar filtros';
+      filterBar.appendChild(clear);
+    }
+    if(clear.dataset.clearBound!=='1'){
+      clear.dataset.clearBound='1';
+      clear.addEventListener('click',function(){
+        if(search)search.value='';
+        if(pf)pf.value='';
+        if(sf)sf.value='';
+        renderLaunchesReference();
+        if(search)search.focus({preventScroll:true});
+      });
+    }
+  }
+  if(search)search.classList.add('launch-search-input');
   [search,pf,sf].forEach(el=>{if(!el||el.dataset.refFilterBound==='1')return;el.dataset.refFilterBound='1';el.addEventListener('input',renderLaunchesReference);el.addEventListener('change',renderLaunchesReference);});
   window.renderLaunches=renderLaunchesReference;
   updateLaunchFilters();
