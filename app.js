@@ -233,7 +233,50 @@ function renderAll(){renderLaunches();renderClients();calc();renderBalance()}$('
 /* ===== Módulo de serviços e financeiro ===== */
 const paymentColors={'EM ABERTO':'pending','FALTA ACERTAR':'falta-acertar','Dinheiro':'cash','Cartão':'card','Pix':'pix','Cheque':'check','Carteira':'wallet','Boleto':'boleto','Notinha':'notinha'};
 function allServiceRows(){return orders.flatMap(o=>(o.order_items||[]).map(i=>({...i,order:o})))}
-function renderAllServices(){const q=($('allServicesSearch')?.value||'').toLowerCase().trim();const pf=$('servicePaymentFilter')?.value||'';const sf=$('serviceStatusFilter')?.value||'';let a=allServiceRows().filter(x=>{const text=[x.order.client_name,x.order.pedido,x.description,x.order.vehicle_make_model,x.order.plate].join(' ').toLowerCase();return (!q||text.includes(q))&&(!pf||(x.order.payment_status||'EM ABERTO')===pf)&&(!sf||x.service_status===sf)});a.sort((x,y)=>String(y.order.exit_date||'').localeCompare(String(x.order.exit_date||'')));$('allServicesList').innerHTML=a.map(x=>{const pay=x.order.payment_status||'EM ABERTO';const cls=paymentColors[pay]||'other';const profit=Number(x.sale_value||0)-Number(x.cost_value||0)-Number(x.freight_value||0)-(Number(x.sale_value||0)*Number(x.tax_rate||0)/100);return `<article class="service-card payment-${cls}"><div class="service-date"><b>${esc(x.order.exit_date||'—')}</b><small>Entrada ${esc(x.order.entry_date||'—')}</small></div><div class="service-main"><b>${esc(x.order.client_name||'Sem cliente')}</b><small>Pedido ${esc(x.order.pedido||'—')} ${x.order.vehicle_make_model?'• '+esc(x.order.vehicle_make_model):''}</small><div class="service-desc">${esc(x.description||'Sem descrição')}</div></div><div class="service-values"><span>Venda <b>${money(x.sale_value)}</b></span><span>Custo <b>${money(x.cost_value)}</b></span><span>Lucro <b>${money(profit)}</b></span></div><div class="service-badges"><span class="status-badge status-${slug(x.service_status)}">${esc(x.service_status||'—')}</span><span class="payment-badge">${esc(pay)}</span></div></article>`}).join('')||'<div class="empty">Nenhum serviço encontrado.</div>'}
+function renderAllServices(){
+  const q=($('allServicesSearch')?.value||'').toLowerCase().trim();
+  const pf=$('servicePaymentFilter')?.value||'';
+  const sf=$('serviceStatusFilter')?.value||'';
+  const normStatus=v=>{const s=String(v||'').trim().toLowerCase().replace(/\\s+/g,' ');if(s==='pronto/entregue'||s==='pronto entregue')return 'pronto entregue';return s};
+  const matches=orders.filter(o=>{
+    const items=o.order_items||[];
+    const text=[o.client_name,o.vehicle_make_model,o.plate,o.pedido,o.numero_lancamento,...items.map(i=>i.description)].join(' ').toLowerCase();
+    return (!q||text.includes(q))&&(!pf||(o.payment_status||'EM ABERTO')===pf)&&(!sf||items.some(i=>normStatus(i.service_status)===normStatus(sf)));
+  }).sort((x,y)=>{
+    const dx=String(x.exit_date||'').trim(),dy=String(y.exit_date||'').trim();
+    if(!dx&&!dy)return String(y.entry_date||'').localeCompare(String(x.entry_date||''));
+    if(!dx)return -1;if(!dy)return 1;
+    if(dx!==dy)return dy.localeCompare(dx);
+    return String(y.entry_date||'').localeCompare(String(x.entry_date||''));
+  });
+  const shortDate=v=>{if(!v)return '—';const s=String(v).slice(0,10);const m=s.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);return m?m[3]+'/'+m[2]+'/'+m[1]:s};
+  const dateKey=o=>{const v=String(o?.exit_date||'').trim();return /^\\d{4}-\\d{2}-\\d{2}/.test(v)?v.slice(0,10):''};
+  const dayLabel=d=>{if(!d)return 'Sem data';const p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d};
+  let lastDay=null;
+  const html=matches.map(o=>{
+    const day=dateKey(o),separator=day!==lastDay?'<div class="service-day-separator"><span>'+esc(dayLabel(day))+'</span></div>':'';lastDay=day;
+    const items=o.order_items||[],pay=String(o.payment_status||'EM ABERTO').trim(),paymentClass=pay.toUpperCase()==='FALTA ACERTAR'?'payment-falta-acertar':(pay.toUpperCase()==='EM ABERTO'?'payment-em-aberto':'payment-paid');
+    const gross=Number(o.total_sale??items.reduce((n,i)=>n+Number(i.sale_value||0),0));
+    const net=Number(o.net_profit??items.reduce((n,i)=>n+Number(i.sale_value||0)-Number(i.cost_value||0)-Number(i.freight_value||0)-Number(i.sale_value||0)*Number(i.tax_rate||0)/100,0));
+    const vehicle=[o.vehicle_make_model,o.plate].filter(Boolean).join(' • ');
+    const orderNo=String(o.numero_lancamento||'').trim(),pedido=String(o.pedido||'').trim();
+    const status=o.exit_date?'Saída '+shortDate(o.exit_date):'Serviço ainda não entregue';
+    const note=String(o.notes||'').trim();
+    return separator+`<article class="service-order-card ${paymentClass} ${o.exit_date?'':'no-exit-service'}" data-id="${esc(o.id)}">
+      <div class="service-order-top">
+        <div class="service-order-date">${pedido?'<div class="service-order-pedido"><small>Pedido</small> <b>'+esc(pedido)+'</b></div>':''}<div class="service-order-dates"><span>Ent. <b>${esc(shortDate(o.entry_date))}</b></span><span>${esc(status)}</span></div></div>
+        <div class="service-order-main"><div class="service-order-identifiers">${orderNo?'<span class="service-order-os">OS '+esc(orderNo)+'</span>':''}<span class="service-order-payment">${esc(pay)}</span></div><b class="service-order-client">${esc(o.client_name||'Sem cliente')}</b>${vehicle?'<small>'+esc(vehicle)+'</small>':''}</div>
+        <div class="service-order-totals"><span>Venda <b>${money(gross)}</b></span><span>Líquido <b>${money(net)}</b></span></div>
+        <div class="service-order-actions"><button type="button" class="service-order-edit" data-edit="${esc(o.id)}">Editar</button></div>
+      </div>
+      <div class="service-order-items">${items.map(i=>`<div class="service-order-item"><span class="service-order-description">${esc(i.description||'Sem descrição')}</span><span class="service-order-item-sale">${money(i.sale_value)}</span><span class="status-badge status-${slug(i.service_status||'Pronto entregue')}">${esc(i.service_status||'Pronto entregue')}</span></div>`).join('')}</div>
+      ${note?'<div class="service-order-note"><b>Observação:</b> '+esc(note)+'</div>':''}
+    </article>`;
+  }).join('');
+  $('allServicesList').innerHTML=html||'<div class="empty">Nenhum serviço encontrado.</div>';
+  $('allServicesList').querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const id=b.dataset.edit;if(typeof openFix==='function')openFix(id);else if(typeof editOrder==='function')editOrder(id)}));
+  $('allServicesList').querySelectorAll('.service-order-card').forEach(card=>card.addEventListener('click',e=>{if(e.target.closest('[data-edit]'))return;const id=card.dataset.id;if(!id)return;if(typeof openFix==='function')openFix(id);else if(typeof editOrder==='function')editOrder(id)}));
+}
 function balancePeriodOrders(){return orders.filter(inPeriod)}
 function balancePeriodServices(includeHidden=false){
   const rows=[];
