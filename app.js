@@ -238,44 +238,51 @@ function renderAllServices(){
   const pf=$('servicePaymentFilter')?.value||'';
   const sf=$('serviceStatusFilter')?.value||'';
   const normStatus=v=>{const s=String(v||'').trim().toLowerCase().replace(/\s+/g,' ');if(s==='pronto/entregue'||s==='pronto entregue')return 'pronto entregue';return s};
+  const shortDate=v=>{if(!v)return '—';const s=String(v).slice(0,10);const m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?m[3]+'/'+m[2]+'/'+m[1]:s};
   const matches=orders.filter(o=>{
     const items=o.order_items||[];
     const text=[o.client_name,o.vehicle_make_model,o.plate,o.pedido,o.numero_lancamento,...items.map(i=>i.description)].join(' ').toLowerCase();
     return (!q||text.includes(q))&&(!pf||(o.payment_status||'EM ABERTO')===pf)&&(!sf||items.some(i=>normStatus(i.service_status)===normStatus(sf)));
-  }).sort((x,y)=>{
-    const dx=String(x.exit_date||'').trim(),dy=String(y.exit_date||'').trim();
-    if(!dx&&!dy)return String(y.entry_date||'').localeCompare(String(x.entry_date||''));
-    if(!dx)return -1;if(!dy)return 1;
-    if(dx!==dy)return dy.localeCompare(dx);
-    return String(y.entry_date||'').localeCompare(String(x.entry_date||''));
   });
-  const shortDate=v=>{if(!v)return '—';const s=String(v).slice(0,10);const m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?m[3]+'/'+m[2]+'/'+m[1]:s};
-  const dateKey=o=>{const v=String(o?.exit_date||'').trim();return /^\d{4}-\d{2}-\d{2}/.test(v)?v.slice(0,10):''};
+  const groups=new Map();
+  matches.forEach(o=>{
+    const os=String(o.numero_lancamento||'').trim();
+    // Registros sem OS ficam separados para não misturar lançamentos distintos.
+    const key=os?'os:'+os:'record:'+String(o.id);
+    if(!groups.has(key))groups.set(key,{os,orders:[]});
+    groups.get(key).orders.push(o);
+  });
+  const grouped=[...groups.values()].map(g=>{
+    g.orders.sort((x,y)=>String(y.exit_date||'').localeCompare(String(x.exit_date||''))||String(y.entry_date||'').localeCompare(String(x.entry_date||'')));
+    const dates=g.orders.map(o=>String(o.exit_date||'').trim()).filter(Boolean).sort().reverse();
+    g.sortDate=dates[0]||'';
+    g.sortEntry=g.orders.map(o=>String(o.entry_date||'')).sort().reverse()[0]||'';
+    return g;
+  }).sort((x,y)=>{if(x.sortDate!==y.sortDate)return y.sortDate.localeCompare(x.sortDate);return y.sortEntry.localeCompare(x.sortEntry)});
+  const dayKey=g=>{const d=String(g.sortDate||'').trim();return /^\d{4}-\d{2}-\d{2}/.test(d)?d.slice(0,10):''};
   const dayLabel=d=>{if(!d)return 'Sem data';const p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d};
   let lastDay=null;
-  const html=matches.map(o=>{
-    const day=dateKey(o),separator=day!==lastDay?'<div class="service-day-separator"><span>'+esc(dayLabel(day))+'</span></div>':'';lastDay=day;
-    const items=o.order_items||[],pay=String(o.payment_status||'EM ABERTO').trim(),paymentClass=pay.toUpperCase()==='FALTA ACERTAR'?'payment-falta-acertar':(pay.toUpperCase()==='EM ABERTO'?'payment-em-aberto':'payment-paid');
-    const gross=Number(o.total_sale??items.reduce((n,i)=>n+Number(i.sale_value||0),0));
-    const net=Number(o.net_profit??items.reduce((n,i)=>n+Number(i.sale_value||0)-Number(i.cost_value||0)-Number(i.freight_value||0)-Number(i.sale_value||0)*Number(i.tax_rate||0)/100,0));
-    const vehicle=[o.vehicle_make_model,o.plate].filter(Boolean).join(' • ');
-    const orderNo=String(o.numero_lancamento||'').trim(),pedido=String(o.pedido||'').trim();
-    const status=o.exit_date?'Saída '+shortDate(o.exit_date):'Serviço ainda não entregue';
-    const note=String(o.notes||'').trim();
-    return separator+`<article class="service-order-card ${paymentClass} ${o.exit_date?'':'no-exit-service'}" data-id="${esc(o.id)}">
-      <div class="service-order-top">
-        <div class="service-order-date">${pedido?'<div class="service-order-pedido"><small>Pedido</small> <b>'+esc(pedido)+'</b></div>':''}<div class="service-order-dates"><span>Ent. <b>${esc(shortDate(o.entry_date))}</b></span><span>${esc(status)}</span></div></div>
-        <div class="service-order-main"><div class="service-order-identifiers">${orderNo?'<span class="service-order-os">OS '+esc(orderNo)+'</span>':''}<span class="service-order-payment">${esc(pay)}</span></div><b class="service-order-client">${esc(o.client_name||'Sem cliente')}</b>${vehicle?'<small>'+esc(vehicle)+'</small>':''}</div>
-        <div class="service-order-totals"><span>Venda <b>${money(gross)}</b></span><span>Líquido <b>${money(net)}</b></span></div>
-        <div class="service-order-actions"><button type="button" class="service-order-edit" data-edit="${esc(o.id)}">Editar</button></div>
-      </div>
-      <div class="service-order-items">${items.map(i=>`<div class="service-order-item"><span class="service-order-description">${esc(i.description||'Sem descrição')}</span><span class="service-order-item-sale">${money(i.sale_value)}</span><span class="status-badge status-${slug(i.service_status||'Pronto entregue')}">${esc(i.service_status||'Pronto entregue')}</span></div>`).join('')}</div>
-      ${note?'<div class="service-order-note"><b>Observação:</b> '+esc(note)+'</div>':''}
-    </article>`;
+  const html=grouped.map(g=>{
+    const day=dayKey(g),separator=day!==lastDay?'<div class="service-day-separator"><span>'+esc(dayLabel(day))+'</span></div>':'';lastDay=day;
+    const allItems=g.orders.flatMap(o=>(o.order_items||[]).map(i=>({item:i,order:o})));
+    const gross=g.orders.reduce((n,o)=>n+Number(o.total_sale??(o.order_items||[]).reduce((s,i)=>s+Number(i.sale_value||0),0)),0);
+    const net=g.orders.reduce((n,o)=>n+Number(o.net_profit??(o.order_items||[]).reduce((s,i)=>s+Number(i.sale_value||0)-Number(i.cost_value||0)-Number(i.freight_value||0)-Number(i.sale_value||0)*Number(i.tax_rate||0)/100,0)),0);
+    const pays=[...new Set(g.orders.map(o=>String(o.payment_status||'EM ABERTO').trim()))];
+    const pay=pays.length===1?pays[0]:'Pagamentos variados';
+    const paymentClass=pays.some(p=>p.toUpperCase()==='FALTA ACERTAR')?'payment-falta-acertar':(pays.some(p=>p.toUpperCase()==='EM ABERTO')?'payment-em-aberto':'payment-paid');
+    const first=g.orders[0],vehicle=[...new Set(g.orders.map(o=>[o.vehicle_make_model,o.plate].filter(Boolean).join(' • ')).filter(Boolean))].join(' / ');
+    const clients=[...new Set(g.orders.map(o=>String(o.client_name||'Sem cliente').trim()))];
+    const entries=[...new Set(g.orders.map(o=>shortDate(o.entry_date)).filter(d=>d!=='—'))];
+    const exits=[...new Set(g.orders.map(o=>o.exit_date?shortDate(o.exit_date):'Ainda não entregue'))];
+    const ordersMarkup=g.orders.map(o=>{
+      const items=o.order_items||[],client=String(o.client_name||'Sem cliente'),veh=[o.vehicle_make_model,o.plate].filter(Boolean).join(' • ');
+      const note=String(o.notes||'').trim();
+      return '<section class="service-os-record"><div class="service-os-record-head"><div class="service-os-record-client"><b>'+esc(client)+'</b>'+(veh?'<small>'+esc(veh)+'</small>':'')+'<small>Entrada '+esc(shortDate(o.entry_date))+' · '+esc(o.exit_date?'Saída '+shortDate(o.exit_date):'Serviço ainda não entregue')+'</small></div><span class="service-order-payment">'+esc(o.payment_status||'EM ABERTO')+'</span><button type="button" class="service-order-edit" data-edit="'+esc(o.id)+'">Editar</button></div><div class="service-order-items">'+items.map(i=>'<div class="service-order-item"><span class="service-order-description">'+esc(i.description||'Sem descrição')+'</span><span class="service-order-item-sale">'+money(i.sale_value)+'</span><span class="status-badge status-'+slug(i.service_status||'Pronto entregue')+'">'+esc(i.service_status||'Pronto entregue')+'</span></div>').join('')+'</div>'+(note?'<div class="service-order-note"><b>Observação:</b> '+esc(note)+'</div>':'')+'</section>';
+    }).join('');
+    return separator+'<article class="service-order-card '+paymentClass+'" data-id="'+esc(first.id)+'"><div class="service-order-top"><div class="service-order-date"><div class="service-order-dates"><span>Ordem de serviço</span><b>'+(g.os?'OS '+esc(g.os):'Sem número de OS')+'</b><span>'+g.orders.length+' lançamento(s)</span></div></div><div class="service-order-main"><b class="service-order-client">'+esc(clients.join(' / '))+'</b>'+(vehicle?'<small>'+esc(vehicle)+'</small>':'')+'<small>Entrada: '+esc(entries.join(', ')||'—')+' · Saída: '+esc(exits.join(', ')||'—')+'</small></div><div class="service-order-totals"><span>Venda total <b>'+money(gross)+'</b></span><span>Lucro líquido <b>'+money(net)+'</b></span></div></div><div class="service-os-records">'+ordersMarkup+'</div></article>';
   }).join('');
   $('allServicesList').innerHTML=html||'<div class="empty">Nenhum serviço encontrado.</div>';
   $('allServicesList').querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const id=b.dataset.edit;if(typeof openFix==='function')openFix(id);else if(typeof editOrder==='function')editOrder(id)}));
-  $('allServicesList').querySelectorAll('.service-order-card').forEach(card=>card.addEventListener('click',e=>{if(e.target.closest('[data-edit]'))return;const id=card.dataset.id;if(!id)return;if(typeof openFix==='function')openFix(id);else if(typeof editOrder==='function')editOrder(id)}));
 }
 function balancePeriodOrders(){return orders.filter(inPeriod)}
 function balancePeriodServices(includeHidden=false){
