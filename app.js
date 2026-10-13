@@ -237,7 +237,7 @@ function renderAllServices(){
   const q=($('allServicesSearch')?.value||'').toLowerCase().trim();
   const pf=$('servicePaymentFilter')?.value||'';
   const sf=$('serviceStatusFilter')?.value||'';
-  const normStatus=v=>{const s=String(v||'').trim().toLowerCase().replace(/\\s+/g,' ');if(s==='pronto/entregue'||s==='pronto entregue')return 'pronto entregue';return s};
+  const normStatus=v=>{const s=String(v||'').trim().toLowerCase().replace(/\s+/g,' ');if(s==='pronto/entregue'||s==='pronto entregue')return 'pronto entregue';return s};
   const matches=orders.filter(o=>{
     const items=o.order_items||[];
     const text=[o.client_name,o.vehicle_make_model,o.plate,o.pedido,o.numero_lancamento,...items.map(i=>i.description)].join(' ').toLowerCase();
@@ -249,8 +249,8 @@ function renderAllServices(){
     if(dx!==dy)return dy.localeCompare(dx);
     return String(y.entry_date||'').localeCompare(String(x.entry_date||''));
   });
-  const shortDate=v=>{if(!v)return '—';const s=String(v).slice(0,10);const m=s.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);return m?m[3]+'/'+m[2]+'/'+m[1]:s};
-  const dateKey=o=>{const v=String(o?.exit_date||'').trim();return /^\\d{4}-\\d{2}-\\d{2}/.test(v)?v.slice(0,10):''};
+  const shortDate=v=>{if(!v)return '—';const s=String(v).slice(0,10);const m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?m[3]+'/'+m[2]+'/'+m[1]:s};
+  const dateKey=o=>{const v=String(o?.exit_date||'').trim();return /^\d{4}-\d{2}-\d{2}/.test(v)?v.slice(0,10):''};
   const dayLabel=d=>{if(!d)return 'Sem data';const p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d};
   let lastDay=null;
   const html=matches.map(o=>{
