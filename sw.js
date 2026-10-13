@@ -1,4 +1,4 @@
-const CACHE_NAME = 'radiadores-gestao-v53';
+const CACHE_NAME = 'radiadores-gestao-v54';
 const APP_SHELL = ['./','./index.html','./app.js?v=cloud-notes1','./launch-summary.js?v=summary4','./sale-calculator.js?v=calc4','./auth-fix.js?v=client-fields1','./stability.js?v=stable3','./freight.js?v=freight9','./freight-ui.js?v=freight9','./tenant-fix.js?v=balance-cards1','./js/launch-reference-test.js?v=filters-polish3','./css/launch-reference-test.css?v=filters-polish1','./js/servicos-pdf.js?v=pdf3','./js/admin-mode.js?v=adminfix14','./js/admin-only-fix.js?v=2','./assets/logo-radiadores-moura.svg','./local-home-launches.js?v=center-fix2','./local-home-launches.css?v=center-fix2','./manifest.webmanifest','./8857A320-4E57-4A00-933D-C76434BC6953.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE_NAME).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
