@@ -177,7 +177,26 @@ function install(){
     }
     clear.id='launchClearFilters';
     clear.classList.add('launch-clear-filters');
-    clearButtons.forEach(b=>{if(b!==clear)b.remove();});
+    clear.dataset.primaryClear='1';
+    function removeDuplicateClearButtons(){
+      const bar=document.getElementById('launchFilters');
+      if(!bar)return;
+      bar.querySelectorAll('button').forEach(b=>{
+        if(b!==clear && (/limpar filtros/i.test(b.textContent||'') || b.id==='clearLaunchFilters')) b.remove();
+      });
+      const outside=document.getElementById('clearLaunchFilters');
+      if(outside && outside!==clear) outside.remove();
+    }
+    removeDuplicateClearButtons();
+    if(!filterBar.dataset.clearDedupObserver){
+      filterBar.dataset.clearDedupObserver='1';
+      const observer=new MutationObserver(removeDuplicateClearButtons);
+      observer.observe(filterBar,{childList:true,subtree:true});
+      setTimeout(removeDuplicateClearButtons,0);
+      setTimeout(removeDuplicateClearButtons,150);
+      setTimeout(removeDuplicateClearButtons,500);
+      setTimeout(removeDuplicateClearButtons,1200);
+    }
     if(clear.dataset.clearBound!=='1'){
       clear.dataset.clearBound='1';
       clear.addEventListener('click',function(){
