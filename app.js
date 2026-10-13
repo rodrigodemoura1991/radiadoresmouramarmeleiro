@@ -3,12 +3,57 @@ const sb=supabase.createClient(SUPABASE_CONFIG.url,SUPABASE_CONFIG.key);
 const COMPANIES=[{id:'48f0eb3d-22ff-4506-9d9c-b6dd4455946b',name:'Radiadores Moura'},{id:'f3cd9d20-a341-41fe-87fe-c0726a19b65b',name:'Radiadores Moura Marmeleiro'}];
 let company=null,orders=[],clients=[],catalog=[],editing=null,period='all';
 const $=id=>document.getElementById(id),today=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)};
+
+// Bloco de notas sincronizado por usuário e empresa no Supabase.
+window.loadHomeNotesFromCloud = async function () {
+  const box = document.getElementById('localHomeNotes');
+  const status = document.getElementById('localHomeNotesStatus');
+  if (!box || !company) return;
+  const companyId = company.id;
+  const userResult = await sb.auth.getUser();
+  const user = userResult.data && userResult.data.user;
+  if (userResult.error || !user) { if (status) status.textContent = 'Entre para sincronizar'; return; }
+  if (status) status.textContent = 'Carregando da nuvem...';
+  const result = await sb.from('home_notes').select('content').eq('user_id', user.id).eq('company_id', companyId).maybeSingle();
+  if (company?.id !== companyId) return;
+  if (result.error) { if (status) status.textContent = 'Erro ao carregar da nuvem'; console.error('Notas na nuvem:', result.error); return; }
+  if (result.data) {
+    box.value = result.data.content || '';
+    try { localStorage.setItem('radiadoresMouraHomeNotes', box.value); } catch (_) {}
+  } else {
+    let local = '';
+    try { local = localStorage.getItem('radiadoresMouraHomeNotes') || ''; } catch (_) {}
+    box.value = local;
+    if (local) { await window.saveHomeNotesToCloud(local); return; }
+  }
+  if (status) status.textContent = 'Sincronizado na nuvem';
+};
+window.saveHomeNotesToCloud = async function (content) {
+  const status = document.getElementById('localHomeNotesStatus');
+  if (!company) { if (status) status.textContent = 'Escolha uma empresa para sincronizar'; return; }
+  const companyId = company.id;
+  const userResult = await sb.auth.getUser();
+  const user = userResult.data && userResult.data.user;
+  if (userResult.error || !user) { if (status) status.textContent = 'Entre para sincronizar'; return; }
+  const result = await sb.from('home_notes').upsert(
+    { user_id: user.id, company_id: companyId, content: String(content || ''), updated_at: new Date().toISOString() },
+    { onConflict: 'user_id,company_id' }
+  );
+  if (company?.id !== companyId) return;
+  if (result.error) {
+    if (status) status.textContent = 'Falha ao salvar na nuvem';
+    console.error('Notas na nuvem:', result.error);
+    return;
+  }
+  if (status) status.textContent = 'Salvo na nuvem';
+};
+
 function sanitizeDates(payload){if(!payload||typeof payload!=='object')return payload;const copy={...payload};for(const k of ['entry_date','exit_date']){if(Object.prototype.hasOwnProperty.call(copy,k)){const v=copy[k];copy[k]=(v===null||v===undefined||String(v).trim()==='')?null:String(v).trim()}}return copy;}
 const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));const slug=s=>String(s||'').replace(/\s+/g,'').replace('ç','c').replace('ã','a');
 function toast(t){$('toast').textContent=t;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),2500)}function cloud(t,ok=true){$('cloud').textContent=(ok?'● ':'⚠ ')+t;$('cloud').style.color=ok?'var(--green)':'#c43d3d'}function showAuth(){$('auth').classList.remove('hidden');$('app').classList.add('hidden')}
 async function showApp(){$('auth').classList.add('hidden');$('app').classList.remove('hidden');renderCompanies();const saved=sessionStorage.getItem('companyId');const found=COMPANIES.find(x=>x.id===saved);if(found)chooseCompany(found);else $('companyModal').classList.remove('hidden')}
 function renderCompanies(){$('companies').innerHTML=COMPANIES.map(c=>`<button class="companychoice" data-id="${c.id}"><b>${esc(c.name)}</b><small style="display:block;color:var(--muted);margin-top:4px">Abrir este banco</small></button>`).join('');$('companies').querySelectorAll('button').forEach(b=>b.onclick=()=>chooseCompany(COMPANIES.find(c=>c.id===b.dataset.id)))}
-async function chooseCompany(c){if(!c)return;company=c;window.company=company;sessionStorage.setItem('companyId',c.id);$('companyPill').textContent='Banco: '+c.name;$('companyModal').classList.add('hidden');await loadData()}$('switch').onclick=()=>$('companyModal').classList.remove('hidden');
+async function chooseCompany(c){if(!c)return;company=c;window.company=company;sessionStorage.setItem('companyId',c.id);$('companyPill').textContent='Banco: '+c.name;$('companyModal').classList.add('hidden');await loadData();if(typeof window.loadHomeNotesFromCloud==='function')await window.loadHomeNotesFromCloud()}$('switch').onclick=()=>$('companyModal').classList.remove('hidden');
 $('login').onsubmit=async e=>{e.preventDefault();$('authmsg').textContent='Entrando...';const r=await sb.auth.signInWithPassword({email:$('email').value,password:$('pass').value});$('authmsg').textContent=r.error?'Erro: '+r.error.message:''};$('signup').onclick=async()=>{const r=await sb.auth.signUp({email:$('email').value,password:$('pass').value});$('authmsg').textContent=r.error?'Erro: '+r.error.message:'Conta criada. Confirme o e-mail.'};$('logout').onclick=()=>sb.auth.signOut();sb.auth.onAuthStateChange((e,s)=>{if(s)showApp();else showAuth()});
 async function init(){const r=await sb.auth.getSession();$('entry').value=today();$('exit').value=today();if($('notDelivered'))$('notDelivered').checked=false;$('balanceDate').value=today();addRow();if(r.data.session)showApp();else showAuth()}
 async function loadData(){if(!company)return;cloud('Sincronizando...');const [o,c,p]=await Promise.all([sb.from('orders').select('*,order_items(*)').eq('company_id',company.id).order('entry_date',{ascending:false}),sb.from('clients').select('*').eq('company_id',company.id).order('name'),sb.from('catalog_items').select('*').eq('company_id',company.id).order('description')]);if(o.error||c.error||p.error){cloud('Erro na nuvem',false);toast('Não foi possível carregar os dados desta empresa: '+(o.error?.message||c.error?.message||p.error?.message||''));return}orders=o.data||[];window.orders=orders;clients=c.data||[];window.clients=clients;catalog=p.data||[];cloud('Salvo na nuvem');renderAll()}
