@@ -3,7 +3,7 @@
 (function(){
   'use strict';
   const $=id=>document.getElementById(id);
-  let popup=null, originalParent=null, originalNext=null, opened=false;
+  let popup=null, originalParent=null, originalNext=null, opened=false, currentOrderId=null;
   function css(){
     if($('service-edit-popup-css'))return;
     const s=document.createElement('style');s.id='service-edit-popup-css';s.textContent=`
@@ -13,6 +13,8 @@
       #serviceEditBox{position:relative!important;width:min(1100px,97vw)!important;max-height:95vh!important;overflow:auto!important;background:#fff!important;border-radius:16px!important;box-shadow:0 24px 80px rgba(0,0,0,.4)!important;padding:18px!important}
       #serviceEditHeader{position:sticky!important;top:-18px!important;z-index:20!important;display:flex!important;align-items:center!important;justify-content:space-between!important;background:#fff!important;padding:3px 0 12px!important;margin-bottom:14px!important;border-bottom:1px solid #e5e7eb!important}
       #serviceEditTitle{margin:0!important;font-size:22px!important;color:#172033!important}
+      #serviceEditHeaderActions{display:flex!important;align-items:center!important;gap:8px!important;flex-wrap:wrap!important}
+      #serviceEditPrintReceipt{border:0!important;border-radius:9px!important;padding:9px 14px!important;background:#173b67!important;color:#fff!important;font-weight:800!important;cursor:pointer!important}
       #serviceEditClose{border:0!important;border-radius:9px!important;padding:9px 14px!important;background:#eee!important;color:#172033!important;font-weight:800!important;cursor:pointer!important}
       #serviceEditBox>#order{display:block!important;width:100%!important;max-width:none!important;margin:0!important}
       #allServicesList .service-actions-v2{display:flex!important;justify-content:flex-end!important;gap:8px!important;margin-top:10px!important}
@@ -22,16 +24,23 @@
   }
   function ensurePopup(){
     if(popup)return;css();popup=document.createElement('div');popup.id='serviceEditOverlay';popup.className='hidden';
-    popup.innerHTML='<div id="serviceEditBox" role="dialog" aria-modal="true"><div id="serviceEditHeader"><h2 id="serviceEditTitle">Editar lançamento</h2><button type="button" id="serviceEditClose">Fechar ×</button></div></div>';
-    document.body.appendChild(popup);$('serviceEditClose').onclick=close;popup.addEventListener('click',e=>{if(e.target===popup)close()});
+    popup.innerHTML='<div id="serviceEditBox" role="dialog" aria-modal="true"><div id="serviceEditHeader"><h2 id="serviceEditTitle">Editar lançamento</h2><div id="serviceEditHeaderActions"><button type="button" id="serviceEditPrintReceipt">🖨 Imprimir notinha</button><button type="button" id="serviceEditClose">Fechar ×</button></div></div></div>';
+    document.body.appendChild(popup);
+    $('serviceEditClose').onclick=close;
+    $('serviceEditPrintReceipt').onclick=function(e){
+      e.preventDefault();e.stopPropagation();
+      if(currentOrderId&&typeof window.printServiceReceipt==='function')window.printServiceReceipt(currentOrderId);
+      else alert('Salve ou abra um lançamento antes de imprimir a notinha.');
+    };
+    popup.addEventListener('click',e=>{if(e.target===popup)close()});
   }
   function close(){
     if(!opened)return;const form=$('order');
     if(form&&originalParent){if(originalNext&&originalNext.parentNode===originalParent)originalParent.insertBefore(form,originalNext);else originalParent.appendChild(form)}
-    popup?.classList.add('hidden');document.documentElement.classList.remove('service-edit-popup-html');document.body.classList.remove('service-edit-popup-open');opened=false;originalParent=null;originalNext=null;
+    popup?.classList.add('hidden');document.documentElement.classList.remove('service-edit-popup-html');document.body.classList.remove('service-edit-popup-open');opened=false;originalParent=null;originalNext=null;currentOrderId=null;
   }
   function open(id){
-    if(!id)return;const edit=window.editOrder,form=$('order');if(typeof edit!=='function'||!form)return;ensurePopup();
+    if(!id)return;const edit=window.editOrder,form=$('order');if(typeof edit!=='function'||!form)return;ensurePopup();currentOrderId=String(id);
     originalParent=form.parentNode;originalNext=form.nextSibling;$('serviceEditBox').appendChild(form);popup.classList.remove('hidden');document.documentElement.classList.add('service-edit-popup-html');document.body.classList.add('service-edit-popup-open');opened=true;
     const nativeScrollTo=window.scrollTo;window.scrollTo=function(){};try{edit(String(id))}finally{window.scrollTo=nativeScrollTo}
     const o=(window.orders||[]).find(x=>String(x.id)===String(id));$('serviceEditTitle').textContent=o?.numero_lancamento!=null?'Editar lançamento #'+o.numero_lancamento:'Editar lançamento';
