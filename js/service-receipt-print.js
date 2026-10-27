@@ -103,29 +103,13 @@
   }
 
   function decorateLaunches() {
-    const list = $('launchList');
-    if (!list) return;
-    list.querySelectorAll('.launch[data-id]').forEach(card => {
-      let actions = card.querySelector('.receipt-actions');
-      if (!actions) {
-        actions = document.createElement('div');
-        actions.className = 'receipt-actions';
-        actions.style.cssText = 'display:flex;justify-content:flex-end;margin-top:7px';
-        card.appendChild(actions);
-      }
-      addButton(actions, card.dataset.id);
-    });
+    // A impressão fica dentro do popup de edição, nunca nos cartões.
+    document.querySelectorAll('#launchList .receipt-actions, #launchList [data-receipt-print]').forEach(node => node.remove());
   }
 
   function decorateServices() {
-    const list = $('allServicesList');
-    if (!list) return;
-    list.querySelectorAll('[data-order-id]').forEach(record => {
-      const id = record.dataset.orderId;
-      if (!id) return;
-      const head = record.querySelector('.os-final-record-head,.service-order-top,.service-os-record-head') || record;
-      addButton(head, id, '🖨 Notinha', 'btn');
-    });
+    // Remove botões antigos dos cartões da lista Todos os Serviços.
+    document.querySelectorAll('#allServicesList [data-receipt-print]').forEach(node => node.remove());
   }
 
   function addSaveAndPrintButton() {
