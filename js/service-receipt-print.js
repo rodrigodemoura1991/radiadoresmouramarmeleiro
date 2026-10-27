@@ -29,10 +29,10 @@
     const companyName = window.company?.name || 'RADIADORES MOURA MARMELEIRO';
     return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
       <title>Notinha de serviço</title><style>
-      @page{size:A5 portrait;margin:8mm}
+      @page{size:A4 portrait;margin:8mm}
       *{box-sizing:border-box}
       body{margin:0;font:12px Arial,Helvetica,sans-serif;color:#111}
-      .receipt{width:100mm;max-width:100%;min-height:120mm;padding:5mm;border:1px dashed #777}
+      .receipt{width:100mm;max-width:100%;min-height:130mm;padding:5mm;border:1px dashed #777;margin:0;}
       h1{font-size:16px;text-align:center;margin:0 0 3px;text-transform:uppercase}
       .subtitle{text-align:center;font-size:11px;margin-bottom:8px}
       .rule{border-top:1px dashed #555;margin:7px 0}
@@ -44,7 +44,7 @@
       .total{display:flex;justify-content:space-between;gap:8px;font-weight:bold;font-size:13px;margin-top:8px}
       .thanks{text-align:center;font-size:11px;margin-top:10px}
       .print-hint{font-size:10px;color:#555;text-align:center;margin-top:5px}
-      @media print{.receipt{break-inside:avoid}}
+      @media print{html,body{width:100%;height:auto}body{margin:0}.receipt{break-inside:avoid;page-break-inside:avoid;margin:0}}
       </style></head><body><main class="receipt">
       <h1>${escapeHtml(companyName)}</h1><div class="subtitle">COMPROVANTE DE SERVIÇO</div>
       <div class="rule"></div>
