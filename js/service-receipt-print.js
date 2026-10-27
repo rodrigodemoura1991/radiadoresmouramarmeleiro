@@ -1,5 +1,5 @@
 /* Notinha de serviço — Radiadores Moura Marmeleiro
-   Impressão compacta em A4. Não grava nem altera dados no Supabase. */
+   Impressão em meia folha A4 (formato A5). Não grava nem altera dados no Supabase. */
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
@@ -29,21 +29,21 @@
     const companyName = window.company?.name || 'RADIADORES MOURA MARMELEIRO';
     return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
       <title>Notinha de serviço</title><style>
-      @page{size:A4;margin:10mm}
+      @page{size:A5 portrait;margin:8mm}
       *{box-sizing:border-box}
-      body{margin:0;font:11px Arial,Helvetica,sans-serif;color:#111}
-      .receipt{width:78mm;max-width:100%;padding:4mm;border:1px dashed #777}
-      h1{font-size:14px;text-align:center;margin:0 0 3px;text-transform:uppercase}
-      .subtitle{text-align:center;font-size:10px;margin-bottom:8px}
+      body{margin:0;font:12px Arial,Helvetica,sans-serif;color:#111}
+      .receipt{width:100mm;max-width:100%;min-height:120mm;padding:5mm;border:1px dashed #777}
+      h1{font-size:16px;text-align:center;margin:0 0 3px;text-transform:uppercase}
+      .subtitle{text-align:center;font-size:11px;margin-bottom:8px}
       .rule{border-top:1px dashed #555;margin:7px 0}
       .line{margin:4px 0;overflow-wrap:anywhere}
       .label{font-weight:bold}
       table{width:100%;border-collapse:collapse;margin-top:6px}
       th,td{padding:4px 0;text-align:left;vertical-align:top;border-bottom:1px dotted #bbb}
-      th{font-size:10px}.right{text-align:right;white-space:nowrap;padding-left:5px}
+      th{font-size:11px}.right{text-align:right;white-space:nowrap;padding-left:5px}
       .total{display:flex;justify-content:space-between;gap:8px;font-weight:bold;font-size:13px;margin-top:8px}
-      .thanks{text-align:center;font-size:10px;margin-top:10px}
-      .print-hint{font-size:9px;color:#555;text-align:center;margin-top:5px}
+      .thanks{text-align:center;font-size:11px;margin-top:10px}
+      .print-hint{font-size:10px;color:#555;text-align:center;margin-top:5px}
       @media print{.receipt{break-inside:avoid}}
       </style></head><body><main class="receipt">
       <h1>${escapeHtml(companyName)}</h1><div class="subtitle">COMPROVANTE DE SERVIÇO</div>
