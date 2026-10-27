@@ -24,7 +24,7 @@
   }
   function ensurePopup(){
     if(popup)return;css();popup=document.createElement('div');popup.id='serviceEditOverlay';popup.className='hidden';
-    popup.innerHTML='<div id="serviceEditBox" role="dialog" aria-modal="true"><div id="serviceEditHeader"><h2 id="serviceEditTitle">Editar lançamento</h2><div id="serviceEditHeaderActions"><button type="button" id="serviceEditPrintReceipt">🖨 Imprimir notinha</button><button type="button" id="serviceEditClose">Fechar ×</button></div></div></div>';
+    popup.innerHTML='<div id="serviceEditBox" role="dialog" aria-modal="true"><div id="serviceEditHeader"><h2 id="serviceEditTitle">Editar lançamento</h2><div id="serviceEditHeaderActions"><button type="button" id="serviceEditPrintReceipt">Imprimir</button><button type="button" id="serviceEditClose">Fechar ×</button></div></div></div>';
     document.body.appendChild(popup);
     $('serviceEditClose').onclick=close;
     $('serviceEditPrintReceipt').onclick=function(e){
