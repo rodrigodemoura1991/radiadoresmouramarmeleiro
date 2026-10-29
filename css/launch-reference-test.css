@@ -129,17 +129,17 @@
 
 /* V34 — seleção: destacar somente o contorno, preservando cores e legibilidade originais */
 #launchList .launch-reference-card.launch-card-outline-selected{
-  border:6px solid #8B0000!important;
-  border-left:12px solid #8B0000!important;
-  box-shadow:0 0 0 2px rgba(139,0,0,.25),0 4px 12px rgba(139,0,0,.14)!important;
+  border:3px solid #8B0000!important;
+  border-left:6px solid #8B0000!important;
+  box-shadow:0 0 0 1px rgba(139,0,0,.22),0 2px 6px rgba(139,0,0,.12)!important;
   position:relative!important;
   z-index:2!important;
 }
 @media(max-width:700px){
   #launchList .launch-reference-card.launch-card-outline-selected{
-    border-width:6px!important;
-    border-left-width:12px!important;
-    box-shadow:0 0 0 2px rgba(139,0,0,.22),0 3px 9px rgba(139,0,0,.14)!important;
+    border-width:3px!important;
+    border-left-width:6px!important;
+    box-shadow:0 0 0 1px rgba(139,0,0,.2),0 2px 5px rgba(139,0,0,.12)!important;
   }
 }
 
