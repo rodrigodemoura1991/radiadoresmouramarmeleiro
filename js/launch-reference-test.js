@@ -192,7 +192,7 @@ function renderLaunchesReference(){
     const paymentClass=paymentUpper==='FALTA ACERTAR'?'payment-falta-acertar':(paymentUpper==='EM ABERTO'?'payment-em-aberto':'payment-paid');
     const noExitClass=!String(o.exit_date||'').trim()?'no-exit-service':'';
     const gross=Number(o.total_sale||0),net=Number(o.net_profit||0),vehicle=String(o.vehicle_make_model||'').trim(),plate=String(o.plate||'').trim(),pedido=String(o.pedido||'').trim(),os=String(o.numero_lancamento||'').trim();
-    const entry=shortDate2(o.entry_date),exit=shortDate2(o.exit_date),vehicleLine=[vehicle,plate].filter(Boolean).join(' • '),statusText=o.exit_date?`Saída ${exit}`:'Serviço ainda não entregue',statusClass=slug2(first?.service_status||'Pronto entregue');
+    const entry=shortDate2(o.entry_date),exit=shortDate2(o.exit_date),vehicleLine=[vehicle,plate].filter(Boolean).join(' • '),statusText=o.exit_date?`Saída ${exit}`:'NÃO ENTREGUE',statusClass=slug2(first?.service_status||'Pronto entregue');
     return sep+`<article class="launch launch-reference-card ${statusClass} ${paymentClass} ${noExitClass}" data-id="${esc2(o.id)}">
       <div class="launch-reference-top">
         <div class="launch-reference-left">
