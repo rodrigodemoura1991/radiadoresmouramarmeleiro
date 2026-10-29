@@ -117,6 +117,31 @@ function updateLaunchFilters(){
 }
 let selectedLaunchCardId=null;
 
+/* Centraliza o cartão selecionado no espaço visível da página.
+   scrollIntoView({block:'center'}) sozinho pode centralizar apenas dentro de
+   um contêiner interno; por isso ajustamos os contêineres roláveis e a página. */
+function centerLaunchCardInPage(card){
+  if(!card || !card.isConnected) return;
+  const centerInViewport=(el,viewportTop,viewportHeight,scrollFn)=>{
+    const r=el.getBoundingClientRect();
+    const delta=(r.top+r.height/2)-(viewportTop+viewportHeight/2);
+    if(Math.abs(delta)>2) scrollFn(delta);
+  };
+  let parent=card.parentElement;
+  while(parent && parent!==document.body && parent!==document.documentElement){
+    const style=getComputedStyle(parent);
+    const scrollable=/(auto|scroll|overlay)/.test(style.overflowY) && parent.scrollHeight>parent.clientHeight+2;
+    if(scrollable){
+      centerInViewport(card,parent.getBoundingClientRect().top,parent.clientHeight,delta=>{parent.scrollTop+=delta;});
+    }
+    parent=parent.parentElement;
+  }
+  requestAnimationFrame(()=>{
+    if(!card.isConnected) return;
+    centerInViewport(card,0,window.innerHeight,delta=>window.scrollBy({top:delta,left:0,behavior:'auto'}));
+  });
+}
+
 /* Navegação por setas entre os cartões de lançamentos. Não intercepta setas
    enquanto o usuário estiver digitando ou navegando em campos/formulários. */
 function installLaunchCardArrowNavigation(){
@@ -145,7 +170,7 @@ function installLaunchCardArrowNavigation(){
     const chosen=cards[next];
     chosen.classList.add('launch-card-outline-selected');
     selectedLaunchCardId=String(chosen.dataset.id||'')||null;
-    chosen.scrollIntoView({block:'center',inline:'nearest',behavior:'auto'});
+    centerLaunchCardInPage(chosen);
   },true);
 }
 installLaunchCardArrowNavigation();
@@ -191,7 +216,7 @@ function renderLaunchesReference(){
   }).join('')||'<div class="empty">Nenhum lançamento encontrado.</div>';
   list.querySelectorAll('[data-edit]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof openFix==='function')openFix(b.dataset.edit);else if(typeof editOrder==='function')editOrder(b.dataset.edit);});
   list.querySelectorAll('[data-delete]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();deleteLaunchDirect(b.dataset.delete);});
-  list.querySelectorAll('.launch-reference-card').forEach(x=>x.onclick=e=>{if(e.target.closest('[data-edit],[data-delete]'))return;const id=String(x.dataset.id||'');if(!id)return;if(selectedLaunchCardId===id){x.classList.remove('launch-card-outline-selected');selectedLaunchCardId=null;if(typeof openFix==='function')openFix(id);else if(typeof editOrder==='function')editOrder(id);return;}list.querySelectorAll('.launch-reference-card.launch-card-outline-selected').forEach(card=>card.classList.remove('launch-card-outline-selected'));selectedLaunchCardId=id;x.classList.add('launch-card-outline-selected');});
+  list.querySelectorAll('.launch-reference-card').forEach(x=>x.onclick=e=>{if(e.target.closest('[data-edit],[data-delete]'))return;const id=String(x.dataset.id||'');if(!id)return;if(selectedLaunchCardId===id){x.classList.remove('launch-card-outline-selected');selectedLaunchCardId=null;if(typeof openFix==='function')openFix(id);else if(typeof editOrder==='function')editOrder(id);return;}list.querySelectorAll('.launch-reference-card.launch-card-outline-selected').forEach(card=>card.classList.remove('launch-card-outline-selected'));selectedLaunchCardId=id;x.classList.add('launch-card-outline-selected');centerLaunchCardInPage(x);});
 }
 function install(){
   installClientPersistence();
