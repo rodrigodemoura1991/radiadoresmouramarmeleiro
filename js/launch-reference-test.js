@@ -195,14 +195,15 @@ function renderLaunchesReference(){
     const entry=shortDate2(o.entry_date),exit=shortDate2(o.exit_date),vehicleLine=[vehicle,plate].filter(Boolean).join(' • '),statusText=o.exit_date?`Saída ${exit}`:'NÃO ENTREGUE',statusClass=slug2(first?.service_status||'Pronto entregue');
     return sep+`<article class="launch launch-reference-card ${statusClass} ${paymentClass} ${noExitClass}" data-id="${esc2(o.id)}">
       <div class="launch-reference-top">
-        <div class="launch-reference-left">
-          ${pedido?`<div class="launch-pedido"><span>Pedido</span> <b>${esc2(pedido)}</b></div>`:''}
-        </div>
+        <div class="launch-reference-left"></div>
         <div class="launch-reference-center">
           <div class="launch-dates"><span>Ent. <b>${esc2(entry)}</b></span><span class="launch-date-separator">/</span><span>${esc2(statusText)}</span></div>
           <div class="launch-os">${os?`OS ${esc2(os)}`:'OS —'}</div>
           <div class="launch-client-vehicle-row">
-            <div class="launch-client">${esc2(o.client_name||'Sem cliente')}</div>
+            <div class="launch-client-block">
+              <div class="launch-client">${esc2(o.client_name||'Sem cliente')}</div>
+              ${pedido?`<div class="launch-pedido"><span>Pedido</span> <b>${esc2(pedido)}</b></div>`:''}
+            </div>
             ${vehicleLine?`<div class="launch-vehicle">${esc2(vehicleLine)}</div>`:''}
           </div>
         </div>
