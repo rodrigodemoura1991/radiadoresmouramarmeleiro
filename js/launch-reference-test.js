@@ -158,7 +158,7 @@ function renderLaunchesReference(){
   }).join('')||'<div class="empty">Nenhum lançamento encontrado.</div>';
   list.querySelectorAll('[data-edit]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof openFix==='function')openFix(b.dataset.edit);else if(typeof editOrder==='function')editOrder(b.dataset.edit);});
   list.querySelectorAll('[data-delete]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();deleteLaunchDirect(b.dataset.delete);});
-  list.querySelectorAll('.launch-reference-card').forEach(x=>x.onclick=e=>{if(e.target.closest('[data-edit],[data-delete]'))return;const id=String(x.dataset.id||'');if(!id)return;if(selectedLaunchCardId===id){x.classList.remove('launch-card-selected');selectedLaunchCardId=null;if(typeof openFix==='function')openFix(id);else if(typeof editOrder==='function')editOrder(id);return;}list.querySelectorAll('.launch-reference-card.launch-card-selected').forEach(card=>card.classList.remove('launch-card-selected'));selectedLaunchCardId=id;x.classList.add('launch-card-selected');});
+  list.querySelectorAll('.launch-reference-card').forEach(x=>x.onclick=e=>{if(e.target.closest('[data-edit],[data-delete]'))return;const id=String(x.dataset.id||'');if(!id)return;if(selectedLaunchCardId===id){x.classList.remove('launch-card-outline-selected');selectedLaunchCardId=null;if(typeof openFix==='function')openFix(id);else if(typeof editOrder==='function')editOrder(id);return;}list.querySelectorAll('.launch-reference-card.launch-card-outline-selected').forEach(card=>card.classList.remove('launch-card-outline-selected'));selectedLaunchCardId=id;x.classList.add('launch-card-outline-selected');});
 }
 function install(){
   installClientPersistence();
