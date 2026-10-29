@@ -647,3 +647,45 @@
   #launchList .launch-reference-card .launch-reference-top > .launch-reference-center{padding-top:14px!important}
   #launchList .launch-reference-card .launch-reference-center > .launch-dates{max-width:46%!important;gap:2px!important}
 }
+
+
+/* V45 — número do pedido fica logo abaixo do nome do cliente, quando informado. */
+#launchList .launch-reference-card .launch-client-block{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+  flex:0 1 42%!important;
+  max-width:42%!important;
+  min-width:0!important;
+  position:relative!important;
+  z-index:3!important;
+}
+#launchList .launch-reference-card .launch-client-block > .launch-client{
+  max-width:100%!important;
+}
+#launchList .launch-reference-card .launch-client-block > .launch-pedido{
+  display:block!important;
+  position:static!important;
+  margin:2px 0 0 6px!important;
+  padding:0!important;
+  font-size:9px!important;
+  line-height:1.1!important;
+  font-weight:700!important;
+  text-align:left!important;
+  white-space:normal!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+#launchList .launch-reference-card .launch-client-block > .launch-pedido b{
+  font-size:10px!important;
+  font-weight:900!important;
+}
+#launchList .launch-reference-card .launch-client-vehicle-row > .launch-vehicle{
+  max-width:52%!important;
+}
+@media(max-width:700px){
+  #launchList .launch-reference-card .launch-client-block{max-width:40%!important;flex-basis:40%!important}
+  #launchList .launch-reference-card .launch-client-vehicle-row > .launch-vehicle{max-width:58%!important}
+}
