@@ -4,12 +4,16 @@ const COMPANIES=[{id:'48f0eb3d-22ff-4506-9d9c-b6dd4455946b',name:'Radiadores Mou
 let company=null,orders=[],clients=[],catalog=[],editing=null,period='all';
 const $=id=>document.getElementById(id),today=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)};
 
-// Bloco de notas sincronizado por usuário e empresa no Supabase.
+// Bloco de notas separado por empresa, no navegador e na nuvem.
+window.homeNotesStorageKey = function (companyId) {
+  return 'radiadoresMouraHomeNotes:' + String(companyId || 'sem-empresa');
+};
 window.loadHomeNotesFromCloud = async function () {
   const box = document.getElementById('localHomeNotes');
   const status = document.getElementById('localHomeNotesStatus');
   if (!box || !company) return;
   const companyId = company.id;
+  const key = window.homeNotesStorageKey(companyId);
   const userResult = await sb.auth.getUser();
   const user = userResult.data && userResult.data.user;
   if (userResult.error || !user) { if (status) status.textContent = 'Entre para sincronizar'; return; }
@@ -19,10 +23,21 @@ window.loadHomeNotesFromCloud = async function () {
   if (result.error) { if (status) status.textContent = 'Erro ao carregar da nuvem'; console.error('Notas na nuvem:', result.error); return; }
   if (result.data) {
     box.value = result.data.content || '';
-    try { localStorage.setItem('radiadoresMouraHomeNotes', box.value); } catch (_) {}
+    try { localStorage.setItem(key, box.value); } catch (_) {}
   } else {
     let local = '';
-    try { local = localStorage.getItem('radiadoresMouraHomeNotes') || ''; } catch (_) {}
+    try { local = localStorage.getItem(key) || ''; } catch (_) {}
+    // Migra notas antigas apenas para a empresa aberta neste momento, nunca para todas.
+    if (!local) {
+      try {
+        const legacy = localStorage.getItem('radiadoresMouraHomeNotes');
+        if (legacy !== null) {
+          local = legacy;
+          localStorage.setItem(key, legacy);
+          localStorage.removeItem('radiadoresMouraHomeNotes');
+        }
+      } catch (_) {}
+    }
     box.value = local;
     if (local) { await window.saveHomeNotesToCloud(local); return; }
   }
@@ -32,9 +47,11 @@ window.saveHomeNotesToCloud = async function (content) {
   const status = document.getElementById('localHomeNotesStatus');
   if (!company) { if (status) status.textContent = 'Escolha uma empresa para sincronizar'; return; }
   const companyId = company.id;
+  const key = window.homeNotesStorageKey(companyId);
   const userResult = await sb.auth.getUser();
   const user = userResult.data && userResult.data.user;
   if (userResult.error || !user) { if (status) status.textContent = 'Entre para sincronizar'; return; }
+  try { localStorage.setItem(key, String(content || '')); } catch (_) {}
   const result = await sb.from('home_notes').upsert(
     { user_id: user.id, company_id: companyId, content: String(content || ''), updated_at: new Date().toISOString() },
     { onConflict: 'user_id,company_id' }
