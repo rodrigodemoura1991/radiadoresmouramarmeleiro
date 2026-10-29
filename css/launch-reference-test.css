@@ -411,3 +411,52 @@
     max-width:58%!important;
   }
 }
+
+/* V41 — restaura o destaque azul original do nome do cliente; veículo apenas em negrito */
+#launchList .launch-reference-card .launch-reference-center .launch-client-vehicle-row{
+  display:block!important;
+  position:relative!important;
+  width:100%!important;
+  min-height:24px!important;
+  box-sizing:border-box!important;
+  margin:2px 0!important;
+}
+#launchList .launch-reference-card .launch-reference-center .launch-client-vehicle-row > .launch-client{
+  display:block!important;
+  position:relative!important;
+  width:max-content!important;
+  max-width:44%!important;
+  padding:2px 6px!important;
+  margin:0!important;
+  text-align:left!important;
+  font-weight:900!important;
+  box-sizing:border-box!important;
+  z-index:2!important;
+}
+#launchList .launch-reference-card .launch-reference-center .launch-client-vehicle-row > .launch-vehicle{
+  display:block!important;
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  transform:translate(-50%,-50%)!important;
+  width:max-content!important;
+  max-width:54%!important;
+  margin:0!important;
+  padding:0!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  color:inherit!important;
+  text-align:center!important;
+  font-weight:900!important;
+  font-size:10px!important;
+  line-height:1.15!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+  z-index:1!important;
+}
+@media(max-width:700px){
+  #launchList .launch-reference-card .launch-reference-center .launch-client-vehicle-row > .launch-client{max-width:40%!important}
+  #launchList .launch-reference-card .launch-reference-center .launch-client-vehicle-row > .launch-vehicle{max-width:58%!important}
+}
