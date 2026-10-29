@@ -131,9 +131,9 @@
 #launchList .launch-reference-card.launch-card-selected{
   background:#e7f0ff!important;
   background-color:#e7f0ff!important;
-  border:2px solid #2563eb!important;
-  border-left:4px solid #1d4ed8!important;
-  box-shadow:0 0 0 2px rgba(37,99,235,.28),0 4px 12px rgba(37,99,235,.18)!important;
+  border:2px solid #8B0000!important;
+  border-left:4px solid #8B0000!important;
+  box-shadow:0 0 0 2px rgba(139,0,0,.28),0 4px 12px rgba(139,0,0,.18)!important;
   position:relative!important;
   z-index:2!important;
 }
@@ -148,7 +148,7 @@
   #launchList .launch-reference-card.launch-card-selected{
     border-width:2px!important;
     border-left-width:4px!important;
-    box-shadow:0 0 0 2px rgba(37,99,235,.25),0 3px 9px rgba(37,99,235,.16)!important;
+    box-shadow:0 0 0 2px rgba(139,0,0,.25),0 3px 9px rgba(139,0,0,.16)!important;
   }
 }
 
