@@ -176,3 +176,6 @@
  #launchFilters .launch-filter-select,#launchClearFilters.launch-clear-filters{width:100%!important;min-width:0!important;min-height:42px!important;font-size:13px!important}
  #launchClearFilters.launch-clear-filters{justify-content:center!important}
 }
+
+/* Evita a data/status duplicada na coluna esquerda em cartões antigos ou em cache. */
+#launchList .launch-reference-card .launch-reference-left .launch-dates{display:none!important}
