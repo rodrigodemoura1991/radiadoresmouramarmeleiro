@@ -197,7 +197,6 @@ function renderLaunchesReference(){
       <div class="launch-reference-top">
         <div class="launch-reference-left">
           ${pedido?`<div class="launch-pedido"><span>Pedido</span> <b>${esc2(pedido)}</b></div>`:''}
-          <div class="launch-dates"><span>Ent. <b>${esc2(entry)}</b></span><span>${esc2(statusText)}</span></div>
         </div>
         <div class="launch-reference-center">
           <div class="launch-dates"><span>Ent. <b>${esc2(entry)}</b></span><span>${esc2(statusText)}</span></div>
