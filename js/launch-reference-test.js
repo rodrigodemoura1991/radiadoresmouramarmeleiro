@@ -205,7 +205,6 @@ function renderLaunchesReference(){
             <div class="launch-client">${esc2(o.client_name||'Sem cliente')}</div>
             ${vehicleLine?`<div class="launch-vehicle">${esc2(vehicleLine)}</div>`:''}
           </div>
-          <div class="launch-payment">${esc2(payment)}</div>
         </div>
         <div class="launch-reference-right">
           <div class="launch-reference-values"><b>${money2(gross)}</b><span>${money2(net)}</span><em>Líquido</em></div>
