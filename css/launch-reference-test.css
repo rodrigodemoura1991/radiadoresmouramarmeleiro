@@ -595,3 +595,55 @@
 #launchList .launch-reference-center .launch-os{margin-left:auto!important;margin-right:auto!important;text-align:center!important}
 #launchList .launch-reference-values{display:flex!important;align-items:baseline!important;justify-content:flex-end!important;gap:2px!important;white-space:nowrap!important}
 #launchList .launch-reference-values .launch-value-separator{display:inline!important;font-weight:900!important}
+
+
+/* V44 — datas encostadas à esquerda e OS centralizada na mesma linha. */
+#launchList .launch-reference-card .launch-reference-top{
+  position:relative!important;
+}
+#launchList .launch-reference-card .launch-reference-top > .launch-reference-center{
+  position:relative!important;
+  width:100%!important;
+  min-width:0!important;
+  padding-top:16px!important;
+  box-sizing:border-box!important;
+}
+#launchList .launch-reference-card .launch-reference-center > .launch-dates{
+  display:flex!important;
+  position:absolute!important;
+  top:0!important;
+  left:0!important;
+  right:auto!important;
+  width:max-content!important;
+  max-width:44%!important;
+  justify-content:flex-start!important;
+  align-items:center!important;
+  text-align:left!important;
+  margin:0!important;
+  gap:3px!important;
+  white-space:nowrap!important;
+  transform:none!important;
+}
+#launchList .launch-reference-card .launch-reference-center > .launch-os{
+  display:block!important;
+  position:absolute!important;
+  top:0!important;
+  left:50%!important;
+  right:auto!important;
+  transform:translateX(-50%)!important;
+  margin:0!important;
+  white-space:nowrap!important;
+  text-align:center!important;
+}
+#launchList .launch-reference-card .launch-reference-center .launch-client-vehicle-row{
+  margin-top:1px!important;
+}
+#launchList .launch-reference-card .launch-reference-values .launch-value-separator{
+  display:inline!important;
+  margin:0 2px!important;
+  font-weight:900!important;
+}
+@media(max-width:700px){
+  #launchList .launch-reference-card .launch-reference-top > .launch-reference-center{padding-top:14px!important}
+  #launchList .launch-reference-card .launch-reference-center > .launch-dates{max-width:46%!important;gap:2px!important}
+}
