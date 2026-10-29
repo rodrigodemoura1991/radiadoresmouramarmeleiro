@@ -179,3 +179,7 @@
 
 /* Evita a data/status duplicada na coluna esquerda em cartões antigos ou em cache. */
 #launchList .launch-reference-card .launch-reference-left .launch-dates{display:none!important}
+
+/* Centraliza a data de entrada/saída acima do número da OS */
+#launchList .launch-reference-card .launch-reference-center .launch-dates{display:flex!important;justify-content:center!important;align-items:center!important;width:100%!important;text-align:center!important;margin:0 auto 3px!important;gap:8px!important}
+#launchList .launch-reference-card .launch-reference-center .launch-dates span{text-align:center!important}
