@@ -122,7 +122,7 @@ let selectedLaunchCardId=null;
 function installLaunchCardArrowNavigation(){
   if(document.documentElement.dataset.launchCardArrowNavigation==='1') return;
   document.documentElement.dataset.launchCardArrowNavigation='1';
-  document.addEventListener('keydown',function(e){
+  window.addEventListener('keydown',function(e){
     if(!['ArrowDown','ArrowUp','Home','End'].includes(e.key)) return;
     if(e.altKey||e.ctrlKey||e.metaKey) return;
     const target=e.target;
@@ -139,6 +139,8 @@ function installLaunchCardArrowNavigation(){
     else if(e.key==='Home') next=0;
     else next=cards.length-1;
     e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
     cards.forEach(card=>card.classList.remove('launch-card-outline-selected'));
     const chosen=cards[next];
     chosen.classList.add('launch-card-outline-selected');
