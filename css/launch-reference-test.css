@@ -460,3 +460,72 @@
   #launchList .launch-reference-card .launch-reference-center .launch-client-vehicle-row > .launch-client{max-width:40%!important}
   #launchList .launch-reference-card .launch-reference-center .launch-client-vehicle-row > .launch-vehicle{max-width:58%!important}
 }
+
+/* V42 — correção definitiva da linha cliente/veículo: largura integral do cartão */
+#launchList .launch-reference-card .launch-reference-top{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  position:relative!important;
+}
+#launchList .launch-reference-card .launch-reference-top > .launch-reference-left,
+#launchList .launch-reference-card .launch-reference-top > .launch-reference-right{
+  position:absolute!important;
+  top:0!important;
+  z-index:3!important;
+  pointer-events:auto!important;
+}
+#launchList .launch-reference-card .launch-reference-top > .launch-reference-left{left:0!important}
+#launchList .launch-reference-card .launch-reference-top > .launch-reference-right{right:0!important}
+#launchList .launch-reference-card .launch-reference-top > .launch-reference-center{
+  grid-column:1!important;
+  grid-row:1!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  padding:0 2px!important;
+}
+#launchList .launch-reference-card .launch-client-vehicle-row{
+  display:block!important;
+  position:relative!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:24px!important;
+  margin:2px 0!important;
+  box-sizing:border-box!important;
+}
+#launchList .launch-reference-card .launch-client-vehicle-row > .launch-client{
+  display:table!important;
+  position:relative!important;
+  width:max-content!important;
+  max-width:45%!important;
+  margin:0!important;
+  padding:2px 6px!important;
+  box-sizing:border-box!important;
+  text-align:left!important;
+  font-weight:900!important;
+  z-index:2!important;
+}
+#launchList .launch-reference-card .launch-client-vehicle-row > .launch-vehicle{
+  display:block!important;
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  transform:translate(-50%,-50%)!important;
+  width:max-content!important;
+  max-width:52%!important;
+  margin:0!important;
+  padding:0!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  text-align:center!important;
+  font-weight:900!important;
+  font-size:10px!important;
+  line-height:1.15!important;
+  overflow-wrap:anywhere!important;
+  z-index:1!important;
+}
