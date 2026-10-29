@@ -239,3 +239,41 @@
   font-size:10px!important;
   line-height:1.15!important;
 }
+
+/* V37 — cliente alinhado à esquerda; veículo centralizado na mesma linha */
+#launchList .launch-reference-card .launch-reference-center .launch-client-vehicle-row{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,2fr)!important;
+  align-items:center!important;
+  justify-content:stretch!important;
+  width:100%!important;
+  gap:8px!important;
+  text-align:initial!important;
+}
+#launchList .launch-reference-card .launch-reference-center .launch-client-vehicle-row > .launch-client{
+  grid-column:1!important;
+  justify-self:start!important;
+  text-align:left!important;
+  width:auto!important;
+  max-width:100%!important;
+  margin:0!important;
+  font-weight:900!important;
+}
+#launchList .launch-reference-card .launch-reference-center .launch-client-vehicle-row > .launch-vehicle{
+  grid-column:2!important;
+  justify-self:stretch!important;
+  text-align:center!important;
+  width:100%!important;
+  max-width:100%!important;
+  margin:0!important;
+  font-weight:900!important;
+  font-size:10px!important;
+  line-height:1.15!important;
+  overflow-wrap:anywhere!important;
+}
+@media(max-width:700px){
+  #launchList .launch-reference-card .launch-reference-center .launch-client-vehicle-row{
+    grid-template-columns:minmax(0,1fr) minmax(0,1.5fr)!important;
+    gap:5px!important;
+  }
+}
