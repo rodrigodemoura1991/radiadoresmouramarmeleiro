@@ -315,3 +315,49 @@
   overflow-wrap:anywhere!important;
 }
 #launchList .launch-reference-card .launch-payment{display:none!important}
+
+/* V39 — amplia a área central para toda a largura do cartão; cliente à esquerda,
+   veículo alinhado ao centro geométrico do cartão na mesma linha. */
+#launchList .launch-reference-card .launch-reference-top{
+  position:relative!important;
+}
+#launchList .launch-reference-card .launch-reference-top .launch-reference-center{
+  grid-column:1 / -1!important;
+  width:100%!important;
+  min-width:0!important;
+  justify-self:stretch!important;
+}
+#launchList .launch-reference-card .launch-reference-center .launch-client-vehicle-row{
+  position:relative!important;
+  display:block!important;
+  width:100%!important;
+  min-height:22px!important;
+  margin:2px 0!important;
+  box-sizing:border-box!important;
+}
+#launchList .launch-reference-card .launch-reference-center .launch-client-vehicle-row > .launch-client{
+  position:relative!important;
+  display:block!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+  padding-right:56%!important;
+  margin:0!important;
+  text-align:left!important;
+  font-weight:900!important;
+}
+#launchList .launch-reference-card .launch-reference-center .launch-client-vehicle-row > .launch-vehicle{
+  position:absolute!important;
+  display:block!important;
+  left:50%!important;
+  top:50%!important;
+  transform:translate(-50%,-50%)!important;
+  width:max-content!important;
+  max-width:48%!important;
+  margin:0!important;
+  text-align:center!important;
+  font-weight:900!important;
+  font-size:10px!important;
+  line-height:1.15!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+}
