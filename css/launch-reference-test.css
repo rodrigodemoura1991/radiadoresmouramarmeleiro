@@ -176,3 +176,9 @@
  #launchFilters .launch-filter-select,#launchClearFilters.launch-clear-filters{width:100%!important;min-width:0!important;min-height:42px!important;font-size:13px!important}
  #launchClearFilters.launch-clear-filters{justify-content:center!important}
 }
+
+/* V35: centraliza cliente e pagamento abaixo da OS */
+#launchList .launch-reference-card .launch-reference-center{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;text-align:center!important;min-width:0!important}
+#launchList .launch-reference-card .launch-client{display:block!important;width:100%!important;text-align:center!important;font-weight:900!important}
+#launchList .launch-reference-card .launch-payment{align-self:center!important;text-align:center!important;margin:2px auto 0!important}
+#launchList .launch-reference-card .launch-vehicle{width:100%!important;text-align:center!important}
