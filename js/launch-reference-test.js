@@ -116,6 +116,37 @@ function updateLaunchFilters(){
   try{if(svc.querySelector(`option[value="${CSS.escape(currentSvc)}"]`))svc.value=currentSvc;else svc.value='';}catch(e){svc.value='';}
 }
 let selectedLaunchCardId=null;
+
+/* Navegação por setas entre os cartões de lançamentos. Não intercepta setas
+   enquanto o usuário estiver digitando ou navegando em campos/formulários. */
+function installLaunchCardArrowNavigation(){
+  if(document.documentElement.dataset.launchCardArrowNavigation==='1') return;
+  document.documentElement.dataset.launchCardArrowNavigation='1';
+  document.addEventListener('keydown',function(e){
+    if(!['ArrowDown','ArrowUp','Home','End'].includes(e.key)) return;
+    if(e.altKey||e.ctrlKey||e.metaKey) return;
+    const target=e.target;
+    if(target && (target.isContentEditable || target.matches('input,textarea,select,button,[role="textbox"]'))) return;
+    const list=document.getElementById('launchList');
+    if(!list || !list.isConnected || list.getClientRects().length===0) return;
+    const cards=[...list.querySelectorAll('.launch-reference-card')].filter(card=>card.getClientRects().length>0);
+    if(!cards.length) return;
+    const active=cards.findIndex(card=>card.classList.contains('launch-card-outline-selected'));
+    if(active<0 && !['ArrowDown','ArrowUp','Home','End'].includes(e.key)) return;
+    let next;
+    if(e.key==='ArrowDown') next=active<0?0:Math.min(active+1,cards.length-1);
+    else if(e.key==='ArrowUp') next=active<0?cards.length-1:Math.max(active-1,0);
+    else if(e.key==='Home') next=0;
+    else next=cards.length-1;
+    e.preventDefault();
+    cards.forEach(card=>card.classList.remove('launch-card-outline-selected'));
+    const chosen=cards[next];
+    chosen.classList.add('launch-card-outline-selected');
+    selectedLaunchCardId=String(chosen.dataset.id||'')||null;
+    chosen.scrollIntoView({block:'nearest',behavior:'auto'});
+  },true);
+}
+installLaunchCardArrowNavigation();
 function renderLaunchesReference(){
   if(typeof updateCatalog==='function') updateCatalog();
   const list=document.getElementById('launchList');if(!list)return;
