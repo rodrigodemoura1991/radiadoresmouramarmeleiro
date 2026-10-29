@@ -207,7 +207,7 @@ function renderLaunchesReference(){
           </div>
         </div>
         <div class="launch-reference-right">
-          <div class="launch-reference-values"><b>${money2(gross)}</b><span>${money2(net)}</span><em>Líquido</em></div>
+          <div class="launch-reference-values"><b>${money2(gross)}</b><span class="launch-value-separator"> / </span><span>${money2(net)}</span></div>
           <div class="launch-reference-actions"><button type="button" class="launch-action" data-edit="${esc2(o.id)}">Editar</button><button type="button" class="launch-action delete" data-delete="${esc2(o.id)}">Excluir</button></div>
         </div>
       </div>
