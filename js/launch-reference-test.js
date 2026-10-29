@@ -201,8 +201,10 @@ function renderLaunchesReference(){
         <div class="launch-reference-center">
           <div class="launch-dates"><span>Ent. <b>${esc2(entry)}</b></span><span class="launch-date-separator">/</span><span>${esc2(statusText)}</span></div>
           <div class="launch-os">${os?`OS ${esc2(os)}`:'OS —'}</div>
-          <div class="launch-client">${esc2(o.client_name||'Sem cliente')}</div>
-          ${vehicleLine?`<div class="launch-vehicle">${esc2(vehicleLine)}</div>`:''}
+          <div class="launch-client-vehicle-row">
+            <div class="launch-client">${esc2(o.client_name||'Sem cliente')}</div>
+            ${vehicleLine?`<div class="launch-vehicle">${esc2(vehicleLine)}</div>`:''}
+          </div>
           <div class="launch-payment">${esc2(payment)}</div>
         </div>
         <div class="launch-reference-right">
