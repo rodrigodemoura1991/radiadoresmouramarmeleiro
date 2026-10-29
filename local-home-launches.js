@@ -20,11 +20,11 @@
       noteCard.innerHTML = '<div class="local-home-notepad-head"><strong>📝 Bloco de notas — informações importantes</strong><span id="localHomeNotesStatus">Carregando notas...</span></div><textarea id="localHomeNotes" placeholder="Anote aqui informações importantes, pendências e lembretes..."></textarea>';
       side.appendChild(noteCard);
       const notes = noteCard.querySelector('#localHomeNotes');
-      try { notes.value = window.localStorage.getItem('radiadoresMouraHomeNotes') || ''; } catch (e) {}
+      try { const cid = window.company && window.company.id; const key = typeof window.homeNotesStorageKey === 'function' ? window.homeNotesStorageKey(cid) : ('radiadoresMouraHomeNotes:' + String(cid || 'sem-empresa')); notes.value = window.localStorage.getItem(key) || ''; } catch (e) {}
       if (typeof window.loadHomeNotesFromCloud === 'function') window.loadHomeNotesFromCloud();
       let notesSaveTimer = null;
       notes.addEventListener('input', function () {
-        try { window.localStorage.setItem('radiadoresMouraHomeNotes', notes.value); } catch (e) {}
+        try { const cid = window.company && window.company.id; const key = typeof window.homeNotesStorageKey === 'function' ? window.homeNotesStorageKey(cid) : ('radiadoresMouraHomeNotes:' + String(cid || 'sem-empresa')); window.localStorage.setItem(key, notes.value); } catch (e) {}
         const status = document.getElementById('localHomeNotesStatus');
         if (status) status.textContent = 'Salvando na nuvem...';
         clearTimeout(notesSaveTimer);
