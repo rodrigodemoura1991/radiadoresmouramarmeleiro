@@ -183,3 +183,28 @@
 /* Centraliza a data de entrada/saída acima do número da OS */
 #launchList .launch-reference-card .launch-reference-center .launch-dates{display:flex!important;justify-content:center!important;align-items:center!important;width:100%!important;text-align:center!important;margin:0 auto 3px!important;gap:8px!important}
 #launchList .launch-reference-card .launch-reference-center .launch-dates span{text-align:center!important}
+
+/* Cliente e marca/modelo/placa na mesma linha, centralizados e em negrito */
+#launchList .launch-reference-card .launch-client-vehicle-row{
+  display:flex!important;
+  flex-direction:row!important;
+  justify-content:center!important;
+  align-items:center!important;
+  flex-wrap:wrap!important;
+  gap:4px 12px!important;
+  width:100%!important;
+  text-align:center!important;
+}
+#launchList .launch-reference-card .launch-client-vehicle-row .launch-client,
+#launchList .launch-reference-card .launch-client-vehicle-row .launch-vehicle{
+  display:inline-block!important;
+  width:auto!important;
+  max-width:100%!important;
+  margin:0!important;
+  text-align:center!important;
+  font-weight:900!important;
+  line-height:1.15!important;
+}
+@media(max-width:700px){
+  #launchList .launch-reference-card .launch-client-vehicle-row{gap:3px 8px!important}
+}
