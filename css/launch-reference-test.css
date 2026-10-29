@@ -277,3 +277,41 @@
     gap:5px!important;
   }
 }
+
+/* V38 — cliente à esquerda; marca/modelo/placa centralizados na mesma linha */
+#launchList .launch-reference-card .launch-reference-center .launch-client-vehicle-row{
+  display:block!important;
+  position:relative!important;
+  width:100%!important;
+  min-height:20px!important;
+  box-sizing:border-box!important;
+  text-align:left!important;
+  margin:2px 0!important;
+}
+#launchList .launch-reference-card .launch-reference-center .launch-client-vehicle-row > .launch-client{
+  display:block!important;
+  position:relative!important;
+  width:100%!important;
+  max-width:100%!important;
+  margin:0!important;
+  text-align:left!important;
+  font-weight:900!important;
+  box-sizing:border-box!important;
+}
+#launchList .launch-reference-card .launch-reference-center .launch-client-vehicle-row > .launch-vehicle{
+  display:block!important;
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  transform:translate(-50%,-50%)!important;
+  width:max-content!important;
+  max-width:55%!important;
+  margin:0!important;
+  text-align:center!important;
+  font-weight:900!important;
+  font-size:10px!important;
+  line-height:1.15!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+}
+#launchList .launch-reference-card .launch-payment{display:none!important}
