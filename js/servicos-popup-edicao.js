@@ -39,10 +39,32 @@
     if(form&&originalParent){if(originalNext&&originalNext.parentNode===originalParent)originalParent.insertBefore(form,originalNext);else originalParent.appendChild(form)}
     popup?.classList.add('hidden');document.documentElement.classList.remove('service-edit-popup-html');document.body.classList.remove('service-edit-popup-open');opened=false;originalParent=null;originalNext=null;currentOrderId=null;
   }
+  function configureDeliveryControl(){
+    const checkbox=$('notDelivered'),exit=$('exit');
+    if(!checkbox||!exit)return;
+    const label=checkbox.closest('label');
+    if(label){
+      const textNode=[...label.childNodes].find(n=>n.nodeType===Node.TEXT_NODE);
+      if(textNode)textNode.textContent=' NÃO ENTREGUE';
+      else if(!label.textContent.includes('NÃO ENTREGUE'))label.appendChild(document.createTextNode(' NÃO ENTREGUE'));
+    }
+    if(checkbox.dataset.autoExitDateBound!=='1'){
+      checkbox.dataset.autoExitDateBound='1';
+      checkbox.addEventListener('change',()=>{
+        if(checkbox.checked){exit.value='';exit.disabled=true;}
+        else{
+          exit.disabled=false;
+          const d=new Date(),local=new Date(d.getTime()-d.getTimezoneOffset()*60000);
+          exit.value=local.toISOString().slice(0,10);
+        }
+      });
+    }
+    exit.disabled=checkbox.checked;
+  }
   function open(id){
     if(!id)return;const edit=window.editOrder,form=$('order');if(typeof edit!=='function'||!form)return;ensurePopup();currentOrderId=String(id);
     originalParent=form.parentNode;originalNext=form.nextSibling;$('serviceEditBox').appendChild(form);popup.classList.remove('hidden');document.documentElement.classList.add('service-edit-popup-html');document.body.classList.add('service-edit-popup-open');opened=true;
-    const nativeScrollTo=window.scrollTo;window.scrollTo=function(){};try{edit(String(id))}finally{window.scrollTo=nativeScrollTo}
+    const nativeScrollTo=window.scrollTo;window.scrollTo=function(){};try{edit(String(id));configureDeliveryControl()}finally{window.scrollTo=nativeScrollTo}
     const o=(window.orders||[]).find(x=>String(x.id)===String(id));$('serviceEditTitle').textContent=o?.numero_lancamento!=null?'Editar lançamento #'+o.numero_lancamento:'Editar lançamento';
     const save=form.querySelector('button[type="submit"]');if(save)save.textContent='Salvar alterações';
     const clear=$('clear');if(clear){if(clear.dataset.popupOriginalText==null)clear.dataset.popupOriginalText=clear.textContent;clear.textContent='Cancelar';clear.onclick=e=>{e.preventDefault();e.stopPropagation();close()}}
