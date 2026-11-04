@@ -63,34 +63,9 @@
       const exitedOrders=data.filter(o=>inRange(o.exit_date,a,b));
       const exited=exitedOrders.reduce((n,o)=>n+orderItems(o).length,0);
 
-      // Financeiro usa exclusivamente a data de saída e preserva a exclusão manual do balanço.
-      const financialOrders=exitedOrders.filter(o=>!o.exclude_from_balance);
-      let sales=0,discounts=0,costs=0,freight=0,taxes=0;
-      financialOrders.forEach(o=>{
-        const items=orderItems(o);
-        const rate=Math.min(100,Math.max(0,Number(o.discount_percent)||0))/100;
-        const factor=1-rate;
-        // Venda bruta do financeiro: valor consolidado do lançamento cuja data de saída está no período.
-        // Não depende do status individual dos itens.
-        const gross=Number(o.total_sale)||items.reduce((sum,i)=>sum+(Number(i.sale_value)||0),0);
-        sales+=gross;
-        discounts+=gross*rate;
-        const hasDetailedItems=Array.isArray(o.order_items)&&o.order_items.length>0;
-        if(!hasDetailedItems){
-          costs+=Number(o.total_cost)||0;
-          freight+=Number(o.total_freight)||0;
-          taxes+=Number(o.total_tax)||0;
-          return;
-        }
-        const hasItemFreight=items.some(i=>Number(i?.freight_value)||0);
-        items.forEach(i=>{
-          costs+=Number(i.cost_value)||0;
-          freight+=Number(i.freight_value)||0;
-          taxes+=(Number(i.sale_value)||0)*(Number(i.tax_rate)||0)/100*factor;
-        });
-        if(!hasItemFreight)freight+=Number(o.total_freight)||0;
-      });
-      const net=sales-discounts-costs-freight-taxes;
+      // O financeiro usa exatamente a mesma função do Balanço.
+      const financial=window.calculateFinancialPeriod(data,a,b,false).totals;
+      const sales=financial.gross,discounts=financial.discounts,net=financial.profit;
       document.getElementById('sumEntered').textContent=entered;
       document.getElementById('sumExited').textContent=exited;
       document.getElementById('sumSales').textContent=moneyLocal(sales);
