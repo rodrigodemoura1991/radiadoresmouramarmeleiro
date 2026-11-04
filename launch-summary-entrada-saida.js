@@ -70,11 +70,13 @@
         const items=orderItems(o);
         const rate=Math.min(100,Math.max(0,Number(o.discount_percent)||0))/100;
         const factor=1-rate;
+        // Venda bruta do financeiro: valor consolidado do lançamento cuja data de saída está no período.
+        // Não depende do status individual dos itens.
+        const gross=Number(o.total_sale)||items.reduce((sum,i)=>sum+(Number(i.sale_value)||0),0);
+        sales+=gross;
+        discounts+=gross*rate;
         const hasDetailedItems=Array.isArray(o.order_items)&&o.order_items.length>0;
         if(!hasDetailedItems){
-          const gross=Number(o.total_sale)||0;
-          sales+=gross;
-          discounts+=gross*rate;
           costs+=Number(o.total_cost)||0;
           freight+=Number(o.total_freight)||0;
           taxes+=Number(o.total_tax)||0;
@@ -82,12 +84,9 @@
         }
         const hasItemFreight=items.some(i=>Number(i?.freight_value)||0);
         items.forEach(i=>{
-          const sale=Number(i.sale_value)||0;
-          sales+=sale;
-          discounts+=sale*rate;
           costs+=Number(i.cost_value)||0;
           freight+=Number(i.freight_value)||0;
-          taxes+=sale*(Number(i.tax_rate)||0)/100*factor;
+          taxes+=(Number(i.sale_value)||0)*(Number(i.tax_rate)||0)/100*factor;
         });
         if(!hasItemFreight)freight+=Number(o.total_freight)||0;
       });
