@@ -281,45 +281,26 @@ function renderAllServices(){
 }
 function balancePeriodOrders(){return orders.filter(inPeriod)}
 function balancePeriodServices(includeHidden=false){
-  const rows=[];
-  orders.filter(o=>inPeriod(o)&&(includeHidden||!o.exclude_from_balance)).forEach(o=>{
-    const items=Array.isArray(o.order_items)?o.order_items:[];
-    if(!items.length)return;
-    const hasItemFreight=items.some(i=>Number(i?.freight_value)||0);
-    items.forEach(i=>{
-      const sale=Number(i?.sale_value)||0;
-      const cost=Number(i?.cost_value)||0;
-      const freight=Number(i?.freight_value)||0;
-      const tax=sale*(Number(i?.tax_rate)||0)/100;
-      rows.push({order:o,item:i,sale,cost,freight,tax,profit:sale-cost-freight-tax});
-    });
-    // Compatibilidade com lançamentos antigos: se o frete estiver salvo somente no pedido,
-    // considera-o uma única vez. Para lançamentos novos, o frete fica nos serviços.
-    if(!hasItemFreight && Number(o.total_freight||0)){
-      const target=rows.filter(r=>r.order===o);
-      if(target.length)target[target.length-1].freight+=Number(o.total_freight)||0,target[target.length-1].profit-=Number(o.total_freight)||0;
-    }
-  });
-  return rows;
+  const [startDate,endDate]=balancePeriodBounds();
+  if(typeof window.calculateFinancialPeriod!=='function')return [];
+  return window.calculateFinancialPeriod(orders,startDate,endDate,includeHidden).rows;
 }
 function renderAdvancedBalance(){
-  const rows=balancePeriodServices(false);
-  const realRows=balancePeriodServices(true);
-  const realSale=realRows.reduce((s,r)=>s+r.sale,0),realCost=realRows.reduce((s,r)=>s+r.cost,0),realFreight=realRows.reduce((s,r)=>s+r.freight,0),realTax=realRows.reduce((s,r)=>s+r.tax,0);
-  const realProfit=realSale-realCost-realFreight-realTax;
+  const [startDate,endDate]=balancePeriodBounds();
+  const visibleCalc=window.calculateFinancialPeriod(orders,startDate,endDate,false);
+  const realCalc=window.calculateFinancialPeriod(orders,startDate,endDate,true);
+  const rows=visibleCalc.rows,realRows=realCalc.rows;
+  const sale=visibleCalc.totals.gross,discount=visibleCalc.totals.discounts;
+  const cost=visibleCalc.totals.cost,freight=visibleCalc.totals.freight,tax=visibleCalc.totals.tax;
+  const profit=visibleCalc.totals.profit,margin=visibleCalc.totals.margin;
+  const realSale=realCalc.totals.gross,realProfit=realCalc.totals.profit;
   const hiddenRows=realRows.filter(r=>r.order.exclude_from_balance);
   const hiddenSale=hiddenRows.reduce((s,r)=>s+r.sale,0);
   const hiddenProfit=hiddenRows.reduce((s,r)=>s+(r.profit||0),0);
-  const sale=rows.reduce((s,r)=>s+r.sale,0);
-  const cost=rows.reduce((s,r)=>s+r.cost,0);
-  const freight=rows.reduce((s,r)=>s+r.freight,0);
-  const tax=rows.reduce((s,r)=>s+r.tax,0);
-  const profit=sale-cost-freight-tax;
-  const margin=sale?profit/sale*100:0;
   const summary=$('realBalanceSummary');
   if(summary){ const isAdmin=typeof window.__adminMode==='function'&&window.__adminMode(); if(!isAdmin){summary.classList.add('hidden');summary.innerHTML='';} else {summary.classList.remove('hidden'); summary.innerHTML='<div style="margin-bottom:12px"><h3 style="margin:0">Resumo financeiro</h3><p style="margin:4px 0 0;color:var(--muted);font-size:13px">Comparação do período selecionado, com e sem os serviços ocultados pelo Administrador.</p></div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px"><div style="padding:14px;border:1px solid var(--line);border-radius:12px"><small>💰 Valor real — todos os serviços</small><b style="display:block;font-size:22px;margin-top:5px">'+money(realSale)+'</b><span style="font-size:12px;color:var(--muted)">Lucro líquido: '+money(realProfit)+' • '+realRows.length+' serviços</span></div><div style="padding:14px;border:1px solid var(--line);border-radius:12px"><small>📊 Após retirar os ocultados</small><b style="display:block;font-size:22px;margin-top:5px">'+money(sale)+'</b><span style="font-size:12px;color:var(--muted)">Lucro líquido: '+money(profit)+' • '+rows.length+' serviços</span></div><div style="padding:12px;border:1px dashed var(--line);border-radius:12px"><small>Valor retirado</small><b style="display:block;margin-top:4px">'+money(hiddenSale)+'</b></div><div style="padding:12px;border:1px dashed var(--line);border-radius:12px"><small>Lucro retirado</small><b style="display:block;margin-top:4px">'+money(hiddenProfit)+'</b></div></div>'; } }
   const uniqueOrders=[...new Set(rows.map(r=>r.order.id))];
-  const moneyCards=[['Valor bruto',sale],['Custo',cost],['Frete',freight],['Imposto',tax],['Lucro líquido',profit],['Margem líquida',margin,null,true],['Serviços',rows.length,null,true],['Lançamentos',uniqueOrders.length,null,true]];
+  const moneyCards=[['Valor bruto',sale],['Descontos',discount],['Custo',cost],['Frete',freight],['Imposto',tax],['Lucro líquido',profit],['Margem líquida',margin,null,true],['Serviços',rows.length,null,true],['Lançamentos',uniqueOrders.length,null,true]];
   $('balanceCards').innerHTML=moneyCards.map(([label,value,,isInfo])=>`<div class="bcard"><small>${label}</small><b>${isInfo&&label==='Margem líquida'?Number(value).toFixed(1)+'%':isInfo&&label!=='Margem líquida'?Number(value)||0:money(value)}</b></div>`).join('');
 
   const payments={};
