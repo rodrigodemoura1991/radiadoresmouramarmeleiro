@@ -28,9 +28,12 @@
     const total = subtotal - discount + freight;
     const companyName = window.company?.name || 'RADIADORES MOURA MARMELEIRO';
     const isMarmeleiro = String(window.company?.id || '') === 'f3cd9d20-a341-41fe-87fe-c0726a19b65b';
+    const isRadiadoresMoura = String(window.company?.id || '') === '48f0eb3d-22ff-4506-9d9c-b6dd4455946b';
     const companyHeaderDetails = isMarmeleiro
       ? '<div class="small">CNPJ: 48.903.995/0001-27</div><div class="small">Rua dos Miosótis, 203 • Alvorada • Marmeleiro - PR • CEP: 85615-013</div><div class="small">Tel.: (46) 9976-0694 • E-mail: radiadoresmouramarmeleiro@gmail.com</div>'
-      : '';
+      : isRadiadoresMoura
+        ? '<div class="small">CNPJ: 65.435.170/0001-44</div><div class="small">Avenida Dom Agostinho José Sartori, 2695 • São Cristóvão</div><div class="small">Francisco Beltrão - PR • CEP: 85601-090</div><div class="small">Tel.: (46) 3524-5810 • E-mail: radiadoresmoura@gmail.com</div>'
+        : '';
     const logoUrl = new URL('8857A320-4E57-4A00-933D-C76434BC6953.png', window.location.href).href;
     const today = new Date();
     const issued = String(today.getDate()).padStart(2,'0')+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+today.getFullYear();
@@ -75,7 +78,7 @@
       @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.sheet{break-inside:avoid}}
       </style></head><body><main class="sheet">
       <header class="company"><img class="logo" src="${escapeHtml(logoUrl)}" alt="Logo"><div class="company-info">
-        <h1>${escapeHtml(companyName)}</h1><div class="small">Orçamento de serviços e produtos</div>${companyHeaderDetails}
+        <h1>${escapeHtml(companyName)}</h1>${companyHeaderDetails}
       </div></header>
       <div class="meta"><div><b>Orçamento nº:</b> ${escapeHtml(number)}</div><div><b>Emitido em:</b> ${issued}</div><div><b>Válido até:</b> ${validUntil}</div></div>
       <div class="section-title">CLIENTE</div><section class="client">
