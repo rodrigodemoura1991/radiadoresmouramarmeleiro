@@ -29,7 +29,7 @@
     const companyName = window.company?.name || 'RADIADORES MOURA MARMELEIRO';
     const isMarmeleiro = String(window.company?.id || '') === 'f3cd9d20-a341-41fe-87fe-c0726a19b65b';
     const companyHeaderDetails = isMarmeleiro
-      ? '<div class="small">CNPJ: 48.903.995/0001-27 • IE: não informada</div><div class="small">Rua dos Miosótis, 203 • Alvorada • Marmeleiro - PR • CEP: 85615-013</div><div class="small">Tel.: (46) 9976-0694 • E-mail: diiigow@hotmail.com</div>'
+      ? '<div class="small">CNPJ: 48.903.995/0001-27</div><div class="small">Rua dos Miosótis, 203 • Alvorada • Marmeleiro - PR • CEP: 85615-013</div><div class="small">Tel.: (46) 9976-0694 • E-mail: diiigow@hotmail.com</div>'
       : '';
     const logoUrl = new URL('8857A320-4E57-4A00-933D-C76434BC6953.png', window.location.href).href;
     const today = new Date();
