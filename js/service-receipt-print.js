@@ -26,7 +26,11 @@
     const hasItemFreight = items.some(item => Number(item.freight_value) || 0);
     const freight = hasItemFreight ? items.reduce((sum, item) => sum + (Number(item.freight_value) || 0), 0) : Number(order.total_freight) || 0;
     const total = subtotal - discount + freight;
-    const companyName = window.company?.name || 'RADIADORES MOURA';
+    const companyName = window.company?.name || 'RADIADORES MOURA MARMELEIRO';
+    const isMarmeleiro = String(window.company?.id || '') === 'f3cd9d20-a341-41fe-87fe-c0726a19b65b';
+    const companyHeaderDetails = isMarmeleiro
+      ? '<div class="small">CNPJ: 48.903.995/0001-27 • IE: não informada</div><div class="small">Rua dos Miosótis, 203 • Alvorada • Marmeleiro - PR • CEP: 85615-013</div><div class="small">Tel.: (46) 9976-0694 • E-mail: diiigow@hotmail.com</div>'
+      : '';
     const logoUrl = new URL('8857A320-4E57-4A00-933D-C76434BC6953.png', window.location.href).href;
     const today = new Date();
     const issued = String(today.getDate()).padStart(2,'0')+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+today.getFullYear();
@@ -71,7 +75,7 @@
       @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.sheet{break-inside:avoid}}
       </style></head><body><main class="sheet">
       <header class="company"><img class="logo" src="${escapeHtml(logoUrl)}" alt="Logo"><div class="company-info">
-        <h1>${escapeHtml(companyName)}</h1><div class="small">Orçamento de serviços e produtos</div>
+        <h1>${escapeHtml(companyName)}</h1><div class="small">Orçamento de serviços e produtos</div>${companyHeaderDetails}
       </div></header>
       <div class="meta"><div><b>Orçamento nº:</b> ${escapeHtml(number)}</div><div><b>Emitido em:</b> ${issued}</div><div><b>Válido até:</b> ${validUntil}</div></div>
       <div class="section-title">CLIENTE</div><section class="client">
