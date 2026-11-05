@@ -30,13 +30,9 @@
     box.innerHTML=`<div class="client-launch-title">Dados completos do cliente</div><div class="client-launch-grid">
       <div class="field"><label>CPF / CNPJ</label><input id="launchClientCnpj" inputmode="numeric" autocomplete="off" placeholder="CPF ou CNPJ"></div>
       <div class="field"><label>Telefone</label><input id="launchClientPhone" type="tel" autocomplete="tel" placeholder="(00) 00000-0000"></div>
-      <div class="field"><label>WhatsApp</label><input id="launchClientWhatsapp" type="tel" autocomplete="tel" placeholder="(00) 00000-0000"></div>
       <div class="field"><label>E-mail</label><input id="launchClientEmail" type="email" autocomplete="email" placeholder="cliente@email.com"></div>
       <div class="field"><label>CEP</label><input id="launchClientCep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000"></div>
-      <div class="field client-address-field"><label>Rua / Avenida</label><input id="launchClientAddress" autocomplete="address-line1" placeholder="Nome da rua ou avenida"></div>
-      <div class="field"><label>Número</label><input id="launchClientNumber" autocomplete="address-line2" placeholder="Nº"></div>
-      <div class="field"><label>Bairro</label><input id="launchClientNeighborhood" placeholder="Bairro"></div>
-      <div class="field"><label>Complemento</label><input id="launchClientComplement" placeholder="Sala, bloco, referência..."></div>
+      <div class="field client-address-field"><label>Endereço</label><input id="launchClientAddress" autocomplete="street-address" placeholder="Rua, bairro ou endereço completo"></div>
       <div class="field"><label>Cidade</label><input id="launchClientCity" autocomplete="address-level2" placeholder="Cidade"></div>
       <div class="field"><label>UF</label><input id="launchClientUf" maxlength="2" autocomplete="address-level1" placeholder="PR"></div>
     </div>`;
@@ -52,7 +48,7 @@
     `;document.head.appendChild(s)}
     const clientList=()=>{try{return typeof clients!=='undefined'&&Array.isArray(clients)?clients:[]}catch(_){return[]}};
     const getClient=()=>{const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();return clientList().find(c=>String(c.name||'').trim().toLowerCase()===name)||null};
-    const setFields=c=>{const val=id=>document.getElementById(id);if(!val('launchClientCnpj'))return;val('launchClientCnpj').value=c?.cpf_cnpj||'';val('launchClientPhone').value=c?.phone||'';val('launchClientWhatsapp').value=c?.whatsapp||'';val('launchClientEmail').value=c?.email||'';val('launchClientCep').value=c?.cep||'';val('launchClientAddress').value=c?.address||'';val('launchClientNumber').value='';val('launchClientNeighborhood').value='';val('launchClientComplement').value='';val('launchClientCity').value=c?.city||'';val('launchClientUf').value=c?.uf||''};
+    const setFields=c=>{const val=id=>document.getElementById(id);if(!val('launchClientCnpj'))return;val('launchClientCnpj').value=c?.cpf_cnpj||'';val('launchClientPhone').value=c?.phone||'';val('launchClientEmail').value=c?.email||'';val('launchClientCep').value=c?.cep||'';val('launchClientAddress').value=c?.address||'';val('launchClientCity').value=c?.city||'';val('launchClientUf').value=c?.uf||''};
     let lastClientName='';
     const fillFromName=force=>{const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();if(!force&&name===lastClientName)return;lastClientName=name;const c=getClient();if(c)setFields(c);else if(!name)setFields(null)};
     document.getElementById('clientInput')?.addEventListener('input',()=>fillFromName(false));
@@ -69,15 +65,13 @@
         order.onsubmit=async function(ev){
           const clientName=(document.getElementById('clientInput')?.value||'').trim();
           const field=id=>(document.getElementById(id)?.value||'').trim();
-          const street=field('launchClientAddress'),number=field('launchClientNumber'),neighborhood=field('launchClientNeighborhood'),complement=field('launchClientComplement');
-          const address=[street,number,neighborhood,complement].filter(Boolean).join(', ');
+          const address=field('launchClientAddress');
           const clientData={
             cpf_cnpj:field('launchClientCnpj'),
             phone:field('launchClientPhone'),
-            whatsapp:field('launchClientWhatsapp'),
             email:field('launchClientEmail'),
             cep:field('launchClientCep'),
-            address:address||street,
+            address,
             city:field('launchClientCity'),
             uf:field('launchClientUf').toUpperCase()
           };
