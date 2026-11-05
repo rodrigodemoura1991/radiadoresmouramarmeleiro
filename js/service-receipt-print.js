@@ -19,48 +19,77 @@
 
   function receiptHtml(order) {
     const items = Array.isArray(order.order_items) ? order.order_items : [];
-    const itemRows = items.length
-      ? items.map(item => '<tr><td>' + escapeHtml(item.description || 'Serviço') +
-        '</td><td class="right">' + money(item.sale_value) + '</td></tr>').join('')
-      : '<tr><td>Serviço</td><td class="right">' + money(order.total_sale) + '</td></tr>';
-    const total = order.total_sale != null
-      ? Number(order.total_sale) || 0
-      : items.reduce((sum, item) => sum + (Number(item.sale_value) || 0), 0);
-    const companyName = window.company?.name || 'RADIADORES MOURA MARMELEIRO';
+    const client = (Array.isArray(window.clients) ? window.clients : []).find(c => String(c.id) === String(order.client_id)) || {};
+    const subtotal = items.reduce((sum, item) => sum + (Number(item.sale_value) || 0), 0) || Number(order.total_sale) || 0;
+    const discountRate = Math.min(100, Math.max(0, Number(order.discount_percent) || 0)) / 100;
+    const discount = subtotal * discountRate;
+    const hasItemFreight = items.some(item => Number(item.freight_value) || 0);
+    const freight = hasItemFreight ? items.reduce((sum, item) => sum + (Number(item.freight_value) || 0), 0) : Number(order.total_freight) || 0;
+    const total = subtotal - discount + freight;
+    const companyName = window.company?.name || 'RADIADORES MOURA';
+    const logoUrl = new URL('8857A320-4E57-4A00-933D-C76434BC6953.png', window.location.href).href;
+    const today = new Date();
+    const issued = String(today.getDate()).padStart(2,'0')+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+today.getFullYear();
+    const number = order.numero_lancamento || order.pedido || '—';
+    const clientName = client.razao_social || client.name || order.client_name || 'Não informado';
+    const phone = client.phone || client.whatsapp || '';
+    const address = [client.address, client.city, client.uf].filter(Boolean).join(' - ');
+    const itemRows = items.map((item,index) => '<tr><td class="center">'+(index+1)+'</td><td>'+escapeHtml(item.description || 'Serviço / produto')+'</td><td class="center">1</td><td class="right">'+money(item.sale_value)+'</td></tr>').join('');
+    const blankRows = Array.from({length:Math.max(0,10-items.length)},()=>'<tr class="blank"><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('');
+    const payment = order.payment_status && order.payment_status !== 'EM ABERTO' ? order.payment_status : 'A combinar';
+    const notes = escapeHtml(order.notes || '');
     return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
-      <title>Notinha de serviço</title><style>
-      @page{size:A4 portrait;margin:8mm}
-      *{box-sizing:border-box}
-      body{margin:0;font:12px Arial,Helvetica,sans-serif;color:#111}
-      .receipt{width:100mm;max-width:100%;min-height:130mm;padding:5mm;border:1px dashed #777;margin:0;}
-      h1{font-size:16px;text-align:center;margin:0 0 3px;text-transform:uppercase}
-      .subtitle{text-align:center;font-size:11px;margin-bottom:8px}
-      .rule{border-top:1px dashed #555;margin:7px 0}
-      .line{margin:4px 0;overflow-wrap:anywhere}
-      .label{font-weight:bold}
-      table{width:100%;border-collapse:collapse;margin-top:6px}
-      th,td{padding:4px 0;text-align:left;vertical-align:top;border-bottom:1px dotted #bbb}
-      th{font-size:11px}.right{text-align:right;white-space:nowrap;padding-left:5px}
-      .total{display:flex;justify-content:space-between;gap:8px;font-weight:bold;font-size:13px;margin-top:8px}
-      .thanks{text-align:center;font-size:11px;margin-top:10px}
-      .print-hint{font-size:10px;color:#555;text-align:center;margin-top:5px}
-      @media print{html,body{width:100%;height:auto}body{margin:0}.receipt{break-inside:avoid;page-break-inside:avoid;margin:0}}
-      </style></head><body><main class="receipt">
-      <h1>${escapeHtml(companyName)}</h1><div class="subtitle">COMPROVANTE DE SERVIÇO</div>
-      <div class="rule"></div>
-      <div class="line"><span class="label">OS / Pedido:</span> ${escapeHtml(order.numero_lancamento || order.pedido || '—')}</div>
-      <div class="line"><span class="label">Entrada:</span> ${escapeHtml(dateBR(order.entry_date))}</div>
-      <div class="line"><span class="label">Saída:</span> ${escapeHtml(order.exit_date ? dateBR(order.exit_date) : 'Não entregue')}</div>
-      <div class="line"><span class="label">Cliente:</span> ${escapeHtml(order.client_name || 'Não informado')}</div>
-      ${order.vehicle_make_model ? '<div class="line"><span class="label">Veículo:</span> ' + escapeHtml(order.vehicle_make_model) + '</div>' : ''}
-      ${order.plate ? '<div class="line"><span class="label">Placa:</span> ' + escapeHtml(order.plate) + '</div>' : ''}
-      <div class="rule"></div><table><thead><tr><th>Descrição</th><th class="right">Valor</th></tr></thead><tbody>${itemRows}</tbody></table>
-      <div class="total"><span>TOTAL</span><span>${money(total)}</span></div>
-      ${order.payment_status ? '<div class="line" style="margin-top:7px"><span class="label">Pagamento:</span> ' + escapeHtml(order.payment_status) + '</div>' : ''}
-      ${order.notes ? '<div class="line" style="margin-top:7px"><span class="label">Observações:</span> ' + escapeHtml(order.notes) + '</div>' : ''}
-      <div class="rule"></div><div class="thanks">Obrigado pela preferência!</div>
-      <div class="print-hint">Radiadores Moura Marmeleiro</div>
-      </main><script>window.onload=function(){setTimeout(function(){window.focus();window.print()},250)};<\/script></body></html>`;
+      <title>Orçamento ${escapeHtml(number)}</title><style>
+      @page{size:A4 portrait;margin:9mm}*{box-sizing:border-box}
+      body{margin:0;font:11px Arial,Helvetica,sans-serif;color:#111}
+      .sheet{width:100%;max-width:190mm;margin:0 auto}
+      .company{height:34mm;border:2px solid #222;display:flex;align-items:center;padding:5px 10px;gap:12px}
+      .logo{width:29mm;height:29mm;object-fit:contain;flex:0 0 29mm}
+      .company-info{flex:1;text-align:center;line-height:1.45}
+      .company-info h1{font-size:19px;margin:0 0 3px;text-transform:uppercase}
+      .company-info .small{font-size:10px}
+      .meta{display:grid;grid-template-columns:1fr 1fr 1fr;border:2px solid #222;border-top:0;text-align:center}
+      .meta div{padding:7px 4px;border-right:1px solid #222}.meta div:last-child{border:0}
+      .section-title{border:2px solid #222;border-top:0;text-align:center;font-weight:bold;letter-spacing:2px;padding:5px}
+      .client{border:2px solid #222;border-top:0}
+      .client-row{display:grid;grid-template-columns:95px 1fr;border-bottom:1px solid #555;min-height:20px}
+      .client-row:last-child{border:0}.client-row b{padding:4px 6px;border-right:1px solid #555}
+      .client-row span{padding:4px 6px}
+      .items{width:100%;border-collapse:collapse;border:2px solid #222;border-top:0}
+      .items th,.items td{border:1px solid #333;padding:5px 6px;height:22px}
+      .items th{font-weight:bold;text-align:center;background:#f4f4f4}
+      .items .center{text-align:center}.items .right{text-align:right;white-space:nowrap}.items .blank td{height:17px}
+      .totals{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border:2px solid #222;border-top:0}
+      .totals div{text-align:center;padding:8px 4px;border-right:1px solid #222;font-weight:bold}
+      .totals div:last-child{border:0}.totals strong{display:block;margin-top:3px}
+      .observations{border:2px solid #222;border-top:0;min-height:39mm}
+      .observations-title{text-align:center;letter-spacing:2px;font-weight:bold;padding:6px;border-bottom:1px solid #222}
+      .observations-body{padding:9px;line-height:1.65;white-space:pre-wrap;min-height:30mm}
+      .signatures{display:flex;justify-content:space-between;gap:20px;margin-top:15mm;text-align:center}
+      .signature{width:46%;border-top:1px solid #333;padding-top:5px;font-weight:bold}
+      @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.sheet{break-inside:avoid}}
+      </style></head><body><main class="sheet">
+      <header class="company"><img class="logo" src="${escapeHtml(logoUrl)}" alt="Logo"><div class="company-info">
+        <h1>${escapeHtml(companyName)}</h1><div class="small">Orçamento de serviços e produtos</div>
+      </div></header>
+      <div class="meta"><div><b>Orçamento nº:</b> ${escapeHtml(number)}</div><div><b>Emitido em:</b> ${issued}</div><div><b>Válido até:</b> ____/____/________</div></div>
+      <div class="section-title">CLIENTE</div><section class="client">
+        <div class="client-row"><b>NOME</b><span>${escapeHtml(clientName)}</span></div>
+        <div class="client-row"><b>TELEFONE</b><span>${escapeHtml(phone || '—')}</span></div>
+        <div class="client-row"><b>CPF/CNPJ</b><span>${escapeHtml(client.cpf_cnpj || '—')}</span></div>
+        <div class="client-row"><b>EMAIL</b><span>${escapeHtml(client.email || '—')}</span></div>
+        <div class="client-row"><b>ENDEREÇO</b><span>${escapeHtml(address || '—')}${client.cep ? ' • CEP: '+escapeHtml(client.cep) : ''}</span></div>
+        ${order.vehicle_make_model || order.plate ? '<div class="client-row"><b>VEÍCULO</b><span>'+escapeHtml([order.vehicle_make_model,order.plate].filter(Boolean).join(' • '))+'</span></div>' : ''}
+      </section>
+      <div class="section-title">ORÇAMENTO</div>
+      <table class="items"><thead><tr><th style="width:8%">ITEM</th><th>PRODUTO / SERVIÇO</th><th style="width:12%">QUANT.</th><th style="width:20%">VALOR</th></tr></thead><tbody>${itemRows}${blankRows}</tbody></table>
+      <div class="totals"><div>SUBTOTAL<strong>${money(subtotal)}</strong></div><div>DESCONTO<strong>${money(discount)}</strong></div><div>ACRÉSCIMO<strong>${money(freight)}</strong></div><div>TOTAL<strong>${money(total)}</strong></div></div>
+      <section class="observations"><div class="observations-title">OBSERVAÇÕES</div><div class="observations-body"><b>Forma de pagamento:</b> ${escapeHtml(payment)}.
+      ${notes ? '\n'+notes : ''}
+      ${freight ? '\n<b>Acréscimo / frete:</b> '+money(freight)+'.' : ''}
+      </div></section>
+      <footer class="signatures"><div class="signature">${escapeHtml(companyName)}</div><div class="signature">${escapeHtml(clientName)}</div></footer>
+      </main><script>window.onload=function(){setTimeout(function(){window.focus();window.print()},400)};<\\/script></body></html>`;
   }
 
   function printServiceReceipt(id) {
@@ -96,8 +125,8 @@
     button.type = 'button';
     button.className = className || 'btn';
     button.dataset.receiptPrint = id;
-    button.textContent = label || '🖨 Imprimir notinha';
-    button.title = 'Imprimir comprovante compacto em papel A4';
+    button.textContent = label || '🖨 Imprimir orçamento';
+    button.title = 'Imprimir orçamento no modelo A4';
     button.style.cssText = 'font-size:11px;padding:7px 10px;white-space:nowrap';
     parent.appendChild(button);
   }
@@ -121,8 +150,8 @@
     button.type = 'submit';
     button.id = 'saveAndPrintReceipt';
     button.className = 'btn';
-    button.textContent = '🖨 Salvar e imprimir';
-    button.title = 'Salvar o lançamento e abrir a notinha para impressão';
+    button.textContent = '🖨 Salvar e imprimir orçamento';
+    button.title = 'Salvar o lançamento e abrir o orçamento para impressão';
     submit.parentElement.insertBefore(button, submit);
   }
 
