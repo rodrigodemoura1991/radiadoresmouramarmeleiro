@@ -27,24 +27,32 @@
     const order=document.getElementById('order'), clientField=document.getElementById('clientInput')?.closest('.field');
     if(!order||!clientField||document.getElementById('launchClientDetails'))return;
     const box=document.createElement('div');box.id='launchClientDetails';box.className='g12 client-launch-details';
-    box.innerHTML=`<div class="client-launch-title">Dados do cliente</div><div class="client-launch-grid">
-      <div class="field"><label>CNPJ</label><input id="launchClientCnpj" inputmode="numeric" autocomplete="off" placeholder="00.000.000/0000-00"></div>
+    box.innerHTML=`<div class="client-launch-title">Dados completos do cliente</div><div class="client-launch-grid">
+      <div class="field"><label>CPF / CNPJ</label><input id="launchClientCnpj" inputmode="numeric" autocomplete="off" placeholder="CPF ou CNPJ"></div>
       <div class="field"><label>Telefone</label><input id="launchClientPhone" type="tel" autocomplete="tel" placeholder="(00) 00000-0000"></div>
+      <div class="field"><label>WhatsApp</label><input id="launchClientWhatsapp" type="tel" autocomplete="tel" placeholder="(00) 00000-0000"></div>
+      <div class="field"><label>E-mail</label><input id="launchClientEmail" type="email" autocomplete="email" placeholder="cliente@email.com"></div>
       <div class="field"><label>CEP</label><input id="launchClientCep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000"></div>
-      <div class="field client-address-field"><label>Endereço completo</label><input id="launchClientAddress" autocomplete="street-address" placeholder="Rua, número, bairro, cidade - UF"></div>
+      <div class="field client-address-field"><label>Rua / Avenida</label><input id="launchClientAddress" autocomplete="address-line1" placeholder="Nome da rua ou avenida"></div>
+      <div class="field"><label>Número</label><input id="launchClientNumber" autocomplete="address-line2" placeholder="Nº"></div>
+      <div class="field"><label>Bairro</label><input id="launchClientNeighborhood" placeholder="Bairro"></div>
+      <div class="field"><label>Complemento</label><input id="launchClientComplement" placeholder="Sala, bloco, referência..."></div>
+      <div class="field"><label>Cidade</label><input id="launchClientCity" autocomplete="address-level2" placeholder="Cidade"></div>
+      <div class="field"><label>UF</label><input id="launchClientUf" maxlength="2" autocomplete="address-level1" placeholder="PR"></div>
     </div>`;
     clientField.after(box);
     if(!document.getElementById('launch-client-fields-style')){const s=document.createElement('style');s.id='launch-client-fields-style';s.textContent=`
       #launchClientDetails{margin-top:2px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fafcff}
       #launchClientDetails .client-launch-title{font-weight:800;font-size:14px;margin-bottom:10px;color:var(--ink)}
-      #launchClientDetails .client-launch-grid{display:grid;grid-template-columns:1fr 1fr 1fr 2fr;gap:10px;align-items:end}
-      #launchClientDetails .client-launch-grid .field{margin:0}#launchClientDetails input{width:100%;box-sizing:border-box}
-      @media(max-width:900px){#launchClientDetails .client-launch-grid{grid-template-columns:1fr 1fr}.client-address-field{grid-column:1/-1}}
-      @media(max-width:600px){#launchClientDetails .client-launch-grid{grid-template-columns:1fr}.client-address-field{grid-column:auto}}
+      #launchClientDetails .client-launch-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:end}
+      #launchClientDetails .client-launch-grid .field{margin:0;min-width:0}#launchClientDetails input{width:100%;min-width:0;box-sizing:border-box}
+      #launchClientDetails .client-address-field{grid-column:span 2}
+      @media(max-width:900px){#launchClientDetails .client-launch-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#launchClientDetails .client-address-field{grid-column:span 2}}
+      @media(max-width:600px){#launchClientDetails .client-launch-grid{grid-template-columns:1fr}#launchClientDetails .client-address-field{grid-column:auto}}
     `;document.head.appendChild(s)}
     const clientList=()=>{try{return typeof clients!=='undefined'&&Array.isArray(clients)?clients:[]}catch(_){return[]}};
     const getClient=()=>{const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();return clientList().find(c=>String(c.name||'').trim().toLowerCase()===name)||null};
-    const setFields=c=>{const cnpj=document.getElementById('launchClientCnpj'),phone=document.getElementById('launchClientPhone'),cep=document.getElementById('launchClientCep'),address=document.getElementById('launchClientAddress');if(!cnpj)return;cnpj.value=c?.cpf_cnpj||'';phone.value=c?.phone||c?.whatsapp||'';cep.value=c?.cep||'';address.value=c?.address||''};
+    const setFields=c=>{const val=id=>document.getElementById(id);if(!val('launchClientCnpj'))return;val('launchClientCnpj').value=c?.cpf_cnpj||'';val('launchClientPhone').value=c?.phone||'';val('launchClientWhatsapp').value=c?.whatsapp||'';val('launchClientEmail').value=c?.email||'';val('launchClientCep').value=c?.cep||'';val('launchClientAddress').value=c?.address||'';val('launchClientNumber').value='';val('launchClientNeighborhood').value='';val('launchClientComplement').value='';val('launchClientCity').value=c?.city||'';val('launchClientUf').value=c?.uf||''};
     let lastClientName='';
     const fillFromName=force=>{const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();if(!force&&name===lastClientName)return;lastClientName=name;const c=getClient();if(c)setFields(c);else if(!name)setFields(null)};
     document.getElementById('clientInput')?.addEventListener('input',()=>fillFromName(false));
@@ -60,11 +68,18 @@
       if(typeof originalSubmit==='function'){
         order.onsubmit=async function(ev){
           const clientName=(document.getElementById('clientInput')?.value||'').trim();
+          const field=id=>(document.getElementById(id)?.value||'').trim();
+          const street=field('launchClientAddress'),number=field('launchClientNumber'),neighborhood=field('launchClientNeighborhood'),complement=field('launchClientComplement');
+          const address=[street,number,neighborhood,complement].filter(Boolean).join(', ');
           const clientData={
-            cpf_cnpj:(document.getElementById('launchClientCnpj')?.value||'').trim(),
-            phone:(document.getElementById('launchClientPhone')?.value||'').trim(),
-            cep:(document.getElementById('launchClientCep')?.value||'').trim(),
-            address:(document.getElementById('launchClientAddress')?.value||'').trim()
+            cpf_cnpj:field('launchClientCnpj'),
+            phone:field('launchClientPhone'),
+            whatsapp:field('launchClientWhatsapp'),
+            email:field('launchClientEmail'),
+            cep:field('launchClientCep'),
+            address:address||street,
+            city:field('launchClientCity'),
+            uf:field('launchClientUf').toUpperCase()
           };
           try{
             await originalSubmit.call(this,ev);
