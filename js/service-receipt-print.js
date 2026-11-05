@@ -51,13 +51,17 @@
       @page{size:A4 portrait;margin:9mm}*{box-sizing:border-box}
       body{margin:0;font:11px Arial,Helvetica,sans-serif;color:#111}
       .sheet{width:100%;max-width:190mm;margin:0 auto}
-      .company{height:34mm;border:2px solid #222;display:flex;align-items:center;padding:5px 10px;gap:12px}
-      .logo{width:29mm;height:29mm;object-fit:contain;flex:0 0 29mm}
-      .company-info{flex:1;text-align:center;line-height:1.45}
-      .company-info h1{font-size:19px;margin:0 0 3px;text-transform:uppercase}
-      .company-info .small{font-size:10px}
-      .meta{display:grid;grid-template-columns:1fr 1fr 1fr;border:2px solid #222;border-top:0;text-align:center}
-      .meta div{padding:7px 4px;border-right:1px solid #222}.meta div:last-child{border:0}
+      .company{min-height:37mm;border:1.5px solid #243e5a;border-bottom:3px solid #243e5a;display:flex;align-items:center;padding:5mm 6mm;gap:7mm;background:#fff}
+      .logo{width:32mm;height:32mm;object-fit:contain;flex:0 0 32mm}
+      .company-info{flex:1;text-align:left;line-height:1.5}
+      .company-info h1{font-size:20px;letter-spacing:.35px;color:#183653;margin:0 0 3px;text-transform:uppercase;font-weight:800}
+      .company-info .small{font-size:9.5px;color:#263746;line-height:1.45}
+      .meta{display:grid;grid-template-columns:1.15fr 1fr 1fr;border:1.5px solid #243e5a;border-top:0;text-align:center;align-items:stretch}
+      .meta div{padding:6px 4px;border-right:1px solid #9aa8b5;display:flex;flex-direction:column;justify-content:center;gap:2px}
+      .meta div:last-child{border:0}
+      .meta .quote-number strong{font-size:17px;line-height:1.1;color:#183653;font-weight:800}
+      .meta .quote-number span{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.35px}
+      .meta .meta-date{font-size:10px;font-weight:600;color:#263746}
       .section-title{border:2px solid #222;border-top:0;text-align:center;font-weight:bold;letter-spacing:2px;padding:5px}
       .client{border:2px solid #222;border-top:0}
       .client-row{display:grid;grid-template-columns:95px 1fr;border-bottom:1px solid #555;min-height:20px}
@@ -80,7 +84,7 @@
       <header class="company"><img class="logo" src="${escapeHtml(logoUrl)}" alt="Logo"><div class="company-info">
         <h1>${escapeHtml(companyName)}</h1>${companyHeaderDetails}
       </div></header>
-      <div class="meta"><div><b>Orçamento nº:</b> ${escapeHtml(number)}</div><div><b>Emitido em:</b> ${issued}</div><div><b>Válido até:</b> ${validUntil}</div></div>
+      <div class="meta"><div class="quote-number"><span>Orçamento nº</span><strong>${escapeHtml(number)}</strong></div><div class="meta-date"><b>Emitido em</b><span>${issued}</span></div><div class="meta-date"><b>Válido até</b><span>${validUntil}</span></div></div>
       <div class="section-title">CLIENTE</div><section class="client">
         <div class="client-row"><b>NOME</b><span>${escapeHtml(clientName)}</span></div>
         <div class="client-row"><b>TELEFONE</b><span>${escapeHtml(phone || '—')}</span></div>
