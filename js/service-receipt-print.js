@@ -30,13 +30,14 @@
     const logoUrl = new URL('8857A320-4E57-4A00-933D-C76434BC6953.png', window.location.href).href;
     const today = new Date();
     const issued = String(today.getDate()).padStart(2,'0')+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+today.getFullYear();
+    const validityDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
+    const validUntil = String(validityDate.getDate()).padStart(2,'0')+'/'+String(validityDate.getMonth()+1).padStart(2,'0')+'/'+validityDate.getFullYear();
     const number = order.numero_lancamento || order.pedido || '—';
     const clientName = client.razao_social || client.name || order.client_name || 'Não informado';
     const phone = client.phone || client.whatsapp || '';
     const address = [client.address, client.city, client.uf].filter(Boolean).join(' - ');
     const itemRows = items.map((item,index) => '<tr><td class="center">'+(index+1)+'</td><td>'+escapeHtml(item.description || 'Serviço / produto')+'</td><td class="center">1</td><td class="right">'+money(item.sale_value)+'</td></tr>').join('');
     const blankRows = Array.from({length:Math.max(0,10-items.length)},()=>'<tr class="blank"><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('');
-    const payment = order.payment_status && order.payment_status !== 'EM ABERTO' ? order.payment_status : 'A combinar';
     const notes = escapeHtml(order.notes || '');
     return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
       <title>Orçamento ${escapeHtml(number)}</title><style>
@@ -72,7 +73,7 @@
       <header class="company"><img class="logo" src="${escapeHtml(logoUrl)}" alt="Logo"><div class="company-info">
         <h1>${escapeHtml(companyName)}</h1><div class="small">Orçamento de serviços e produtos</div>
       </div></header>
-      <div class="meta"><div><b>Orçamento nº:</b> ${escapeHtml(number)}</div><div><b>Emitido em:</b> ${issued}</div><div><b>Válido até:</b> ____/____/________</div></div>
+      <div class="meta"><div><b>Orçamento nº:</b> ${escapeHtml(number)}</div><div><b>Emitido em:</b> ${issued}</div><div><b>Válido até:</b> ${validUntil}</div></div>
       <div class="section-title">CLIENTE</div><section class="client">
         <div class="client-row"><b>NOME</b><span>${escapeHtml(clientName)}</span></div>
         <div class="client-row"><b>TELEFONE</b><span>${escapeHtml(phone || '—')}</span></div>
@@ -84,7 +85,7 @@
       <div class="section-title">ORÇAMENTO</div>
       <table class="items"><thead><tr><th style="width:8%">ITEM</th><th>PRODUTO / SERVIÇO</th><th style="width:12%">QUANT.</th><th style="width:20%">VALOR</th></tr></thead><tbody>${itemRows}${blankRows}</tbody></table>
       <div class="totals"><div>SUBTOTAL<strong>${money(subtotal)}</strong></div><div>DESCONTO<strong>${money(discount)}</strong></div><div>ACRÉSCIMO<strong>${money(freight)}</strong></div><div>TOTAL<strong>${money(total)}</strong></div></div>
-      <section class="observations"><div class="observations-title">OBSERVAÇÕES</div><div class="observations-body"><b>Forma de pagamento:</b> ${escapeHtml(payment)}.
+      <section class="observations"><div class="observations-title">OBSERVAÇÕES</div><div class="observations-body"><b>Condições de pagamento:</b> À vista com 5% de desconto ou em até 3x no cartão de crédito.
       ${notes ? '\n'+notes : ''}
       ${freight ? '\n<b>Acréscimo / frete:</b> '+money(freight)+'.' : ''}
       </div></section>
