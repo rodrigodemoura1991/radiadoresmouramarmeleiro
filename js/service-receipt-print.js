@@ -364,6 +364,16 @@
     return doc;
   }
 
+  function receiptFilename(order) {
+    const client = (Array.isArray(window.clients) ? window.clients : []).find(x => String(x.id) === String(order.client_id)) || {};
+    const clientName = order.client_name || client.razao_social || client.name || 'cliente';
+    const number = order.numero_lancamento ?? order.os_number ?? order.order_number ?? order.id ?? '—';
+    const safePart = value => String(value ?? '').normalize('NFD')
+      .replace(/[\\u0300-\\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toUpperCase();
+    return 'ORCAMENTO-' + (safePart(clientName) || 'CLIENTE') + '-OS-' + (safePart(number) || 'SEM-NUMERO') + '.pdf';
+  }
+
   async function sendReceiptWhatsApp(order, paymentConditions, extraObservations) {
     const number = order.numero_lancamento ?? order.pedido ?? order.os_number ?? order.order_number ?? order.id ?? '—';
     const client = (Array.isArray(window.clients) ? window.clients : []).find(x => String(x.id) === String(order.client_id)) || {};
@@ -371,12 +381,7 @@
     const message = 'Olá, ' + clientName + '! Segue o orçamento nº ' + number + ' da ' + (window.company?.name || 'Radiadores Moura') + '.';
     try {
       const doc = await receiptPdfData(order, paymentConditions, extraObservations);
-      const safePart = value => String(value ?? '').normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toUpperCase();
-      const safeClientName = safePart(clientName) || 'CLIENTE';
-      const safeOrderNumber = safePart(number) || 'SEM-NUMERO';
-      const filename = 'ORCAMENTO-' + safeClientName + '-OS-' + safeOrderNumber + '.pdf';
+      const filename = receiptFilename(order);
       const blob = doc.output('blob');
       const file = new File([blob], filename, { type: 'application/pdf' });
 
@@ -466,34 +471,45 @@
     }
     const printOptions = await showPrintOptions(order);
     if (!printOptions) return;
-    // Iframe evita depender da abertura de uma nova janela após salvar o formulário.
-    let frame = document.getElementById('serviceReceiptPrintFrame');
-    if (frame) frame.remove();
-    frame = document.createElement('iframe');
-    frame.id = 'serviceReceiptPrintFrame';
-    frame.setAttribute('aria-hidden', 'true');
-    frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
-    document.body.appendChild(frame);
-    const doc = frame.contentWindow.document;
-    let printed = false;
-    const startPrint = () => {
-      if (printed) return;
-      printed = true;
-      try {
-        frame.contentWindow.focus();
-        frame.contentWindow.print();
-      } catch (error) {
-        console.error('Falha ao imprimir notinha:', error);
-        if (typeof window.toast === 'function') window.toast('Não foi possível abrir a impressão. Tente novamente.');
-      }
-      setTimeout(() => frame.remove(), 3000);
-    };
-    frame.onload = () => setTimeout(startPrint, 250);
-    doc.open();
-    doc.write(receiptHtml(order, printOptions.paymentConditions, printOptions.extraObservations));
-    doc.close();
-    // Fallback para navegadores que não disparam o load do iframe como esperado.
-    setTimeout(startPrint, 1200);
+    let frame;
+    let objectUrl;
+    try {
+      // Impressão e WhatsApp geram o mesmo arquivo PDF, com o mesmo layout e conteúdo.
+      const pdf = await receiptPdfData(order, printOptions.paymentConditions, printOptions.extraObservations);
+      const blob = pdf.output('blob');
+      objectUrl = URL.createObjectURL(blob);
+      frame = document.getElementById('serviceReceiptPrintFrame');
+      if (frame) frame.remove();
+      frame = document.createElement('iframe');
+      frame.id = 'serviceReceiptPrintFrame';
+      frame.title = receiptFilename(order);
+      frame.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;border:0;background:#fff;z-index:2147483000;opacity:.01;pointer-events:none';
+      document.body.appendChild(frame);
+      let printed = false;
+      const startPrint = () => {
+        if (printed || !frame?.isConnected) return;
+        printed = true;
+        try {
+          frame.contentWindow.focus();
+          frame.contentWindow.print();
+        } catch (error) {
+          console.error('Falha ao imprimir orçamento PDF:', error);
+          if (typeof window.toast === 'function') window.toast('Não foi possível abrir a impressão. Tente novamente.');
+        }
+        setTimeout(() => {
+          if (frame?.isConnected) frame.remove();
+          if (objectUrl) URL.revokeObjectURL(objectUrl);
+        }, 5000);
+      };
+      frame.onload = () => setTimeout(startPrint, 500);
+      frame.src = objectUrl;
+      setTimeout(startPrint, 1800);
+    } catch (error) {
+      if (frame?.isConnected) frame.remove();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      console.error('Erro ao gerar PDF para impressão:', error);
+      alert('Não foi possível gerar o PDF: ' + (error?.message || error));
+    }
   }
   window.printServiceReceipt = printServiceReceipt;
 
