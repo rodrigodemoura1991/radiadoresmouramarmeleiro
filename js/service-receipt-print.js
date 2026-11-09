@@ -121,7 +121,7 @@
       if (old) old.remove();
       const overlay = document.createElement('div');
       overlay.id = 'receiptPaymentDialog';
-      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999999;display:flex;align-items:center;justify-content:center;padding:16px;font-family:Arial,sans-serif';
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:16px;font-family:Arial,sans-serif';
       const options = PAYMENT_OPTIONS.map((option, index) =>
         '<label style="display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid #eee;font-size:14px;cursor:pointer"><input type="checkbox" value="' + escapeHtml(option) + '" ' + (index === 0 ? '' : '') + ' style="width:17px;height:17px"> <span>' + escapeHtml(option) + '</span></label>'
       ).join('');
