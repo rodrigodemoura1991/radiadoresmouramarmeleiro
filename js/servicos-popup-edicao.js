@@ -3,7 +3,7 @@
 (function(){
   'use strict';
   const $=id=>document.getElementById(id);
-  let popup=null, originalParent=null, originalNext=null, opened=false, currentOrderId=null, creating=false;
+  let popup=null, originalParent=null, originalNext=null, originalParentDisplay='', originalClearText=null, originalClearOnclick=null, opened=false, currentOrderId=null, creating=false;
   function css(){
     if($('service-edit-popup-css'))return;
     const s=document.createElement('style');s.id='service-edit-popup-css';s.textContent=`
@@ -98,7 +98,7 @@
   function close(){
     if(!opened)return;const form=$('order');
     if(form&&originalParent){if(originalNext&&originalNext.parentNode===originalParent)originalParent.insertBefore(form,originalNext);else originalParent.appendChild(form)}
-    popup?.classList.add('hidden');window.__serviceEditCurrentOrderId=null;document.documentElement.classList.remove('service-edit-popup-html');document.body.classList.remove('service-edit-popup-open');opened=false;originalParent=null;originalNext=null;currentOrderId=null;creating=false;$('serviceEditPrintReceipt')?.classList.remove('hidden');
+    popup?.classList.add('hidden');window.__serviceEditCurrentOrderId=null;document.documentElement.classList.remove('service-edit-popup-html');document.body.classList.remove('service-edit-popup-open');opened=false;if(originalParent)originalParent.style.display=originalParentDisplay;if($('clear')&&originalClearText!==null){$('clear').textContent=originalClearText;$('clear').onclick=originalClearOnclick;}originalParent=null;originalNext=null;currentOrderId=null;creating=false;$('serviceEditPrintReceipt')?.classList.remove('hidden');
   }
   function configureDeliveryControl(){
     const checkbox=$('notDelivered'),exit=$('exit');
@@ -124,7 +124,7 @@
   }
   function openNew(){
     const form=$('order');if(!form||opened)return;ensurePopup();creating=true;currentOrderId=null;
-    originalParent=form.parentNode;originalNext=form.nextSibling;
+    originalParent=form.parentNode;originalNext=form.nextSibling;originalParentDisplay=originalParent?.style.display||'';const clearButton=$('clear');if(clearButton&&originalClearText===null){originalClearText=clearButton.textContent;originalClearOnclick=clearButton.onclick;}
     if(typeof window.clearOrder==='function')window.clearOrder();else $('clear')?.click();
     $('serviceEditBox').appendChild(form);popup.classList.remove('hidden');document.documentElement.classList.add('service-edit-popup-html');document.body.classList.add('service-edit-popup-open');opened=true;
     $('serviceEditTitle').textContent='Novo lançamento de serviço';$('serviceEditPrintReceipt')?.classList.add('hidden');
