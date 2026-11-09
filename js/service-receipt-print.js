@@ -39,8 +39,8 @@
     const issued = String(today.getDate()).padStart(2,'0')+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+today.getFullYear();
     const validityDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
     const validUntil = String(validityDate.getDate()).padStart(2,'0')+'/'+String(validityDate.getMonth()+1).padStart(2,'0')+'/'+validityDate.getFullYear();
-    const number = order.numero_lancamento || order.pedido || '—';
-    const clientName = client.razao_social || client.name || order.client_name || 'Não informado';
+    const number = order.numero_lancamento ?? order.os_number ?? order.order_number ?? order.id ?? '—';
+    const clientName = order.client_name || client.razao_social || client.name || 'Não informado';
     const phone = client.phone || client.whatsapp || '';
     const address = [client.address, client.city, client.uf].filter(Boolean).join(' - ');
     const itemRows = items.map((item,index) => '<tr><td class="center">'+(index+1)+'</td><td>'+escapeHtml(item.description || 'Serviço / produto')+'</td><td class="center">1</td><td class="right">'+money(item.sale_value)+'</td></tr>').join('');
@@ -187,18 +187,22 @@
     companyLines.forEach((lineText, i) => text(lineText, companyX, y + 15 + i * 4.2, 7.2, 'normal', [40, 50, 60]));
     y += 34;
 
-    // Identificação do orçamento.
-    doc.setDrawColor(...navy); doc.rect(margin, y, pageW - margin * 2, 15);
-    const widths = [65, 58, 59];
-    let x = margin;
-    const meta = [['ORÇAMENTO Nº', String(number)], ['EMITIDO EM', issued], ['VÁLIDO ATÉ', valid]];
-    meta.forEach((entry, i) => {
-      if (i) line(x, y, x, y + 15);
-      text(entry[0], x + 3, y + 5, 7, 'bold', navy);
-      text(entry[1], x + 3, y + 11, i === 0 ? 12 : 9, 'bold', [20, 30, 40]);
-      x += widths[i];
+    // Identificação da OS e datas do serviço. A saída só aparece quando estiver preenchida.
+    const serviceDates = [
+      ['Nº DA OS', String(number)],
+      ['DATA DE ENTRADA', dateBR(order.entry_date) || '—']
+    ];
+    if (order.exit_date) serviceDates.push(['DATA DE SAÍDA', dateBR(order.exit_date)]);
+    const metaHeight = 15;
+    const metaWidth = (pageW - margin * 2) / serviceDates.length;
+    doc.setDrawColor(...navy); doc.rect(margin, y, pageW - margin * 2, metaHeight);
+    serviceDates.forEach((entry, i) => {
+      const cellX = margin + i * metaWidth;
+      if (i) line(cellX, y, cellX, y + metaHeight);
+      text(entry[0], cellX + 3, y + 5, 7, 'bold', navy);
+      text(entry[1], cellX + 3, y + 11, i === 0 ? 12 : 9, 'bold', [20, 30, 40]);
     });
-    y += 15;
+    y += metaHeight;
 
     const section = title => {
       ensure(10);
@@ -289,7 +293,7 @@
         .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toUpperCase();
       const safeClientName = safePart(clientName) || 'CLIENTE';
       const safeOrderNumber = safePart(number) || 'SEM-NUMERO';
-      const filename = 'ORCAMENTO-' + safeClientName + '-PEDIDO-' + safeOrderNumber + '.pdf';
+      const filename = 'ORCAMENTO-' + safeClientName + '-OS-' + safeOrderNumber + '.pdf';
       const blob = doc.output('blob');
       const file = new File([blob], filename, { type: 'application/pdf' });
 
