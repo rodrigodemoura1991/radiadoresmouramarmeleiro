@@ -27,11 +27,30 @@
     popup.innerHTML='<div id="serviceEditBox" role="dialog" aria-modal="true"><div id="serviceEditHeader"><h2 id="serviceEditTitle">Editar lançamento</h2><div id="serviceEditHeaderActions"><button type="button" id="serviceEditPrintReceipt">Imprimir</button><button type="button" id="serviceEditClose">Fechar ×</button></div></div></div>';
     document.body.appendChild(popup);
     $('serviceEditClose').onclick=close;
-    $('serviceEditPrintReceipt').onclick=function(e){
-      e.preventDefault();e.stopPropagation();
-      if(currentOrderId&&typeof window.printServiceReceipt==='function')window.printServiceReceipt(currentOrderId);
-      else alert('Salve ou abra um lançamento antes de imprimir a notinha.');
-    };
+    $('serviceEditPrintReceipt').addEventListener('click',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      const orderId=currentOrderId;
+      if(!orderId){
+        alert('Não foi possível identificar o lançamento aberto. Feche e abra o lançamento novamente.');
+        return;
+      }
+      if(typeof window.printServiceReceipt!=='function'){
+        alert('O módulo de impressão não foi carregado. Atualize o aplicativo com Ctrl + F5 e tente novamente.');
+        console.error('[Radiadores Moura] printServiceReceipt não está disponível.');
+        return;
+      }
+      try{
+        const result=window.printServiceReceipt(orderId);
+        if(result&&typeof result.catch==='function')result.catch(error=>{
+          console.error('[Radiadores Moura] Erro ao iniciar impressão:',error);
+          alert('Ocorreu um erro ao abrir a impressão. Consulte o console para detalhes.');
+        });
+      }catch(error){
+        console.error('[Radiadores Moura] Erro ao iniciar impressão:',error);
+        alert('Não foi possível iniciar a impressão: '+(error?.message||error));
+      }
+    });
     popup.addEventListener('click',e=>{if(e.target===popup)close()});
   }
   function close(){
