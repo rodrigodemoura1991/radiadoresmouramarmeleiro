@@ -17,7 +17,7 @@
     return orders.find(order => String(order.id) === String(id));
   }
 
-  function receiptHtml(order) {
+  function receiptHtml(order, paymentConditions = [], extraObservations = '') {
     const items = Array.isArray(order.order_items) ? order.order_items : [];
     const client = (Array.isArray(window.clients) ? window.clients : []).find(c => String(c.id) === String(order.client_id)) || {};
     const subtotal = items.reduce((sum, item) => sum + (Number(item.sale_value) || 0), 0) || Number(order.total_sale) || 0;
@@ -45,7 +45,7 @@
     const address = [client.address, client.city, client.uf].filter(Boolean).join(' - ');
     const itemRows = items.map((item,index) => '<tr><td class="center">'+(index+1)+'</td><td>'+escapeHtml(item.description || 'Serviço / produto')+'</td><td class="center">1</td><td class="right">'+money(item.sale_value)+'</td></tr>').join('');
     const blankRows = Array.from({length:Math.max(0,10-items.length)},()=>'<tr class="blank"><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('');
-    const notes = escapeHtml(order.notes || '');
+    const notes = escapeHtml([order.notes || '', extraObservations || ''].filter(Boolean).join('\n'));\n    const paymentText = paymentConditions.length ? paymentConditions.map(escapeHtml).join(' • ') : 'A combinar';
     return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
       <title>Orçamento ${escapeHtml(number)}</title><style>
       @page{size:A4 portrait;margin:9mm}*{box-sizing:border-box}
@@ -96,7 +96,7 @@
       <div class="section-title">ORÇAMENTO</div>
       <table class="items"><thead><tr><th style="width:8%">ITEM</th><th>PRODUTO / SERVIÇO</th><th style="width:12%">QUANT.</th><th style="width:20%">VALOR</th></tr></thead><tbody>${itemRows}${blankRows}</tbody></table>
       <div class="totals"><div>SUBTOTAL<strong>${money(subtotal)}</strong></div><div>DESCONTO<strong>${money(discount)}</strong></div><div>ACRÉSCIMO<strong>${money(freight)}</strong></div><div>TOTAL<strong>${money(total)}</strong></div></div>
-      <section class="observations"><div class="observations-title">OBSERVAÇÕES</div><div class="observations-body"><b>Condições de pagamento:</b> À vista com 5% de desconto ou em até 3x no cartão de crédito.
+      <section class="observations"><div class="observations-title">OBSERVAÇÕES</div><div class="observations-body"><b>Formas de pagamento:</b> ${paymentText}
       ${notes ? '\n'+notes : ''}
       ${freight ? '\n<b>Acréscimo / frete:</b> '+money(freight)+'.' : ''}
       </div></section>
@@ -104,14 +104,60 @@
       </main><script>window.onload=function(){setTimeout(function(){window.focus();window.print()},400)};<\\/script></body></html>`;
   }
 
-  function printServiceReceipt(id) {
+  const PAYMENT_OPTIONS = [
+    'PIX',
+    'Dinheiro',
+    'Cartão de débito',
+    'Cartão de crédito — até 3x sem juros',
+    'Cartão de crédito — 4x a 12x com juros',
+    'Transferência bancária',
+    'A combinar'
+  ];
+
+  function showPrintOptions(order) {
+    return new Promise(resolve => {
+      const old = document.getElementById('receiptPaymentDialog');
+      if (old) old.remove();
+      const overlay = document.createElement('div');
+      overlay.id = 'receiptPaymentDialog';
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999999;display:flex;align-items:center;justify-content:center;padding:16px;font-family:Arial,sans-serif';
+      const options = PAYMENT_OPTIONS.map((option, index) =>
+        '<label style="display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid #eee;font-size:14px;cursor:pointer"><input type="checkbox" value="' + escapeHtml(option) + '" ' + (index === 0 ? '' : '') + ' style="width:17px;height:17px"> <span>' + escapeHtml(option) + '</span></label>'
+      ).join('');
+      overlay.innerHTML = '<section role="dialog" aria-modal="true" style="background:#fff;color:#17212b;width:min(100%,480px);max-height:90vh;overflow:auto;border-radius:12px;padding:22px;box-shadow:0 12px 40px #0005">' +
+        '<h2 style="margin:0 0 6px;font-size:20px">Condições de pagamento</h2>' +
+        '<p style="margin:0 0 14px;color:#596675;font-size:13px">Selecione uma ou mais formas para aparecerem no orçamento.</p>' +
+        '<div class="receipt-payment-options">' + options + '</div>' +
+        '<label style="display:block;font-size:13px;font-weight:700;margin:18px 0 7px">Observações adicionais</label>' +
+        '<textarea id="receiptExtraObservations" rows="4" placeholder="Digite uma observação específica para este orçamento..." style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd3dc;border-radius:7px;font:14px Arial;resize:vertical"></textarea>' +
+        '<div style="display:flex;justify-content:flex-end;gap:9px;margin-top:18px;flex-wrap:wrap">' +
+        '<button type="button" data-action="cancel" style="padding:10px 16px;border:1px solid #bbc4ce;background:#fff;border-radius:7px;cursor:pointer">Cancelar</button>' +
+        '<button type="button" data-action="print" style="padding:10px 18px;border:0;background:#243e5a;color:#fff;border-radius:7px;font-weight:700;cursor:pointer">Continuar e imprimir</button></div></section>';
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', event => {
+        const action = event.target.closest('[data-action]')?.dataset.action;
+        if (action === 'cancel' || event.target === overlay) {
+          overlay.remove();
+          resolve(null);
+        } else if (action === 'print') {
+          const selected = Array.from(overlay.querySelectorAll('.receipt-payment-options input:checked')).map(input => input.value);
+          const observations = overlay.querySelector('#receiptExtraObservations').value.trim();
+          overlay.remove();
+          resolve({ paymentConditions: selected, extraObservations: observations });
+        }
+      });
+      overlay.querySelector('textarea').focus();
+    });
+  }
+
+  async function printServiceReceipt(id) {
     const order = findOrder(id);
     if (!order) {
       if (typeof window.toast === 'function') window.toast('Não encontrei este lançamento para imprimir.');
       else alert('Não encontrei este lançamento para imprimir.');
       return;
     }
-    // Iframe evita depender da abertura de uma nova janela após salvar o formulário.
+    const printOptions = await showPrintOptions(order);\n    if (!printOptions) return;\n    // Iframe evita depender da abertura de uma nova janela após salvar o formulário.
     let frame = document.getElementById('serviceReceiptPrintFrame');
     if (frame) frame.remove();
     frame = document.createElement('iframe');
@@ -121,7 +167,7 @@
     document.body.appendChild(frame);
     const doc = frame.contentWindow.document;
     doc.open();
-    doc.write(receiptHtml(order));
+    doc.write(receiptHtml(order, printOptions.paymentConditions, printOptions.extraObservations));
     doc.close();
     frame.onload = () => {
       try { frame.contentWindow.focus(); frame.contentWindow.print(); }
