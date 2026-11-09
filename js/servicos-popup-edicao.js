@@ -11,6 +11,48 @@
       #serviceEditOverlay{position:fixed!important;inset:0!important;z-index:2147483000!important;background:rgba(0,0,0,.62)!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:14px!important}
       #serviceEditOverlay.hidden{display:none!important}
       #serviceEditBox{position:relative!important;width:min(1100px,97vw)!important;max-height:95vh!important;overflow:auto!important;background:#fff!important;border-radius:16px!important;box-shadow:0 24px 80px rgba(0,0,0,.4)!important;padding:18px!important}
+/* Editor compacto: prioriza visualizar os campos e ações sem rolagem no caso comum. */
+      #serviceEditBox{display:flex!important;flex-direction:column!important;width:min(1380px,98vw)!important;height:96vh!important;max-height:96vh!important;overflow:hidden!important;padding:12px 16px!important}
+      #serviceEditHeader{position:relative!important;top:auto!important;flex:0 0 auto!important;margin:0 0 7px!important;padding:0 0 7px!important}
+      #serviceEditBox>#order{display:flex!important;flex:1 1 auto!important;min-height:0!important;flex-direction:column!important;gap:5px!important;overflow:hidden!important}
+      #serviceEditBox>#order>.grid{display:grid!important;grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:6px!important;flex:0 0 auto!important}
+      #serviceEditBox #order .field{gap:3px!important;min-width:0!important}
+      #serviceEditBox #order .field label{font-size:10px!important;line-height:1.1!important}
+      #serviceEditBox #order input,#serviceEditBox #order select{min-height:32px!important;height:32px!important;padding:5px 8px!important;font-size:12px!important;box-sizing:border-box!important}
+      #serviceEditBox #order .section{min-width:0!important}
+      #serviceEditBox #order .sectiontitle{margin:0 0 4px!important}
+      #serviceEditBox #order .sectiontitle h3{font-size:13px!important;margin:0!important}
+      #serviceEditBox #order .sectiontitle span{font-size:10px!important}
+      #serviceEditBox #order .services{max-height:190px!important;overflow:auto!important}
+      #serviceEditBox #order .svc-head{padding:5px 7px!important}
+      #serviceEditBox #order .svc-row{padding:5px 7px!important;gap:5px!important}
+      #serviceEditBox #order .svc-row input,#serviceEditBox #order .svc-row select{height:30px!important;min-height:30px!important;padding:4px 6px!important;font-size:11px!important}
+      #serviceEditBox #order #add{padding:6px 10px!important;margin-top:4px!important;font-size:11px!important}
+      #serviceEditBox #order .order-notes-field{min-height:0!important}
+      #serviceEditBox #order .order-notes-field textarea{height:43px!important;min-height:43px!important;padding:6px 8px!important;font-size:11px!important;resize:none!important}
+      #serviceEditBox #order>.field.g12{gap:3px!important}
+      #serviceEditBox #order #discountPercent{max-width:180px!important}
+      #serviceEditBox #order .totals{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important;margin:0!important}
+      #serviceEditBox #order .metric{padding:6px 9px!important;min-width:0!important}
+      #serviceEditBox #order .metric small{font-size:10px!important}
+      #serviceEditBox #order .metric b{font-size:14px!important}
+      #serviceEditBox #order .grand{font-size:17px!important;margin:0!important;padding:2px 0!important}
+      #serviceEditBox #order .foot{position:sticky!important;bottom:0!important;z-index:30!important;display:flex!important;justify-content:flex-end!important;gap:8px!important;margin-top:auto!important;padding:7px 0 0!important;background:#fff!important;border-top:1px solid #e5e7eb!important;flex:0 0 auto!important}
+      @media(max-height:780px) and (min-width:701px){
+        #serviceEditBox{height:98vh!important;max-height:98vh!important;padding:8px 12px!important}
+        #serviceEditBox #order>.grid{gap:4px!important}
+        #serviceEditBox #order .services{max-height:145px!important}
+        #serviceEditBox #order .order-notes-field textarea{height:34px!important;min-height:34px!important}
+      }
+      @media(max-width:700px){
+        #serviceEditBox{height:98vh!important;max-height:98vh!important;overflow:auto!important;padding:9px!important}
+        #serviceEditBox>#order{overflow:visible!important}
+        #serviceEditBox #order>.grid{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+        #serviceEditBox #order .g8{grid-column:span 6!important}
+        #serviceEditBox #order .g3,#serviceEditBox #order .g2{grid-column:span 3!important}
+        #serviceEditBox #order .totals{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+        #serviceEditBox #order .foot{position:sticky!important;bottom:0!important}
+      }
       #serviceEditHeader{position:sticky!important;top:-18px!important;z-index:20!important;display:flex!important;align-items:center!important;justify-content:space-between!important;background:#fff!important;padding:3px 0 12px!important;margin-bottom:14px!important;border-bottom:1px solid #e5e7eb!important}
       #serviceEditTitle{margin:0!important;font-size:22px!important;color:#172033!important}
       #serviceEditHeaderActions{display:flex!important;align-items:center!important;gap:8px!important;flex-wrap:wrap!important}
