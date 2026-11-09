@@ -93,7 +93,7 @@
         alert('Não foi possível iniciar a impressão: '+(error?.message||error));
       }
     });
-    popup.addEventListener('click',e=>{if(e.target===popup)close()});
+    // Clique fora do formulário não fecha o popup; use Fechar ou Cancelar.
   }
   function close(){
     if(!opened)return;const form=$('order');
