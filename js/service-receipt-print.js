@@ -147,7 +147,7 @@
     const pale = [241, 245, 249];
     const border = [220, 226, 232];
     let y = 8;
-    const contentLimit = 222.75; // 75% da altura de uma folha A4
+    const contentLimit = pageH - 12; // Usa a área útil da folha A4, mantendo tudo em uma página
     const fmt = value => String(value ?? '—');
     const line = (x1, y1, x2, y2, color = border, width = 0.25) => {
       doc.setDrawColor(...color); doc.setLineWidth(width); doc.line(x1, y1, x2, y2);
@@ -162,12 +162,10 @@
     };
     const moneyText = value => money(Number(value) || 0);
     const ensure = height => {
-      if (y + height > contentLimit - 8) {
-        doc.addPage();
-        y = 8;
-        line(margin, y, pageW - margin, y, navy, 0.6);
-        y += 5;
-      }
+      // O orçamento é sempre gerado em uma única página A4.
+      // A diagramação compacta usa a área útil total antes do limite inferior.
+      if (y + height > contentLimit) return false;
+      return true;
     };
     const section = title => {
       ensure(7);
@@ -257,12 +255,12 @@
       [['NÚMERO DO PEDIDO', order.pedido || '—'], ['ORDEM DE SERVIÇO', String(number)]]
     ];
     vehicleRows.forEach(row => {
-      ensure(16);
+      ensure(11);
       const yy = y;
-      field(row[0][0], row[0][1], margin + 1, yy + 2, half, 8.5);
-      field(row[1][0], row[1][1], margin + half + 10, yy + 2, half, 8);
-      line(margin, yy + 14, margin + contentW, yy + 14);
-      y += 17;
+      field(row[0][0], row[0][1], margin + 1, yy + 1, half, 7.2);
+      field(row[1][0], row[1][1], margin + half + 10, yy + 1, half, 7.2);
+      line(margin, yy + 9, margin + contentW, yy + 9);
+      y += 11;
     });
     y += 1;
 
@@ -342,14 +340,9 @@
     txt('CLIENTE', margin + sigW + 18, y + 7, 5, 'normal', muted);
 
     // Rodapé em todas as páginas.
-    const pages = doc.internal.getNumberOfPages();
-    for (let page = 1; page <= pages; page++) {
-      doc.setPage(page);
-      if (page > 1) {
-        line(margin, pageH - 10, pageW - margin, pageH - 10, border, 0.25);
-        txt('ORDEM DE SERVIÇO Nº ' + number + '  •  ' + page + '/' + pages, pageW - margin, pageH - 5, 5.5, 'normal', muted, { align: 'right' });
-      }
-    }
+    // Garantia adicional: não manter páginas extras no PDF final.
+    while (doc.internal.getNumberOfPages() > 1) doc.deletePage(doc.internal.getNumberOfPages());
+    doc.setPage(1);
     return doc;
   }
 
