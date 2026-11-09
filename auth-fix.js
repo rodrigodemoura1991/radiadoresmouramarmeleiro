@@ -49,16 +49,21 @@
     const clientList=()=>{try{return typeof clients!=='undefined'&&Array.isArray(clients)?clients:[]}catch(_){return[]}};
     const getClient=()=>{const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();return clientList().find(c=>String(c.name||'').trim().toLowerCase()===name)||null};
     const setFields=c=>{const val=id=>document.getElementById(id);if(!val('launchClientCnpj'))return;val('launchClientCnpj').value=c?.cpf_cnpj||'';val('launchClientPhone').value=c?.phone||'';val('launchClientEmail').value=c?.email||'';val('launchClientCep').value=c?.cep||'';val('launchClientAddress').value=c?.address||'';val('launchClientCity').value=c?.city||'';val('launchClientUf').value=c?.uf||''};
-    let lastClientName='';
-    const fillFromName=force=>{const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();if(!force&&name===lastClientName)return;lastClientName=name;const c=getClient();if(c)setFields(c);else if(!name)setFields(null)};
+    let lastClientName='',lastClientSignature='';
+    const fillFromName=force=>{
+      const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();
+      const c=getClient();
+      const signature=c?JSON.stringify([c.id,c.cpf_cnpj,c.phone,c.email,c.cep,c.address,c.city,c.uf]):'';
+      if(!force&&name===lastClientName&&signature===lastClientSignature)return;
+      lastClientName=name;lastClientSignature=signature;
+      if(c)setFields(c);else if(!name)setFields(null);
+    };
     document.getElementById('clientInput')?.addEventListener('input',()=>fillFromName(false));
     document.addEventListener('click',e=>{if(e.target.closest('#clientSug button')){lastClientName='';setTimeout(()=>fillFromName(true),20)}});
     setInterval(()=>fillFromName(false),900);
 
-    /* CORREÇÃO DEFINITIVA: o salvamento do lançamento também persiste os campos
-       CNPJ, telefone, CEP e endereço no registro do cliente. Antes, esses dados
-       eram enviados por um setTimeout posterior, depois que o formulário já
-       havia sido limpo pelo save original, causando perda ao editar. */
+    /* Persiste todos os dados do cliente no registro de clientes, inclusive
+       cidade e UF. Os valores são capturados antes do submit limpar o formulário. */
     if(order.dataset.clientPersistenceBound!=='1'){
       const originalSubmit=order.onsubmit;
       if(typeof originalSubmit==='function'){
@@ -78,9 +83,14 @@
           try{
             await originalSubmit.call(this,ev);
             if(!clientName||typeof sb==='undefined'||typeof company==='undefined'||!company)return;
-            const q=await sb.from('clients').select('id').eq('company_id',company.id).ilike('name',clientName).limit(1);
-            if(q.error||!q.data?.[0])return;
-            const upd=await sb.from('clients').update(clientData).eq('id',q.data[0].id);
+            const currentClient=clientList().find(c=>String(c.name||'').trim().toLowerCase()===clientName.toLowerCase());
+            let clientId=currentClient?.id||null;
+            if(!clientId){
+              const q=await sb.from('clients').select('id').eq('company_id',company.id).ilike('name',clientName).limit(1);
+              if(q.error||!q.data?.[0])return;
+              clientId=q.data[0].id;
+            }
+            const upd=await sb.from('clients').update(clientData).eq('id',clientId).eq('company_id',company.id);
             if(upd.error){console.error('[Radiadores Moura] Erro ao salvar dados do cliente:',upd.error);toast('Lançamento salvo, mas os dados do cliente não foram atualizados: '+upd.error.message);return}
             const idx=clientList().findIndex(c=>c.id===q.data[0].id);
             if(idx>=0)Object.assign(clients[idx],clientData);
