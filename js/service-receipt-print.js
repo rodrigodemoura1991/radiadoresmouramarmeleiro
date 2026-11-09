@@ -45,7 +45,8 @@
     const address = [client.address, client.city, client.uf].filter(Boolean).join(' - ');
     const itemRows = items.map((item,index) => '<tr><td class="center">'+(index+1)+'</td><td>'+escapeHtml(item.description || 'Serviço / produto')+'</td><td class="center">1</td><td class="right">'+money(item.sale_value)+'</td></tr>').join('');
     const blankRows = Array.from({length:Math.max(0,10-items.length)},()=>'<tr class="blank"><td>&nbsp;</td><td></td><td></td><td></td></tr>').join('');
-    const notes = escapeHtml([order.notes || '', extraObservations || ''].filter(Boolean).join('\n'));\n    const paymentText = paymentConditions.length ? paymentConditions.map(escapeHtml).join(' • ') : 'A combinar';
+    const notes = escapeHtml([order.notes || '', extraObservations || ''].filter(Boolean).join('\n'));
+    const paymentText = paymentConditions.length ? paymentConditions.map(escapeHtml).join(' • ') : 'A combinar';
     return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
       <title>Orçamento ${escapeHtml(number)}</title><style>
       @page{size:A4 portrait;margin:9mm}*{box-sizing:border-box}
@@ -157,7 +158,9 @@
       else alert('Não encontrei este lançamento para imprimir.');
       return;
     }
-    const printOptions = await showPrintOptions(order);\n    if (!printOptions) return;\n    // Iframe evita depender da abertura de uma nova janela após salvar o formulário.
+    const printOptions = await showPrintOptions(order);
+    if (!printOptions) return;
+    // Iframe evita depender da abertura de uma nova janela após salvar o formulário.
     let frame = document.getElementById('serviceReceiptPrintFrame');
     if (frame) frame.remove();
     frame = document.createElement('iframe');
