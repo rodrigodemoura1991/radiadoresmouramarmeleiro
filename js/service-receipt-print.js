@@ -116,7 +116,7 @@
   ];
 
 
-  function receiptPdfData(order, paymentConditions = [], extraObservations = '') {
+  async function receiptPdfData(order, paymentConditions = [], extraObservations = '') {
     const JsPDF = window.jspdf?.jsPDF;
     if (!JsPDF) throw new Error('A biblioteca de PDF não foi carregada. Atualize o aplicativo e tente novamente.');
     const doc = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -291,8 +291,8 @@
       const file = new File([blob], filename, { type: 'application/pdf' });
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
-          if (popup && !popup.closed) popup.close();
           await navigator.share({ files: [file], title: 'Orçamento ' + number, text: message });
+          if (popup && !popup.closed) popup.close();
           if (typeof window.toast === 'function') window.toast('Compartilhamento iniciado.');
           return;
         } catch (shareError) {
