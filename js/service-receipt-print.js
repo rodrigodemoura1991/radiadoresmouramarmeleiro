@@ -169,14 +169,25 @@
     frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
     document.body.appendChild(frame);
     const doc = frame.contentWindow.document;
+    let printed = false;
+    const startPrint = () => {
+      if (printed) return;
+      printed = true;
+      try {
+        frame.contentWindow.focus();
+        frame.contentWindow.print();
+      } catch (error) {
+        console.error('Falha ao imprimir notinha:', error);
+        if (typeof window.toast === 'function') window.toast('Não foi possível abrir a impressão. Tente novamente.');
+      }
+      setTimeout(() => frame.remove(), 3000);
+    };
+    frame.onload = () => setTimeout(startPrint, 250);
     doc.open();
     doc.write(receiptHtml(order, printOptions.paymentConditions, printOptions.extraObservations));
     doc.close();
-    frame.onload = () => {
-      try { frame.contentWindow.focus(); frame.contentWindow.print(); }
-      catch (error) { console.error('Falha ao imprimir notinha:', error); }
-      setTimeout(() => frame.remove(), 1500);
-    };
+    // Fallback para navegadores que não disparam o load do iframe como esperado.
+    setTimeout(startPrint, 1200);
   }
   window.printServiceReceipt = printServiceReceipt;
 
