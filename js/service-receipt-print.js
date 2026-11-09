@@ -115,6 +115,7 @@
     'Cartão de crédito — até 3x sem juros',
     'Cartão de crédito — 4x a 12x com juros',
     'Transferência bancária',
+    'Boleto bancário',
     'A combinar'
   ];
 
@@ -372,9 +373,6 @@
 
   async function sendReceiptWhatsApp(order, paymentConditions, extraObservations) {
     const number = order.numero_lancamento ?? order.pedido ?? order.os_number ?? order.order_number ?? order.id ?? '—';
-    const client = (Array.isArray(window.clients) ? window.clients : []).find(x => String(x.id) === String(order.client_id)) || {};
-    const clientName = order.client_name || client.razao_social || client.name || 'cliente';
-    const message = 'Olá, ' + clientName + '! Segue o orçamento nº ' + number + ' da ' + (window.company?.name || 'Radiadores Moura') + '.';
     try {
       const doc = await receiptPdfData(order, paymentConditions, extraObservations);
       const filename = receiptFilename(order);
@@ -385,7 +383,7 @@
       // Não abre WhatsApp Web, não cria abas e não tenta acessar conversas automaticamente.
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
-          await navigator.share({ files: [file], title: 'Orçamento ' + number, text: message });
+          await navigator.share({ files: [file], title: 'Orçamento ' + number });
           if (typeof window.toast === 'function') window.toast('Compartilhamento concluído ou encaminhado pelo menu do dispositivo.');
           return;
         } catch (shareError) {
@@ -426,8 +424,10 @@
         '<h2 style="margin:0 0 6px;font-size:20px">Condições de pagamento</h2>' +
         '<p style="margin:0 0 14px;color:#596675;font-size:13px">Selecione uma ou mais formas para aparecerem no orçamento.</p>' +
         '<div class="receipt-payment-options">' + options + '</div>' +
-        '<label style="display:block;font-size:13px;font-weight:700;margin:18px 0 7px">Observações adicionais</label>' +
-        '<textarea id="receiptExtraObservations" rows="4" placeholder="Digite uma observação específica para este orçamento..." style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd3dc;border-radius:7px;font:14px Arial;resize:vertical"></textarea>' +
+        '<label style="display:block;font-size:13px;font-weight:700;margin:18px 0 7px">Informações adicionais nas condições de pagamento</label>' +
+        '<textarea id="receiptCustomPaymentConditions" rows="3" placeholder="Ex.: boleto para 15 dias; entrada de 30%; vencimento em 20/11..." style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd3dc;border-radius:7px;font:14px Arial;resize:vertical"></textarea>' +
+        '<label style="display:block;font-size:13px;font-weight:700;margin:12px 0 7px">Observações adicionais</label>' +
+        '<textarea id="receiptExtraObservations" rows="3" placeholder="Digite uma observação específica para este orçamento..." style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd3dc;border-radius:7px;font:14px Arial;resize:vertical"></textarea>' +
         '<div style="display:flex;justify-content:flex-end;gap:9px;margin-top:18px;flex-wrap:wrap">' +
         '<button type="button" data-action="cancel" style="padding:10px 16px;border:1px solid #bbc4ce;background:#fff;border-radius:7px;cursor:pointer">Cancelar</button>' +
         '<button type="button" data-action="print" style="padding:10px 18px;border:0;background:#243e5a;color:#fff;border-radius:7px;font-weight:700;cursor:pointer">Continuar e imprimir</button>' +
@@ -440,6 +440,8 @@
           resolve(null);
         } else if (action === 'print' || action === 'whatsapp') {
           const selected = Array.from(overlay.querySelectorAll('.receipt-payment-options input:checked')).map(input => input.value);
+          const customConditions = overlay.querySelector('#receiptCustomPaymentConditions').value.trim();
+          if (customConditions) selected.push(customConditions);
           const observations = overlay.querySelector('#receiptExtraObservations').value.trim();
           if (action === 'whatsapp') {
             const button = overlay.querySelector('[data-action="whatsapp"]');
