@@ -31,7 +31,15 @@ async function persistLaunchClientAfterSubmit(snapshot){
       }
     }
     if(!clientId){console.warn('[Radiadores Moura] Cliente não localizado para persistência:',wanted);return;}
-    const payload={cpf_cnpj:snapshot.cpf_cnpj,phone:snapshot.phone,cep:snapshot.cep,address:snapshot.address};
+    const payload={
+      cpf_cnpj:snapshot.cpf_cnpj,
+      phone:snapshot.phone,
+      email:snapshot.email,
+      cep:snapshot.cep,
+      address:snapshot.address,
+      city:snapshot.city,
+      uf:String(snapshot.uf||'').toUpperCase()
+    };
     const upd=await sb.from('clients').update(payload).eq('id',clientId).eq('company_id',company.id);
     if(upd.error){console.error('[Radiadores Moura] Erro ao atualizar cliente:',upd.error);if(typeof toast==='function')toast('Lançamento salvo, mas os dados do cliente não foram atualizados: '+upd.error.message);return;}
     try{
@@ -63,8 +71,11 @@ function installClientPersistence(){
       clientId,
       cpf_cnpj:(document.getElementById('launchClientCnpj')?.value||'').trim(),
       phone:(document.getElementById('launchClientPhone')?.value||'').trim(),
+      email:(document.getElementById('launchClientEmail')?.value||'').trim(),
       cep:(document.getElementById('launchClientCep')?.value||'').trim(),
-      address:(document.getElementById('launchClientAddress')?.value||'').trim()
+      address:(document.getElementById('launchClientAddress')?.value||'').trim(),
+      city:(document.getElementById('launchClientCity')?.value||'').trim(),
+      uf:(document.getElementById('launchClientUf')?.value||'').trim().toUpperCase()
     };
     /* O app.js limpa o formulário após salvar. A captura acima ocorre antes
        disso; aguardamos a conclusão do save e então persistimos o cliente. */
