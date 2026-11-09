@@ -330,6 +330,7 @@
     y += 1;
 
     // Assinaturas discretas no rodapé.
+    y += 8; // Mais espaço entre observações e as linhas de assinatura.
     ensure(12);
     const sigW = (contentW - 18) / 2;
     line(margin, y, margin + sigW, y, [150, 160, 170], 0.35);
