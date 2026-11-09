@@ -138,7 +138,7 @@
     const notes = [order.notes || '', extraObservations || ''].filter(Boolean).join('\n');
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
-    const margin = 15;
+    const margin = 10;
     const contentW = pageW - margin * 2;
     const navy = [31, 55, 82];
     const blue = [55, 91, 126];
@@ -146,7 +146,8 @@
     const muted = [105, 115, 125];
     const pale = [241, 245, 249];
     const border = [220, 226, 232];
-    let y = 15;
+    let y = 8;
+    const contentLimit = 222.75; // 75% da altura de uma folha A4
     const fmt = value => String(value ?? '—');
     const line = (x1, y1, x2, y2, color = border, width = 0.25) => {
       doc.setDrawColor(...color); doc.setLineWidth(width); doc.line(x1, y1, x2, y2);
@@ -161,25 +162,25 @@
     };
     const moneyText = value => money(Number(value) || 0);
     const ensure = height => {
-      if (y + height > pageH - 22) {
+      if (y + height > contentLimit - 8) {
         doc.addPage();
-        y = 18;
-        line(margin, y, pageW - margin, y, navy, 0.8);
-        y += 8;
+        y = 8;
+        line(margin, y, pageW - margin, y, navy, 0.6);
+        y += 5;
       }
     };
     const section = title => {
-      ensure(11);
+      ensure(7);
       doc.setFillColor(...pale);
-      doc.roundedRect(margin, y, contentW, 7, 1.2, 1.2, 'F');
-      txt(title.toUpperCase(), margin + 3, y + 4.7, 8, 'bold', navy);
-      y += 11;
+      doc.roundedRect(margin, y, contentW, 5, 0.8, 0.8, 'F');
+      txt(title.toUpperCase(), margin + 2, y + 3.5, 6.8, 'bold', navy);
+      y += 7;
     };
     const field = (label, value, x, yy, width, valueSize = 8.5) => {
-      txt(label.toUpperCase(), x, yy, 6.5, 'bold', muted);
-      const lines = wrap(value || '—', width, valueSize);
+      txt(label.toUpperCase(), x, yy, 5.7, 'bold', muted);
+      const lines = wrap(value || '—', width, Math.min(valueSize, 7.2));
       doc.setFont('helvetica', 'normal'); doc.setFontSize(valueSize); doc.setTextColor(...ink);
-      doc.text(lines.slice(0, 2), x, yy + 5);
+      doc.text(lines.slice(0, 2), x, yy + 4);
     };
 
     // Cabeçalho limpo: logo original e nome da empresa em fonte padrão, sem slogan ou dados cadastrais.
@@ -200,18 +201,18 @@
     const headerTop = y;
     if (logoData) {
       try {
-        doc.addImage(logoData, 'PNG', margin, headerTop + 1, 31, 31, undefined, 'FAST');
+        doc.addImage(logoData, 'PNG', margin, headerTop, 24, 24, undefined, 'FAST');
       } catch (_) {}
     }
-    const companyX = margin + (logoData ? 39 : 2);
+    const companyX = margin + (logoData ? 30 : 2);
     const companyW = pageW - margin - companyX;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(17);
+    doc.setFontSize(14);
     doc.setTextColor(...navy);
     const companyTitle = doc.splitTextToSize(companyName.toUpperCase(), companyW);
     doc.text(companyTitle.slice(0, 2), companyX, headerTop + (companyTitle.length > 1 ? 13 : 19));
-    line(margin, headerTop + 36, pageW - margin, headerTop + 36, navy, 0.55);
-    y = headerTop + 43;
+    line(margin, headerTop + 27, pageW - margin, headerTop + 27, navy, 0.45);
+    y = headerTop + 31;
 
     // Faixa de identificação da ordem de serviço e datas.
     const serviceDates = [
@@ -223,11 +224,11 @@
     serviceDates.forEach((entry, i) => {
       const x = margin + i * cellW;
       doc.setFillColor(...(i === 0 ? [232, 238, 245] : pale));
-      doc.roundedRect(x + (i ? 1 : 0), y, cellW - 1, 17, 1.2, 1.2, 'F');
-      txt(entry[0], x + 4, y + 5.5, 6.5, 'bold', muted);
-      txt(entry[1], x + 4, y + 12.5, i === 0 ? 12 : 9, 'bold', navy);
+      doc.roundedRect(x + (i ? 0.6 : 0), y, cellW - 0.6, 12, 0.8, 0.8, 'F');
+      txt(entry[0], x + 3, y + 4, 5.5, 'bold', muted);
+      txt(entry[1], x + 3, y + 9.5, i === 0 ? 9.5 : 7.5, 'bold', navy);
     });
-    y += 24;
+    y += 15;
 
     section('Dados do cliente');
     const half = (contentW - 12) / 2;
@@ -238,17 +239,17 @@
       [['CPF / CNPJ', client.cpf_cnpj || '—'], ['E-MAIL', client.email || '—']]
     ];
     clientRows.forEach((row, index) => {
-      ensure(16);
+      ensure(11);
       const yy = y;
       field(row[0][0], row[0][1], margin + 1, yy + 2, half, index === 0 ? 8.5 : 8);
       field(row[1][0], row[1][1], margin + half + 10, yy + 2, half, 8);
-      line(margin, yy + 14, margin + contentW, yy + 14);
-      y += 17;
+      line(margin, yy + 9, margin + contentW, yy + 9);
+      y += 11;
     });
     ensure(16);
     field('ENDEREÇO', [address, client.cep ? 'CEP: ' + client.cep : ''].filter(Boolean).join(' • ') || '—', margin + 1, y + 2, contentW - 2, 8);
-    line(margin, y + 14, margin + contentW, y + 14);
-    y += 17;
+    line(margin, y + 9, margin + contentW, y + 9);
+    y += 11;
 
     section('Dados do veículo');
     const vehicleRows = [
@@ -263,40 +264,40 @@
       line(margin, yy + 14, margin + contentW, yy + 14);
       y += 17;
     });
-    y += 2;
+    y += 1;
 
     section('Serviços e produtos');
     const cols = [11, 105, 20, contentW - 136];
     const heads = ['#', 'DESCRIÇÃO', 'QTD.', 'VALOR'];
     doc.setFillColor(...navy);
-    doc.roundedRect(margin, y, contentW, 9, 1, 1, 'F');
+    doc.roundedRect(margin, y, contentW, 6, 0.8, 0.8, 'F');
     let x = margin;
     heads.forEach((head, i) => {
-      txt(head, x + 2.5, y + 5.8, 7, 'bold', [255, 255, 255]);
+      txt(head, x + 2, y + 4, 5.8, 'bold', [255, 255, 255]);
       x += cols[i];
     });
-    y += 9;
+    y += 6;
     const pdfItems = items.length ? items : [{ description: 'Serviços / produtos', sale_value: order.total_sale || 0 }];
     pdfItems.forEach((item, index) => {
       const description = item.description || item.name || 'Serviço / produto';
-      const descLines = wrap(description, cols[1] - 5, 8);
-      const rowH = Math.max(10, descLines.length * 4 + 5);
+      const descLines = wrap(description, cols[1] - 5, 6.8);
+      const rowH = Math.max(7, descLines.length * 3 + 3);
       ensure(rowH + 1);
       if (index % 2 === 0) {
         doc.setFillColor(248, 250, 252);
         doc.rect(margin, y, contentW, rowH, 'F');
       }
-      txt(index + 1, margin + 3, y + 6.5, 8, 'normal', muted);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...ink);
-      doc.text(descLines, margin + cols[0] + 2, y + 6.5);
-      txt('1', margin + cols[0] + cols[1] + 7, y + 6.5, 8);
-      txt(moneyText(item.sale_value), margin + cols[0] + cols[1] + cols[2] + 2, y + 6.5, 8, 'bold');
+      txt(index + 1, margin + 3, y + 5, 6.8, 'normal', muted);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.8); doc.setTextColor(...ink);
+      doc.text(descLines, margin + cols[0] + 2, y + 5);
+      txt('1', margin + cols[0] + cols[1] + 7, y + 5, 6.8);
+      txt(moneyText(item.sale_value), margin + cols[0] + cols[1] + cols[2] + 2, y + 5, 6.8, 'bold');
       line(margin, y + rowH, margin + contentW, y + rowH);
       y += rowH;
     });
-    y += 5;
+    y += 2;
 
-    ensure(25);
+    ensure(17);
     const summaryW = contentW / 4;
     const summary = [
       ['SUBTOTAL', moneyText(subtotal)],
@@ -308,45 +309,46 @@
       const x = margin + i * summaryW;
       const isTotal = i === 3;
       doc.setFillColor(...(isTotal ? navy : pale));
-      doc.roundedRect(x + 0.5, y, summaryW - 1, 20, 1.5, 1.5, 'F');
-      txt(entry[0], x + 3, y + 6, isTotal ? 6 : 6.5, 'bold', isTotal ? [220, 232, 244] : muted);
-      txt(entry[1], x + 3, y + 14, isTotal ? 10 : 8.5, 'bold', isTotal ? [255, 255, 255] : ink);
+      doc.roundedRect(x + 0.4, y, summaryW - 0.8, 13, 1, 1, 'F');
+      txt(entry[0], x + 2, y + 4.2, 5.1, 'bold', isTotal ? [220, 232, 244] : muted);
+      txt(entry[1], x + 2, y + 10, isTotal ? 7.8 : 7, 'bold', isTotal ? [255, 255, 255] : ink);
     });
-    y += 27;
+    y += 17;
 
     section('Pagamento e observações');
     const blocks = [['FORMAS DE PAGAMENTO', paymentText]];
     if (notes) blocks.push(['OBSERVAÇÕES', notes]);
     if (freight) blocks.push(['FRETE / ACRÉSCIMOS', moneyText(freight)]);
     blocks.forEach((block, index) => {
-      const lines = wrap(block[1], contentW - 8, 8);
-      const blockH = Math.max(9, lines.length * 4 + 4);
-      ensure(blockH + 2);
-      txt(block[0], margin + 3, y + 3, 6.5, 'bold', muted);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...ink);
-      doc.text(lines, margin + 3, y + 8);
-      y += blockH + 3;
+      const lines = wrap(block[1], contentW - 6, 6.8);
+      const blockH = Math.max(7, lines.length * 3 + 3);
+      ensure(blockH + 1);
+      txt(block[0], margin + 2, y + 2.5, 5.5, 'bold', muted);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.8); doc.setTextColor(...ink);
+      doc.text(lines, margin + 2, y + 6);
+      y += blockH + 1;
       if (index < blocks.length - 1) line(margin + 3, y, margin + contentW - 3, y);
     });
-    y += 4;
+    y += 1;
 
     // Assinaturas discretas no rodapé.
-    ensure(18);
+    ensure(12);
     const sigW = (contentW - 18) / 2;
     line(margin, y, margin + sigW, y, [150, 160, 170], 0.35);
     line(margin + sigW + 18, y, margin + contentW, y, [150, 160, 170], 0.35);
-    txt(companyName, margin, y + 5, 7, 'bold', navy);
-    txt(clientName, margin + sigW + 18, y + 5, 7, 'bold', navy);
-    txt('RESPONSÁVEL', margin, y + 9, 6, 'normal', muted);
-    txt('CLIENTE', margin + sigW + 18, y + 9, 6, 'normal', muted);
+    txt(companyName, margin, y + 3.5, 5.8, 'bold', navy);
+    txt(clientName, margin + sigW + 18, y + 3.5, 5.8, 'bold', navy);
+    txt('RESPONSÁVEL', margin, y + 7, 5, 'normal', muted);
+    txt('CLIENTE', margin + sigW + 18, y + 7, 5, 'normal', muted);
 
     // Rodapé em todas as páginas.
     const pages = doc.internal.getNumberOfPages();
     for (let page = 1; page <= pages; page++) {
       doc.setPage(page);
-      line(margin, pageH - 14, pageW - margin, pageH - 14, border, 0.3);
-      txt(companyName, margin, pageH - 8, 6.5, 'normal', muted);
-      txt('ORDEM DE SERVIÇO Nº ' + number + '  •  ' + page + '/' + pages, pageW - margin, pageH - 8, 6.5, 'normal', muted, { align: 'right' });
+      if (page > 1) {
+        line(margin, pageH - 10, pageW - margin, pageH - 10, border, 0.25);
+        txt('ORDEM DE SERVIÇO Nº ' + number + '  •  ' + page + '/' + pages, pageW - margin, pageH - 5, 5.5, 'normal', muted, { align: 'right' });
+      }
     }
     return doc;
   }
