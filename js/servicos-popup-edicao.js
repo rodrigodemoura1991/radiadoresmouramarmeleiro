@@ -3,7 +3,7 @@
 (function(){
   'use strict';
   const $=id=>document.getElementById(id);
-  let popup=null, originalParent=null, originalNext=null, opened=false, currentOrderId=null;
+  let popup=null, originalParent=null, originalNext=null, opened=false, currentOrderId=null, creating=false;
   function css(){
     if($('service-edit-popup-css'))return;
     const s=document.createElement('style');s.id='service-edit-popup-css';s.textContent=`
@@ -98,7 +98,7 @@
   function close(){
     if(!opened)return;const form=$('order');
     if(form&&originalParent){if(originalNext&&originalNext.parentNode===originalParent)originalParent.insertBefore(form,originalNext);else originalParent.appendChild(form)}
-    popup?.classList.add('hidden');window.__serviceEditCurrentOrderId=null;document.documentElement.classList.remove('service-edit-popup-html');document.body.classList.remove('service-edit-popup-open');opened=false;originalParent=null;originalNext=null;currentOrderId=null;
+    popup?.classList.add('hidden');window.__serviceEditCurrentOrderId=null;document.documentElement.classList.remove('service-edit-popup-html');document.body.classList.remove('service-edit-popup-open');opened=false;originalParent=null;originalNext=null;currentOrderId=null;creating=false;$('serviceEditPrintReceipt')?.classList.remove('hidden');
   }
   function configureDeliveryControl(){
     const checkbox=$('notDelivered'),exit=$('exit');
@@ -122,8 +122,18 @@
     }
     exit.disabled=checkbox.checked;
   }
+  function openNew(){
+    const form=$('order');if(!form||opened)return;ensurePopup();creating=true;currentOrderId=null;
+    originalParent=form.parentNode;originalNext=form.nextSibling;
+    if(typeof window.clearOrder==='function')window.clearOrder();else $('clear')?.click();
+    $('serviceEditBox').appendChild(form);popup.classList.remove('hidden');document.documentElement.classList.add('service-edit-popup-html');document.body.classList.add('service-edit-popup-open');opened=true;
+    $('serviceEditTitle').textContent='Novo lançamento de serviço';$('serviceEditPrintReceipt')?.classList.add('hidden');
+    const save=form.querySelector('button[type="submit"]');if(save)save.textContent='Salvar lançamento';
+    const clear=$('clear');if(clear){clear.textContent='Cancelar';clear.onclick=e=>{e.preventDefault();e.stopPropagation();close()}}
+    setTimeout(()=>$('clientInput')?.focus(),50);
+  }
   function open(id){
-    if(!id)return;const edit=window.editOrder,form=$('order');if(typeof edit!=='function'||!form)return;ensurePopup();currentOrderId=String(id);
+    if(!id)return;const edit=window.editOrder,form=$('order');if(typeof edit!=='function'||!form)return;ensurePopup();creating=false;currentOrderId=String(id);
     originalParent=form.parentNode;originalNext=form.nextSibling;window.__serviceEditCurrentOrderId=String(id);$('serviceEditBox').appendChild(form);popup.classList.remove('hidden');document.documentElement.classList.add('service-edit-popup-html');document.body.classList.add('service-edit-popup-open');opened=true;
     const nativeScrollTo=window.scrollTo;window.scrollTo=function(){};try{edit(String(id));configureDeliveryControl()}finally{window.scrollTo=nativeScrollTo}
     const o=(window.orders||[]).find(x=>String(x.id)===String(id));$('serviceEditTitle').textContent=o?.numero_lancamento!=null?'Editar lançamento #'+o.numero_lancamento:'Editar lançamento';
@@ -148,6 +158,9 @@
   }
   function bind(){
     if(document.documentElement.dataset.servicePopupBound==='1')return;document.documentElement.dataset.servicePopupBound='1';
+    const launchHead=document.querySelector('#launch .head');
+    if(launchHead&&!$('launchNewService')){const b=document.createElement('button');b.type='button';b.id='launchNewService';b.className='btn primary';b.textContent='＋ Novo lançamento';b.style.marginRight='8px';b.addEventListener('click',openNew);launchHead.insertBefore(b,launchHead.firstChild.nextSibling);}
+    const toast=$('toast');if(toast){new MutationObserver(()=>{if(creating&&toast.textContent.includes('Lançamento salvo na nuvem'))close()}).observe(toast,{childList:true,subtree:true,characterData:true});}
     document.addEventListener('keydown',function(e){
       if(e.key==='Escape'&&opened){e.preventDefault();e.stopPropagation();close();}
     },true);
@@ -176,6 +189,6 @@
       alert('Erro ao abrir impressão: '+(err?.message||err));
     });
   },true);
-  window.openServiceEditPopup=open;window.closeServiceEditPopup=close;window.openFix=open;
+  window.openServiceEditPopup=open;window.openServiceNewPopup=openNew;window.closeServiceEditPopup=close;window.openFix=open;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{css();bind()},{once:true});else{css();bind()}
 })();
