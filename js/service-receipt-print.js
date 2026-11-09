@@ -115,6 +115,210 @@
     'A combinar'
   ];
 
+
+  function receiptPdfData(order, paymentConditions = [], extraObservations = '') {
+    const JsPDF = window.jspdf?.jsPDF;
+    if (!JsPDF) throw new Error('A biblioteca de PDF não foi carregada. Atualize o aplicativo e tente novamente.');
+    const doc = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const items = Array.isArray(order.order_items) ? order.order_items : [];
+    const client = (Array.isArray(window.clients) ? window.clients : []).find(x => String(x.id) === String(order.client_id)) || {};
+    const subtotal = items.reduce((sum, item) => sum + (Number(item.sale_value) || 0), 0) || Number(order.total_sale) || 0;
+    const discount = subtotal * Math.min(100, Math.max(0, Number(order.discount_percent) || 0)) / 100;
+    const hasItemFreight = items.some(item => Number(item.freight_value) || 0);
+    const freight = hasItemFreight ? items.reduce((sum, item) => sum + (Number(item.freight_value) || 0), 0) : Number(order.total_freight) || 0;
+    const total = subtotal - discount + freight;
+    const companyName = window.company?.name || 'RADIADORES MOURA MARMELEIRO';
+    const companyId = String(window.company?.id || '');
+    const companyLines = companyId === 'f3cd9d20-a341-41fe-87fe-c0726a19b65b'
+      ? ['CNPJ: 48.903.995/0001-27', 'Rua dos Miosótis, 203 • Alvorada • Marmeleiro - PR • CEP: 85615-013', 'Tel.: (46) 9976-0694 • radiadoresmouramarmeleiro@gmail.com']
+      : companyId === '48f0eb3d-22ff-4506-9d9c-b6dd4455946b'
+        ? ['CNPJ: 65.435.170/0001-44', 'Avenida Dom Agostinho José Sartori, 2695 • São Cristóvão', 'Francisco Beltrão - PR • CEP: 85601-090', 'Tel.: (46) 3524-5810 • radiadoresmoura@gmail.com']
+        : [];
+    const number = order.numero_lancamento || order.pedido || '—';
+    const clientName = client.razao_social || client.name || order.client_name || 'Não informado';
+    const paymentText = paymentConditions.length ? paymentConditions.join(' • ') : 'A combinar';
+    const notes = [order.notes || '', extraObservations || ''].filter(Boolean).join('\n');
+    const issued = new Date().toLocaleDateString('pt-BR');
+    const valid = new Date(Date.now() + 7 * 86400000).toLocaleDateString('pt-BR');
+    const pageW = doc.internal.pageSize.getWidth();
+    const margin = 14;
+    const right = pageW - margin;
+    let y = 14;
+    const navy = [36, 62, 90];
+    const line = (x1, y1, x2, y2) => { doc.setDrawColor(35, 45, 55); doc.setLineWidth(0.25); doc.line(x1, y1, x2, y2); };
+    const text = (value, x, yy, size = 9, style = 'normal', color = [20, 25, 30]) => {
+      doc.setFont('helvetica', style); doc.setFontSize(size); doc.setTextColor(...color);
+      doc.text(String(value ?? ''), x, yy);
+    };
+    const wrapped = (value, width, size = 9, style = 'normal') => {
+      doc.setFont('helvetica', style); doc.setFontSize(size);
+      return doc.splitTextToSize(String(value ?? ''), width);
+    };
+    const ensure = height => {
+      if (y + height > 278) { doc.addPage(); y = 16; }
+    };
+    const labelValue = (label, value, x, yy, w) => {
+      text(label.toUpperCase(), x + 2, yy + 4, 7, 'bold', [70, 80, 90]);
+      const lines = wrapped(value || '—', w - 4, 8);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+      doc.text(lines.slice(0, 2), x + 2, yy + 9);
+    };
+
+    // Cabeçalho com a identidade visual da empresa.
+    doc.setDrawColor(...navy); doc.setLineWidth(0.7); doc.rect(margin, y, pageW - margin * 2, 34);
+    let logoData = null;
+    try {
+      const response = await fetch(new URL('8857A320-4E57-4A00-933D-C76434BC6953.png', window.location.href).href);
+      if (response.ok) {
+        const blob = await response.blob();
+        logoData = await new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => resolve(null);
+          reader.readAsDataURL(blob);
+        });
+      }
+    } catch (_) {}
+    if (logoData) {
+      try { doc.addImage(logoData, 'PNG', margin + 3, y + 3, 27, 27, undefined, 'FAST'); } catch (_) {}
+    }
+    const companyX = margin + (logoData ? 34 : 5);
+    text(companyName.toUpperCase(), companyX, y + 9, 15, 'bold', navy);
+    companyLines.forEach((lineText, i) => text(lineText, companyX, y + 15 + i * 4.2, 7.2, 'normal', [40, 50, 60]));
+    y += 34;
+
+    // Identificação do orçamento.
+    doc.setDrawColor(...navy); doc.rect(margin, y, pageW - margin * 2, 15);
+    const widths = [65, 58, 59];
+    let x = margin;
+    const meta = [['ORÇAMENTO Nº', String(number)], ['EMITIDO EM', issued], ['VÁLIDO ATÉ', valid]];
+    meta.forEach((entry, i) => {
+      if (i) line(x, y, x, y + 15);
+      text(entry[0], x + 3, y + 5, 7, 'bold', navy);
+      text(entry[1], x + 3, y + 11, i === 0 ? 12 : 9, 'bold', [20, 30, 40]);
+      x += widths[i];
+    });
+    y += 15;
+
+    const section = title => {
+      ensure(10);
+      doc.setFillColor(242, 245, 248); doc.rect(margin, y, pageW - margin * 2, 7, 'F');
+      doc.setDrawColor(35, 45, 55); doc.rect(margin, y, pageW - margin * 2, 7);
+      text(title, pageW / 2, y + 4.8, 8, 'bold', [20, 30, 40]);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+      const w = doc.getTextWidth(title); doc.text(title, pageW / 2 - w / 2, y + 4.8);
+      y += 7;
+    };
+    section('CLIENTE');
+    const address = [client.address, client.city, client.uf].filter(Boolean).join(' - ');
+    const clientRows = [
+      ['NOME', clientName, 'TELEFONE', client.phone || client.whatsapp || '—'],
+      ['CPF/CNPJ', client.cpf_cnpj || '—', 'E-MAIL', client.email || '—'],
+      ['ENDEREÇO', [address, client.cep ? 'CEP: ' + client.cep : ''].filter(Boolean).join(' • ') || '—', 'VEÍCULO', [order.vehicle_make_model, order.plate].filter(Boolean).join(' • ') || '—']
+    ];
+    clientRows.forEach(row => {
+      ensure(13);
+      doc.setDrawColor(130, 140, 150); doc.rect(margin, y, pageW - margin * 2, 13);
+      line(margin + 91, y, margin + 91, y + 13);
+      labelValue(row[0], row[1], margin, y, 91);
+      labelValue(row[2], row[3], margin + 91, y, pageW - margin * 2 - 91);
+      y += 13;
+    });
+
+    section('ORÇAMENTO');
+    const col = [12, 112, 18, 40];
+    const head = ['ITEM', 'PRODUTO / SERVIÇO', 'QUANT.', 'VALOR'];
+    let xx = margin;
+    doc.setFillColor(235, 239, 244); doc.rect(margin, y, pageW - margin * 2, 8, 'F');
+    doc.setDrawColor(50, 60, 70); doc.rect(margin, y, pageW - margin * 2, 8);
+    head.forEach((h, i) => { text(h, xx + 2, y + 5.3, 7, 'bold'); xx += col[i]; if (i < 3) line(xx, y, xx, y + 8); });
+    y += 8;
+    const pdfItems = items.length ? items : [{ description: 'Serviços / produtos', sale_value: order.total_sale || 0 }];
+    pdfItems.forEach((item, index) => {
+      const descLines = wrapped(item.description || 'Serviço / produto', col[1] - 5, 8);
+      const rowH = Math.max(9, descLines.length * 4 + 4);
+      ensure(rowH);
+      doc.setDrawColor(130, 140, 150); doc.rect(margin, y, pageW - margin * 2, rowH);
+      let cx = margin;
+      [col[0], col[1], col[2]].forEach(w => { cx += w; line(cx, y, cx, y + rowH); });
+      text(index + 1, margin + 4, y + 5.7, 8);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(20, 25, 30);
+      doc.text(descLines, margin + col[0] + 2, y + 5.7);
+      text('1', margin + col[0] + col[1] + 7, y + 5.7, 8);
+      text(money(item.sale_value), margin + col[0] + col[1] + col[2] + 2, y + 5.7, 8);
+      y += rowH;
+    });
+
+    ensure(18);
+    const totalW = (pageW - margin * 2) / 4;
+    [['SUBTOTAL', money(subtotal)], ['DESCONTO', money(discount)], ['ACRÉSCIMO', money(freight)], ['TOTAL', money(total)]].forEach((entry, i) => {
+      const tx = margin + i * totalW;
+      doc.setDrawColor(40, 50, 60); doc.rect(tx, y, totalW, 17);
+      text(entry[0], tx + 3, y + 5, 7, 'bold');
+      text(entry[1], tx + 3, y + 12, i === 3 ? 10 : 8, 'bold', i === 3 ? navy : [20, 25, 30]);
+    });
+    y += 22;
+
+    section('OBSERVAÇÕES E FORMAS DE PAGAMENTO');
+    const blocks = ['Formas de pagamento: ' + paymentText];
+    if (notes) blocks.push('Observações: ' + notes);
+    if (freight) blocks.push('Acréscimo / frete: ' + money(freight));
+    const obsLines = wrapped(blocks.join('\n\n'), pageW - margin * 2 - 10, 8);
+    const obsHeight = Math.max(18, obsLines.length * 4.2 + 8);
+    ensure(obsHeight + 22);
+    doc.setDrawColor(40, 50, 60); doc.rect(margin, y, pageW - margin * 2, obsHeight);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(20, 25, 30);
+    doc.text(obsLines, margin + 5, y + 7);
+    y += obsHeight + 18;
+    ensure(12);
+    line(margin + 3, y, margin + 83, y);
+    line(margin + 99, y, right - 3, y);
+    text(companyName, margin + 3, y + 5, 7, 'bold');
+    text(clientName, margin + 99, y + 5, 7, 'bold');
+    return doc;
+  }
+
+  async function sendReceiptWhatsApp(order, paymentConditions, extraObservations) {
+    const number = order.numero_lancamento || order.pedido || '—';
+    const client = (Array.isArray(window.clients) ? window.clients : []).find(x => String(x.id) === String(order.client_id)) || {};
+    const clientName = client.razao_social || client.name || order.client_name || 'cliente';
+    const message = 'Olá, ' + clientName + '! Segue em anexo o orçamento nº ' + number + ' da ' + (window.company?.name || 'Radiadores Moura') + '.';
+    const popup = window.open('about:blank', '_blank');
+    try {
+      const doc = await receiptPdfData(order, paymentConditions, extraObservations);
+      const filename = ('orcamento-' + number).replace(/[^a-z0-9_-]/gi, '-') + '.pdf';
+      const blob = doc.output('blob');
+      const file = new File([blob], filename, { type: 'application/pdf' });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          if (popup && !popup.closed) popup.close();
+          await navigator.share({ files: [file], title: 'Orçamento ' + number, text: message });
+          if (typeof window.toast === 'function') window.toast('Compartilhamento iniciado.');
+          return;
+        } catch (shareError) {
+          if (shareError?.name === 'AbortError') return;
+          console.warn('Compartilhamento nativo indisponível; usando envio assistido.', shareError);
+        }
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      const phone = String(client.whatsapp || client.phone || '').replace(/\D/g, '');
+      const waUrl = phone
+        ? 'https://wa.me/' + (phone.startsWith('55') ? phone : '55' + phone) + '?text=' + encodeURIComponent(message)
+        : 'https://wa.me/?text=' + encodeURIComponent(message);
+      if (popup && !popup.closed) popup.location.href = waUrl;
+      else window.open(waUrl, '_blank');
+      if (typeof window.toast === 'function') window.toast('PDF baixado. Anexe o arquivo baixado na conversa do WhatsApp.');
+      else alert('O PDF foi baixado. Anexe o arquivo à conversa do WhatsApp que foi aberta.');
+    } catch (error) {
+      if (popup && !popup.closed) popup.close();
+      console.error('Erro ao gerar PDF para WhatsApp:', error);
+      alert('Não foi possível gerar o PDF: ' + (error?.message || error));
+    }
+  }
+
   function showPrintOptions(order) {
     return new Promise(resolve => {
       const old = document.getElementById('receiptPaymentDialog');
@@ -133,18 +337,28 @@
         '<textarea id="receiptExtraObservations" rows="4" placeholder="Digite uma observação específica para este orçamento..." style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd3dc;border-radius:7px;font:14px Arial;resize:vertical"></textarea>' +
         '<div style="display:flex;justify-content:flex-end;gap:9px;margin-top:18px;flex-wrap:wrap">' +
         '<button type="button" data-action="cancel" style="padding:10px 16px;border:1px solid #bbc4ce;background:#fff;border-radius:7px;cursor:pointer">Cancelar</button>' +
-        '<button type="button" data-action="print" style="padding:10px 18px;border:0;background:#243e5a;color:#fff;border-radius:7px;font-weight:700;cursor:pointer">Continuar e imprimir</button></div></section>';
+        '<button type="button" data-action="print" style="padding:10px 18px;border:0;background:#243e5a;color:#fff;border-radius:7px;font-weight:700;cursor:pointer">Continuar e imprimir</button>' +
+        '<button type="button" data-action="whatsapp" style="padding:10px 18px;border:0;background:#168447;color:#fff;border-radius:7px;font-weight:700;cursor:pointer">Enviar PDF pelo WhatsApp</button></div></section>';
       document.body.appendChild(overlay);
       overlay.addEventListener('click', event => {
         const action = event.target.closest('[data-action]')?.dataset.action;
         if (action === 'cancel' || event.target === overlay) {
           overlay.remove();
           resolve(null);
-        } else if (action === 'print') {
+        } else if (action === 'print' || action === 'whatsapp') {
           const selected = Array.from(overlay.querySelectorAll('.receipt-payment-options input:checked')).map(input => input.value);
           const observations = overlay.querySelector('#receiptExtraObservations').value.trim();
-          overlay.remove();
-          resolve({ paymentConditions: selected, extraObservations: observations });
+          if (action === 'whatsapp') {
+            const button = overlay.querySelector('[data-action="whatsapp"]');
+            button.disabled = true;
+            button.textContent = 'Gerando PDF...';
+            sendReceiptWhatsApp(order, selected, observations).finally(() => {
+              if (button.isConnected) { button.disabled = false; button.textContent = 'Enviar PDF pelo WhatsApp'; }
+            });
+          } else {
+            overlay.remove();
+            resolve({ paymentConditions: selected, extraObservations: observations });
+          }
         }
       });
       overlay.querySelector('textarea').focus();
