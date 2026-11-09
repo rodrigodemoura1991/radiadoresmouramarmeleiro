@@ -52,11 +52,10 @@
       @page{size:A4 portrait;margin:9mm}*{box-sizing:border-box}
       body{margin:0;font:11px Arial,Helvetica,sans-serif;color:#111}
       .sheet{width:100%;max-width:190mm;margin:0 auto}
-      .company{min-height:37mm;border:1.5px solid #243e5a;border-bottom:3px solid #243e5a;display:flex;align-items:center;padding:5mm 6mm;gap:7mm;background:#fff}
-      .logo{width:32mm;height:32mm;object-fit:contain;flex:0 0 32mm}
-      .company-info{flex:1;text-align:left;line-height:1.5}
-      .company-info h1{font-size:20px;letter-spacing:.35px;color:#183653;margin:0 0 3px;text-transform:uppercase;font-weight:800}
-      .company-info .small{font-size:9.5px;color:#263746;line-height:1.45}
+      .company{min-height:37mm;border-bottom:2px solid #243e5a;display:flex;align-items:center;padding:3mm 2mm 5mm;gap:8mm;background:#fff}
+      .logo{width:30mm;height:30mm;object-fit:contain;flex:0 0 30mm}
+      .company-info{flex:1;text-align:left;line-height:1.2}
+      .company-info h1{font-family:Arial,Helvetica,sans-serif;font-size:23px;letter-spacing:.2px;color:#183653;margin:0;text-transform:uppercase;font-weight:700}
       .meta{display:grid;grid-template-columns:1.15fr 1fr 1fr;border:1.5px solid #243e5a;border-top:0;text-align:center;align-items:stretch}
       .meta div{padding:6px 4px;border-right:1px solid #9aa8b5;display:flex;flex-direction:column;justify-content:center;gap:2px}
       .meta div:last-child{border:0}
@@ -83,16 +82,20 @@
       @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.sheet{break-inside:avoid}}
       </style></head><body><main class="sheet">
       <header class="company"><img class="logo" src="${escapeHtml(logoUrl)}" alt="Logo"><div class="company-info">
-        <h1>${escapeHtml(companyName)}</h1>${companyHeaderDetails}
+        <h1>${escapeHtml(companyName)}</h1>
       </div></header>
       <div class="meta"><div class="quote-number"><span>Orçamento nº</span><strong>${escapeHtml(number)}</strong></div><div class="meta-date"><b>Emitido em</b><span>${issued}</span></div><div class="meta-date"><b>Válido até</b><span>${validUntil}</span></div></div>
-      <div class="section-title">CLIENTE</div><section class="client">
+      <div class="section-title">DADOS DO CLIENTE</div><section class="client">
         <div class="client-row"><b>NOME</b><span>${escapeHtml(clientName)}</span></div>
         <div class="client-row"><b>TELEFONE</b><span>${escapeHtml(phone || '—')}</span></div>
         <div class="client-row"><b>CPF/CNPJ</b><span>${escapeHtml(client.cpf_cnpj || '—')}</span></div>
-        <div class="client-row"><b>EMAIL</b><span>${escapeHtml(client.email || '—')}</span></div>
+        <div class="client-row"><b>E-MAIL</b><span>${escapeHtml(client.email || '—')}</span></div>
         <div class="client-row"><b>ENDEREÇO</b><span>${escapeHtml(address || '—')}${client.cep ? ' • CEP: '+escapeHtml(client.cep) : ''}</span></div>
-        ${order.vehicle_make_model || order.plate ? '<div class="client-row"><b>VEÍCULO</b><span>'+escapeHtml([order.vehicle_make_model,order.plate].filter(Boolean).join(' • '))+'</span></div>' : ''}
+      </section>
+      <div class="section-title">DADOS DO VEÍCULO</div><section class="client">
+        <div class="client-row"><b>MARCA / MODELO</b><span>${escapeHtml(order.vehicle_make_model || '—')}</span></div>
+        <div class="client-row"><b>PLACA</b><span>${escapeHtml(order.plate || '—')}</span></div>
+        <div class="client-row"><b>Nº DO PEDIDO</b><span>${escapeHtml(order.pedido || '—')}</span></div>
       </section>
       <div class="section-title">ORÇAMENTO</div>
       <table class="items"><thead><tr><th style="width:8%">ITEM</th><th>PRODUTO / SERVIÇO</th><th style="width:12%">QUANT.</th><th style="width:20%">VALOR</th></tr></thead><tbody>${itemRows}${blankRows}</tbody></table>
@@ -129,11 +132,6 @@
     const total = subtotal - discount + freight;
     const companyName = window.company?.name || 'RADIADORES MOURA';
     const companyId = String(window.company?.id || '');
-    const companyLines = companyId === 'f3cd9d20-a341-41fe-87fe-c0726a19b65b'
-      ? ['CNPJ: 48.903.995/0001-27', 'Rua dos Miosótis, 203 • Alvorada • Marmeleiro - PR • CEP: 85615-013', 'Tel.: (46) 9976-0694 • radiadoresmouramarmeleiro@gmail.com']
-      : companyId === '48f0eb3d-22ff-4506-9d9c-b6dd4455946b'
-        ? ['CNPJ: 65.435.170/0001-44', 'Avenida Dom Agostinho José Sartori, 2695 • São Cristóvão', 'Francisco Beltrão - PR • CEP: 85601-090', 'Tel.: (46) 3524-5810 • radiadoresmoura@gmail.com']
-        : [];
     const number = order.numero_lancamento ?? order.os_number ?? order.order_number ?? order.id ?? '—';
     const clientName = order.client_name || client.razao_social || client.name || 'Não informado';
     const paymentText = paymentConditions.length ? paymentConditions.join(' • ') : 'A combinar';
@@ -184,7 +182,7 @@
       doc.text(lines.slice(0, 2), x, yy + 5);
     };
 
-    // Cabeçalho editorial limpo: sem faixa azul, logo original e dados completos da unidade.
+    // Cabeçalho limpo: logo original e nome da empresa em fonte padrão, sem slogan ou dados cadastrais.
     let logoData = null;
     try {
       const response = await fetch(new URL('8857A320-4E57-4A00-933D-C76434BC6953.png', window.location.href).href);
@@ -199,47 +197,19 @@
       }
     } catch (_) {}
 
-    const companyObj = window.company || {};
-    const dynamicCompanyLines = [
-      companyObj.cnpj || companyObj.document || companyObj.cpf_cnpj ? 'CNPJ: ' + (companyObj.cnpj || companyObj.document || companyObj.cpf_cnpj) : '',
-      companyObj.address || companyObj.endereco || '',
-      [companyObj.city || companyObj.cidade, companyObj.uf || companyObj.state, companyObj.cep ? 'CEP: ' + companyObj.cep : ''].filter(Boolean).join(' • '),
-      [companyObj.phone || companyObj.telefone, companyObj.email].filter(Boolean).join(' • ')
-    ].filter(Boolean);
-    const knownCompanyLines = companyLines.length ? companyLines : (
-      dynamicCompanyLines.length ? dynamicCompanyLines :
-      ['CNPJ: 48.903.995/0001-27', 'Rua dos Miosótis, 203 • Alvorada • Marmeleiro - PR • CEP: 85615-013', 'Tel.: (46) 9976-0694 • radiadoresmouramarmeleiro@gmail.com']
-    );
-
     const headerTop = y;
     if (logoData) {
       try {
-        // Logo em proporção original, sem moldura ou recorte.
         doc.addImage(logoData, 'PNG', margin, headerTop + 1, 31, 31, undefined, 'FAST');
       } catch (_) {}
     }
     const companyX = margin + (logoData ? 39 : 2);
-    doc.setFont('times', 'bold');
-    doc.setFontSize(20);
-    doc.setTextColor(...navy);
-    doc.text(companyName.toUpperCase(), companyX, headerTop + 9);
+    const companyW = pageW - margin - companyX;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    doc.setTextColor(...blue);
-    doc.text('RADIADORES • AR-CONDICIONADO • SERVIÇOS AUTOMOTIVOS', companyX, headerTop + 15);
-
-    const infoX = companyX;
-    const infoW = pageW - margin - infoX;
-    const infoFont = 7.2;
-    const infoLines = knownCompanyLines.slice(0, 4);
-    infoLines.forEach((lineText, i) => {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(infoFont);
-      doc.setTextColor(...muted);
-      const wrapped = doc.splitTextToSize(String(lineText), infoW);
-      doc.text(wrapped.slice(0, 1), infoX, headerTop + 21 + i * 3.8);
-    });
-    // Filete fino apenas para separar o cabeçalho do conteúdo.
+    doc.setFontSize(17);
+    doc.setTextColor(...navy);
+    const companyTitle = doc.splitTextToSize(companyName.toUpperCase(), companyW);
+    doc.text(companyTitle.slice(0, 2), companyX, headerTop + (companyTitle.length > 1 ? 13 : 19));
     line(margin, headerTop + 36, pageW - margin, headerTop + 36, navy, 0.55);
     y = headerTop + 43;
 
@@ -263,15 +233,32 @@
     const half = (contentW - 12) / 2;
     const address = [client.address, client.city, client.uf].filter(Boolean).join(' - ');
     const vehicle = [order.vehicle_make_model, order.plate].filter(Boolean).join(' • ');
-    const rows = [
+    const clientRows = [
       [['CLIENTE', clientName], ['TELEFONE', client.phone || client.whatsapp || '—']],
-      [['CPF / CNPJ', client.cpf_cnpj || '—'], ['E-MAIL', client.email || '—']],
-      [['ENDEREÇO', [address, client.cep ? 'CEP: ' + client.cep : ''].filter(Boolean).join(' • ') || '—'], ['VEÍCULO', vehicle || '—']]
+      [['CPF / CNPJ', client.cpf_cnpj || '—'], ['E-MAIL', client.email || '—']]
     ];
-    rows.forEach((row, index) => {
+    clientRows.forEach((row, index) => {
       ensure(16);
       const yy = y;
       field(row[0][0], row[0][1], margin + 1, yy + 2, half, index === 0 ? 8.5 : 8);
+      field(row[1][0], row[1][1], margin + half + 10, yy + 2, half, 8);
+      line(margin, yy + 14, margin + contentW, yy + 14);
+      y += 17;
+    });
+    ensure(16);
+    field('ENDEREÇO', [address, client.cep ? 'CEP: ' + client.cep : ''].filter(Boolean).join(' • ') || '—', margin + 1, y + 2, contentW - 2, 8);
+    line(margin, y + 14, margin + contentW, y + 14);
+    y += 17;
+
+    section('Dados do veículo');
+    const vehicleRows = [
+      [['MARCA / MODELO', order.vehicle_make_model || '—'], ['PLACA', order.plate || '—']],
+      [['NÚMERO DO PEDIDO', order.pedido || '—'], ['ORDEM DE SERVIÇO', String(number)]]
+    ];
+    vehicleRows.forEach(row => {
+      ensure(16);
+      const yy = y;
+      field(row[0][0], row[0][1], margin + 1, yy + 2, half, 8.5);
       field(row[1][0], row[1][1], margin + half + 10, yy + 2, half, 8);
       line(margin, yy + 14, margin + contentW, yy + 14);
       y += 17;
