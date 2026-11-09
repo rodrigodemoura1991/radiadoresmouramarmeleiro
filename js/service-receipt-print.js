@@ -127,45 +127,66 @@
     const hasItemFreight = items.some(item => Number(item.freight_value) || 0);
     const freight = hasItemFreight ? items.reduce((sum, item) => sum + (Number(item.freight_value) || 0), 0) : Number(order.total_freight) || 0;
     const total = subtotal - discount + freight;
-    const companyName = window.company?.name || 'RADIADORES MOURA MARMELEIRO';
+    const companyName = window.company?.name || 'RADIADORES MOURA';
     const companyId = String(window.company?.id || '');
     const companyLines = companyId === 'f3cd9d20-a341-41fe-87fe-c0726a19b65b'
       ? ['CNPJ: 48.903.995/0001-27', 'Rua dos Miosótis, 203 • Alvorada • Marmeleiro - PR • CEP: 85615-013', 'Tel.: (46) 9976-0694 • radiadoresmouramarmeleiro@gmail.com']
       : companyId === '48f0eb3d-22ff-4506-9d9c-b6dd4455946b'
         ? ['CNPJ: 65.435.170/0001-44', 'Avenida Dom Agostinho José Sartori, 2695 • São Cristóvão', 'Francisco Beltrão - PR • CEP: 85601-090', 'Tel.: (46) 3524-5810 • radiadoresmoura@gmail.com']
         : [];
-    const number = order.numero_lancamento || order.pedido || '—';
-    const clientName = client.razao_social || client.name || order.client_name || 'Não informado';
+    const number = order.numero_lancamento ?? order.os_number ?? order.order_number ?? order.id ?? '—';
+    const clientName = order.client_name || client.razao_social || client.name || 'Não informado';
     const paymentText = paymentConditions.length ? paymentConditions.join(' • ') : 'A combinar';
     const notes = [order.notes || '', extraObservations || ''].filter(Boolean).join('\n');
-    const issued = new Date().toLocaleDateString('pt-BR');
-    const valid = new Date(Date.now() + 7 * 86400000).toLocaleDateString('pt-BR');
     const pageW = doc.internal.pageSize.getWidth();
-    const margin = 14;
-    const right = pageW - margin;
-    let y = 14;
-    const navy = [36, 62, 90];
-    const line = (x1, y1, x2, y2) => { doc.setDrawColor(35, 45, 55); doc.setLineWidth(0.25); doc.line(x1, y1, x2, y2); };
-    const text = (value, x, yy, size = 9, style = 'normal', color = [20, 25, 30]) => {
+    const pageH = doc.internal.pageSize.getHeight();
+    const margin = 15;
+    const contentW = pageW - margin * 2;
+    const navy = [31, 55, 82];
+    const blue = [55, 91, 126];
+    const ink = [45, 52, 60];
+    const muted = [105, 115, 125];
+    const pale = [241, 245, 249];
+    const border = [220, 226, 232];
+    let y = 15;
+    const fmt = value => String(value ?? '—');
+    const line = (x1, y1, x2, y2, color = border, width = 0.25) => {
+      doc.setDrawColor(...color); doc.setLineWidth(width); doc.line(x1, y1, x2, y2);
+    };
+    const txt = (value, x, yy, size = 9, style = 'normal', color = ink, opts = {}) => {
       doc.setFont('helvetica', style); doc.setFontSize(size); doc.setTextColor(...color);
-      doc.text(String(value ?? ''), x, yy);
+      doc.text(fmt(value), x, yy, opts);
     };
-    const wrapped = (value, width, size = 9, style = 'normal') => {
+    const wrap = (value, width, size = 8, style = 'normal') => {
       doc.setFont('helvetica', style); doc.setFontSize(size);
-      return doc.splitTextToSize(String(value ?? ''), width);
+      return doc.splitTextToSize(fmt(value), width);
     };
+    const moneyText = value => money(Number(value) || 0);
     const ensure = height => {
-      if (y + height > 278) { doc.addPage(); y = 16; }
+      if (y + height > pageH - 22) {
+        doc.addPage();
+        y = 18;
+        line(margin, y, pageW - margin, y, navy, 0.8);
+        y += 8;
+      }
     };
-    const labelValue = (label, value, x, yy, w) => {
-      text(label.toUpperCase(), x + 2, yy + 4, 7, 'bold', [70, 80, 90]);
-      const lines = wrapped(value || '—', w - 4, 8);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
-      doc.text(lines.slice(0, 2), x + 2, yy + 9);
+    const section = title => {
+      ensure(11);
+      doc.setFillColor(...pale);
+      doc.roundedRect(margin, y, contentW, 7, 1.2, 1.2, 'F');
+      txt(title.toUpperCase(), margin + 3, y + 4.7, 8, 'bold', navy);
+      y += 11;
+    };
+    const field = (label, value, x, yy, width, valueSize = 8.5) => {
+      txt(label.toUpperCase(), x, yy, 6.5, 'bold', muted);
+      const lines = wrap(value || '—', width, valueSize);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(valueSize); doc.setTextColor(...ink);
+      doc.text(lines.slice(0, 2), x, yy + 5);
     };
 
-    // Cabeçalho com a identidade visual da empresa.
-    doc.setDrawColor(...navy); doc.setLineWidth(0.7); doc.rect(margin, y, pageW - margin * 2, 34);
+    // Cabeçalho: identidade visual com logo original e dados da unidade.
+    doc.setFillColor(...navy);
+    doc.roundedRect(margin, y, contentW, 35, 2, 2, 'F');
     let logoData = null;
     try {
       const response = await fetch(new URL('8857A320-4E57-4A00-933D-C76434BC6953.png', window.location.href).href);
@@ -180,104 +201,135 @@
       }
     } catch (_) {}
     if (logoData) {
-      try { doc.addImage(logoData, 'PNG', margin + 3, y + 3, 27, 27, undefined, 'FAST'); } catch (_) {}
+      try {
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(margin + 3, y + 3, 29, 29, 1.5, 1.5, 'F');
+        doc.addImage(logoData, 'PNG', margin + 4, y + 4, 27, 27, undefined, 'FAST');
+      } catch (_) {}
     }
-    const companyX = margin + (logoData ? 34 : 5);
-    text(companyName.toUpperCase(), companyX, y + 9, 15, 'bold', navy);
-    companyLines.forEach((lineText, i) => text(lineText, companyX, y + 15 + i * 4.2, 7.2, 'normal', [40, 50, 60]));
-    y += 34;
+    const companyX = margin + (logoData ? 37 : 6);
+    txt(companyName.toUpperCase(), companyX, y + 10, 13, 'bold', [255, 255, 255]);
+    companyLines.forEach((lineText, i) => txt(lineText, companyX, y + 17 + i * 4.5, 7, 'normal', [235, 241, 247]));
+    y += 43;
 
-    // Identificação da OS e datas do serviço. A saída só aparece quando estiver preenchida.
+    // Faixa de identificação da ordem de serviço e datas.
     const serviceDates = [
-      ['Nº DA OS', String(number)],
-      ['DATA DE ENTRADA', dateBR(order.entry_date) || '—']
+      ['ORDEM DE SERVIÇO Nº', String(number)],
+      ['ENTRADA', dateBR(order.entry_date) || '—']
     ];
-    if (order.exit_date) serviceDates.push(['DATA DE SAÍDA', dateBR(order.exit_date)]);
-    const metaHeight = 15;
-    const metaWidth = (pageW - margin * 2) / serviceDates.length;
-    doc.setDrawColor(...navy); doc.rect(margin, y, pageW - margin * 2, metaHeight);
+    if (order.exit_date) serviceDates.push(['SAÍDA', dateBR(order.exit_date)]);
+    const cellW = contentW / serviceDates.length;
     serviceDates.forEach((entry, i) => {
-      const cellX = margin + i * metaWidth;
-      if (i) line(cellX, y, cellX, y + metaHeight);
-      text(entry[0], cellX + 3, y + 5, 7, 'bold', navy);
-      text(entry[1], cellX + 3, y + 11, i === 0 ? 12 : 9, 'bold', [20, 30, 40]);
+      const x = margin + i * cellW;
+      doc.setFillColor(...(i === 0 ? [232, 238, 245] : pale));
+      doc.roundedRect(x + (i ? 1 : 0), y, cellW - 1, 17, 1.2, 1.2, 'F');
+      txt(entry[0], x + 4, y + 5.5, 6.5, 'bold', muted);
+      txt(entry[1], x + 4, y + 12.5, i === 0 ? 12 : 9, 'bold', navy);
     });
-    y += metaHeight;
+    y += 24;
 
-    const section = title => {
-      ensure(10);
-      doc.setFillColor(242, 245, 248); doc.rect(margin, y, pageW - margin * 2, 7, 'F');
-      doc.setDrawColor(35, 45, 55); doc.rect(margin, y, pageW - margin * 2, 7);
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
-      const w = doc.getTextWidth(title); doc.text(title, pageW / 2 - w / 2, y + 4.8);
-      y += 7;
-    };
-    section('CLIENTE');
+    section('Dados do cliente');
+    const half = (contentW - 12) / 2;
     const address = [client.address, client.city, client.uf].filter(Boolean).join(' - ');
-    const clientRows = [
-      ['NOME', clientName, 'TELEFONE', client.phone || client.whatsapp || '—'],
-      ['CPF/CNPJ', client.cpf_cnpj || '—', 'E-MAIL', client.email || '—'],
-      ['ENDEREÇO', [address, client.cep ? 'CEP: ' + client.cep : ''].filter(Boolean).join(' • ') || '—', 'VEÍCULO', [order.vehicle_make_model, order.plate].filter(Boolean).join(' • ') || '—']
+    const vehicle = [order.vehicle_make_model, order.plate].filter(Boolean).join(' • ');
+    const rows = [
+      [['CLIENTE', clientName], ['TELEFONE', client.phone || client.whatsapp || '—']],
+      [['CPF / CNPJ', client.cpf_cnpj || '—'], ['E-MAIL', client.email || '—']],
+      [['ENDEREÇO', [address, client.cep ? 'CEP: ' + client.cep : ''].filter(Boolean).join(' • ') || '—'], ['VEÍCULO', vehicle || '—']]
     ];
-    clientRows.forEach(row => {
-      ensure(13);
-      doc.setDrawColor(130, 140, 150); doc.rect(margin, y, pageW - margin * 2, 13);
-      line(margin + 91, y, margin + 91, y + 13);
-      labelValue(row[0], row[1], margin, y, 91);
-      labelValue(row[2], row[3], margin + 91, y, pageW - margin * 2 - 91);
-      y += 13;
+    rows.forEach((row, index) => {
+      ensure(16);
+      const yy = y;
+      field(row[0][0], row[0][1], margin + 1, yy + 2, half, index === 0 ? 8.5 : 8);
+      field(row[1][0], row[1][1], margin + half + 10, yy + 2, half, 8);
+      line(margin, yy + 14, margin + contentW, yy + 14);
+      y += 17;
     });
+    y += 2;
 
-    section('ORÇAMENTO');
-    const col = [12, 112, 18, 40];
-    const head = ['ITEM', 'PRODUTO / SERVIÇO', 'QUANT.', 'VALOR'];
-    let xx = margin;
-    doc.setFillColor(235, 239, 244); doc.rect(margin, y, pageW - margin * 2, 8, 'F');
-    doc.setDrawColor(50, 60, 70); doc.rect(margin, y, pageW - margin * 2, 8);
-    head.forEach((h, i) => { text(h, xx + 2, y + 5.3, 7, 'bold'); xx += col[i]; if (i < 3) line(xx, y, xx, y + 8); });
-    y += 8;
+    section('Serviços e produtos');
+    const cols = [11, 105, 20, contentW - 136];
+    const heads = ['#', 'DESCRIÇÃO', 'QTD.', 'VALOR'];
+    doc.setFillColor(...navy);
+    doc.roundedRect(margin, y, contentW, 9, 1, 1, 'F');
+    let x = margin;
+    heads.forEach((head, i) => {
+      txt(head, x + 2.5, y + 5.8, 7, 'bold', [255, 255, 255]);
+      x += cols[i];
+    });
+    y += 9;
     const pdfItems = items.length ? items : [{ description: 'Serviços / produtos', sale_value: order.total_sale || 0 }];
     pdfItems.forEach((item, index) => {
-      const descLines = wrapped(item.description || 'Serviço / produto', col[1] - 5, 8);
-      const rowH = Math.max(9, descLines.length * 4 + 4);
-      ensure(rowH);
-      doc.setDrawColor(130, 140, 150); doc.rect(margin, y, pageW - margin * 2, rowH);
-      let cx = margin;
-      [col[0], col[1], col[2]].forEach(w => { cx += w; line(cx, y, cx, y + rowH); });
-      text(index + 1, margin + 4, y + 5.7, 8);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(20, 25, 30);
-      doc.text(descLines, margin + col[0] + 2, y + 5.7);
-      text('1', margin + col[0] + col[1] + 7, y + 5.7, 8);
-      text(money(item.sale_value), margin + col[0] + col[1] + col[2] + 2, y + 5.7, 8);
+      const description = item.description || item.name || 'Serviço / produto';
+      const descLines = wrap(description, cols[1] - 5, 8);
+      const rowH = Math.max(10, descLines.length * 4 + 5);
+      ensure(rowH + 1);
+      if (index % 2 === 0) {
+        doc.setFillColor(248, 250, 252);
+        doc.rect(margin, y, contentW, rowH, 'F');
+      }
+      txt(index + 1, margin + 3, y + 6.5, 8, 'normal', muted);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...ink);
+      doc.text(descLines, margin + cols[0] + 2, y + 6.5);
+      txt('1', margin + cols[0] + cols[1] + 7, y + 6.5, 8);
+      txt(moneyText(item.sale_value), margin + cols[0] + cols[1] + cols[2] + 2, y + 6.5, 8, 'bold');
+      line(margin, y + rowH, margin + contentW, y + rowH);
       y += rowH;
     });
+    y += 5;
 
-    ensure(18);
-    const totalW = (pageW - margin * 2) / 4;
-    [['SUBTOTAL', money(subtotal)], ['DESCONTO', money(discount)], ['ACRÉSCIMO', money(freight)], ['TOTAL', money(total)]].forEach((entry, i) => {
-      const tx = margin + i * totalW;
-      doc.setDrawColor(40, 50, 60); doc.rect(tx, y, totalW, 17);
-      text(entry[0], tx + 3, y + 5, 7, 'bold');
-      text(entry[1], tx + 3, y + 12, i === 3 ? 10 : 8, 'bold', i === 3 ? navy : [20, 25, 30]);
+    ensure(25);
+    const summaryW = contentW / 4;
+    const summary = [
+      ['SUBTOTAL', moneyText(subtotal)],
+      ['DESCONTO', moneyText(discount)],
+      ['ACRÉSCIMOS', moneyText(freight)],
+      ['TOTAL DO ORÇAMENTO', moneyText(total)]
+    ];
+    summary.forEach((entry, i) => {
+      const x = margin + i * summaryW;
+      const isTotal = i === 3;
+      doc.setFillColor(...(isTotal ? navy : pale));
+      doc.roundedRect(x + 0.5, y, summaryW - 1, 20, 1.5, 1.5, 'F');
+      txt(entry[0], x + 3, y + 6, isTotal ? 6 : 6.5, 'bold', isTotal ? [220, 232, 244] : muted);
+      txt(entry[1], x + 3, y + 14, isTotal ? 10 : 8.5, 'bold', isTotal ? [255, 255, 255] : ink);
     });
-    y += 22;
+    y += 27;
 
-    section('OBSERVAÇÕES E FORMAS DE PAGAMENTO');
-    const blocks = ['Formas de pagamento: ' + paymentText];
-    if (notes) blocks.push('Observações: ' + notes);
-    if (freight) blocks.push('Acréscimo / frete: ' + money(freight));
-    const obsLines = wrapped(blocks.join('\n\n'), pageW - margin * 2 - 10, 8);
-    const obsHeight = Math.max(18, obsLines.length * 4.2 + 8);
-    ensure(obsHeight + 22);
-    doc.setDrawColor(40, 50, 60); doc.rect(margin, y, pageW - margin * 2, obsHeight);
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(20, 25, 30);
-    doc.text(obsLines, margin + 5, y + 7);
-    y += obsHeight + 18;
-    ensure(12);
-    line(margin + 3, y, margin + 83, y);
-    line(margin + 99, y, right - 3, y);
-    text(companyName, margin + 3, y + 5, 7, 'bold');
-    text(clientName, margin + 99, y + 5, 7, 'bold');
+    section('Pagamento e observações');
+    const blocks = [['FORMAS DE PAGAMENTO', paymentText]];
+    if (notes) blocks.push(['OBSERVAÇÕES', notes]);
+    if (freight) blocks.push(['FRETE / ACRÉSCIMOS', moneyText(freight)]);
+    blocks.forEach((block, index) => {
+      const lines = wrap(block[1], contentW - 8, 8);
+      const blockH = Math.max(9, lines.length * 4 + 4);
+      ensure(blockH + 2);
+      txt(block[0], margin + 3, y + 3, 6.5, 'bold', muted);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...ink);
+      doc.text(lines, margin + 3, y + 8);
+      y += blockH + 3;
+      if (index < blocks.length - 1) line(margin + 3, y, margin + contentW - 3, y);
+    });
+    y += 4;
+
+    // Assinaturas discretas no rodapé.
+    ensure(18);
+    const sigW = (contentW - 18) / 2;
+    line(margin, y, margin + sigW, y, [150, 160, 170], 0.35);
+    line(margin + sigW + 18, y, margin + contentW, y, [150, 160, 170], 0.35);
+    txt(companyName, margin, y + 5, 7, 'bold', navy);
+    txt(clientName, margin + sigW + 18, y + 5, 7, 'bold', navy);
+    txt('RESPONSÁVEL', margin, y + 9, 6, 'normal', muted);
+    txt('CLIENTE', margin + sigW + 18, y + 9, 6, 'normal', muted);
+
+    // Rodapé em todas as páginas.
+    const pages = doc.internal.getNumberOfPages();
+    for (let page = 1; page <= pages; page++) {
+      doc.setPage(page);
+      line(margin, pageH - 14, pageW - margin, pageH - 14, border, 0.3);
+      txt(companyName, margin, pageH - 8, 6.5, 'normal', muted);
+      txt('ORDEM DE SERVIÇO Nº ' + number + '  •  ' + page + '/' + pages, pageW - margin, pageH - 8, 6.5, 'normal', muted, { align: 'right' });
+    }
     return doc;
   }
 
