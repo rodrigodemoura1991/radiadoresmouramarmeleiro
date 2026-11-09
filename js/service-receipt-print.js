@@ -184,9 +184,7 @@
       doc.text(lines.slice(0, 2), x, yy + 5);
     };
 
-    // Cabeçalho: identidade visual com logo original e dados da unidade.
-    doc.setFillColor(...navy);
-    doc.roundedRect(margin, y, contentW, 35, 2, 2, 'F');
+    // Cabeçalho editorial limpo: sem faixa azul, logo original e dados completos da unidade.
     let logoData = null;
     try {
       const response = await fetch(new URL('8857A320-4E57-4A00-933D-C76434BC6953.png', window.location.href).href);
@@ -200,17 +198,50 @@
         });
       }
     } catch (_) {}
+
+    const companyObj = window.company || {};
+    const dynamicCompanyLines = [
+      companyObj.cnpj || companyObj.document || companyObj.cpf_cnpj ? 'CNPJ: ' + (companyObj.cnpj || companyObj.document || companyObj.cpf_cnpj) : '',
+      companyObj.address || companyObj.endereco || '',
+      [companyObj.city || companyObj.cidade, companyObj.uf || companyObj.state, companyObj.cep ? 'CEP: ' + companyObj.cep : ''].filter(Boolean).join(' • '),
+      [companyObj.phone || companyObj.telefone, companyObj.email].filter(Boolean).join(' • ')
+    ].filter(Boolean);
+    const knownCompanyLines = companyLines.length ? companyLines : (
+      dynamicCompanyLines.length ? dynamicCompanyLines :
+      ['CNPJ: 48.903.995/0001-27', 'Rua dos Miosótis, 203 • Alvorada • Marmeleiro - PR • CEP: 85615-013', 'Tel.: (46) 9976-0694 • radiadoresmouramarmeleiro@gmail.com']
+    );
+
+    const headerTop = y;
     if (logoData) {
       try {
-        doc.setFillColor(255, 255, 255);
-        doc.roundedRect(margin + 3, y + 3, 29, 29, 1.5, 1.5, 'F');
-        doc.addImage(logoData, 'PNG', margin + 4, y + 4, 27, 27, undefined, 'FAST');
+        // Logo em proporção original, sem moldura ou recorte.
+        doc.addImage(logoData, 'PNG', margin, headerTop + 1, 31, 31, undefined, 'FAST');
       } catch (_) {}
     }
-    const companyX = margin + (logoData ? 37 : 6);
-    txt(companyName.toUpperCase(), companyX, y + 10, 13, 'bold', [255, 255, 255]);
-    companyLines.forEach((lineText, i) => txt(lineText, companyX, y + 17 + i * 4.5, 7, 'normal', [235, 241, 247]));
-    y += 43;
+    const companyX = margin + (logoData ? 39 : 2);
+    doc.setFont('times', 'bold');
+    doc.setFontSize(20);
+    doc.setTextColor(...navy);
+    doc.text(companyName.toUpperCase(), companyX, headerTop + 9);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(...blue);
+    doc.text('RADIADORES • AR-CONDICIONADO • SERVIÇOS AUTOMOTIVOS', companyX, headerTop + 15);
+
+    const infoX = companyX;
+    const infoW = pageW - margin - infoX;
+    const infoFont = 7.2;
+    const infoLines = knownCompanyLines.slice(0, 4);
+    infoLines.forEach((lineText, i) => {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(infoFont);
+      doc.setTextColor(...muted);
+      const wrapped = doc.splitTextToSize(String(lineText), infoW);
+      doc.text(wrapped.slice(0, 1), infoX, headerTop + 21 + i * 3.8);
+    });
+    // Filete fino apenas para separar o cabeçalho do conteúdo.
+    line(margin, headerTop + 36, pageW - margin, headerTop + 36, navy, 0.55);
+    y = headerTop + 43;
 
     // Faixa de identificação da ordem de serviço e datas.
     const serviceDates = [
