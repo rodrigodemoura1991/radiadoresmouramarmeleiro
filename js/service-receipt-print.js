@@ -205,10 +205,19 @@
     const companyX = margin + (logoData ? 30 : 2);
     const companyW = pageW - margin - companyX;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
+    doc.setFontSize(13.5);
     doc.setTextColor(...navy);
     const companyTitle = doc.splitTextToSize(companyName.toUpperCase(), companyW);
-    doc.text(companyTitle.slice(0, 2), companyX, headerTop + (companyTitle.length > 1 ? 13 : 19));
+    doc.text(companyTitle.slice(0, 1), companyX, headerTop + 8);
+
+    // Dados cadastrais da empresa em linhas compactas no cabeçalho.
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.6);
+    doc.setTextColor(...muted);
+    doc.text('CNPJ: 48.903.995/0001-27', companyX, headerTop + 14);
+    doc.text('Rua dos Miosótis, 203 • Alvorada • Marmeleiro - PR • CEP: 85615-013', companyX, headerTop + 18);
+    doc.text('Tel.: (46) 9976-0694 • radiadoresmouramarmeleiro@gmail.com', companyX, headerTop + 22);
+
     line(margin, headerTop + 27, pageW - margin, headerTop + 27, navy, 0.45);
     y = headerTop + 31;
 
