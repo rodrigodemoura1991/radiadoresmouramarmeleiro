@@ -285,7 +285,13 @@
     const message = 'Olá, ' + clientName + '! Segue o orçamento nº ' + number + ' da ' + (window.company?.name || 'Radiadores Moura') + '.';
     try {
       const doc = await receiptPdfData(order, paymentConditions, extraObservations);
-      const filename = ('orcamento-' + number).replace(/[^a-z0-9_-]/gi, '-') + '.pdf';
+      const safeClientName = String(client.razao_social || client.name || order.client_name || 'cliente')
+        .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toUpperCase() || 'CLIENTE';
+      const safeOrderNumber = String(number).normalize('NFD')
+        .replace(/[\\u0300-\\u036f]/g, '').replace(/[^a-zA-Z0-9_-]+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'SEM-NUMERO';
+      const filename = 'ORCAMENTO-' + safeClientName + '-PEDIDO-' + safeOrderNumber + '.pdf';
       const blob = doc.output('blob');
       const file = new File([blob], filename, { type: 'application/pdf' });
 
