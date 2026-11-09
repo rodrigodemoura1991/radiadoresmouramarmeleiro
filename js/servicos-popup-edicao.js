@@ -8,7 +8,7 @@
     if($('service-edit-popup-css'))return;
     const s=document.createElement('style');s.id='service-edit-popup-css';s.textContent=`
       html.service-edit-popup-html,body.service-edit-popup-open{overflow:hidden!important}
-      #serviceEditOverlay{position:fixed!important;inset:0!important;z-index:2147483647!important;background:rgba(0,0,0,.62)!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:14px!important}
+      #serviceEditOverlay{position:fixed!important;inset:0!important;z-index:2147483000!important;background:rgba(0,0,0,.62)!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:14px!important}
       #serviceEditOverlay.hidden{display:none!important}
       #serviceEditBox{position:relative!important;width:min(1100px,97vw)!important;max-height:95vh!important;overflow:auto!important;background:#fff!important;border-radius:16px!important;box-shadow:0 24px 80px rgba(0,0,0,.4)!important;padding:18px!important}
       #serviceEditHeader{position:sticky!important;top:-18px!important;z-index:20!important;display:flex!important;align-items:center!important;justify-content:space-between!important;background:#fff!important;padding:3px 0 12px!important;margin-bottom:14px!important;border-bottom:1px solid #e5e7eb!important}
