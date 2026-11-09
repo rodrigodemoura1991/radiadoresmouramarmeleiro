@@ -261,13 +261,17 @@
     section('Dados do veículo');
     const vehicleRows = [
       [['MARCA / MODELO', order.vehicle_make_model || '—'], ['PLACA', order.plate || '—']],
-      [['NÚMERO DO PEDIDO', order.pedido || '—'], ['ORDEM DE SERVIÇO', String(number)]]
+      [['NÚMERO DO PEDIDO', order.pedido || '—']]
     ];
     vehicleRows.forEach(row => {
       ensure(11);
       const yy = y;
-      field(row[0][0], row[0][1], margin + 1, yy + 1, half, 7.2);
-      field(row[1][0], row[1][1], margin + half + 10, yy + 1, half, 7.2);
+      if(row.length===1){
+        field(row[0][0], row[0][1], margin + 1, yy + 1, contentW - 2, 7.2);
+      }else{
+        field(row[0][0], row[0][1], margin + 1, yy + 1, half, 7.2);
+        field(row[1][0], row[1][1], margin + half + 10, yy + 1, half, 7.2);
+      }
       line(margin, yy + 9, margin + contentW, yy + 9);
       y += 11;
     });
