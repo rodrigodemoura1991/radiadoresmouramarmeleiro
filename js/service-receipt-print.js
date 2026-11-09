@@ -204,7 +204,6 @@
       ensure(10);
       doc.setFillColor(242, 245, 248); doc.rect(margin, y, pageW - margin * 2, 7, 'F');
       doc.setDrawColor(35, 45, 55); doc.rect(margin, y, pageW - margin * 2, 7);
-      text(title, pageW / 2, y + 4.8, 8, 'bold', [20, 30, 40]);
       doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
       const w = doc.getTextWidth(title); doc.text(title, pageW / 2 - w / 2, y + 4.8);
       y += 7;
@@ -285,12 +284,11 @@
     const message = 'Olá, ' + clientName + '! Segue o orçamento nº ' + number + ' da ' + (window.company?.name || 'Radiadores Moura') + '.';
     try {
       const doc = await receiptPdfData(order, paymentConditions, extraObservations);
-      const safeClientName = String(client.razao_social || client.name || order.client_name || 'cliente')
-        .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
-        .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toUpperCase() || 'CLIENTE';
-      const safeOrderNumber = String(number).normalize('NFD')
-        .replace(/[\\u0300-\\u036f]/g, '').replace(/[^a-zA-Z0-9_-]+/g, '-')
-        .replace(/^-+|-+$/g, '') || 'SEM-NUMERO';
+      const safePart = value => String(value ?? '').normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toUpperCase();
+      const safeClientName = safePart(clientName) || 'CLIENTE';
+      const safeOrderNumber = safePart(number) || 'SEM-NUMERO';
       const filename = 'ORCAMENTO-' + safeClientName + '-PEDIDO-' + safeOrderNumber + '.pdf';
       const blob = doc.output('blob');
       const file = new File([blob], filename, { type: 'application/pdf' });
