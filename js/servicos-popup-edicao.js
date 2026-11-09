@@ -12,7 +12,7 @@
       #serviceEditOverlay.hidden{display:none!important}
       #serviceEditBox{position:relative!important;width:min(1100px,97vw)!important;max-height:95vh!important;overflow:auto!important;background:#fff!important;border-radius:16px!important;box-shadow:0 24px 80px rgba(0,0,0,.4)!important;padding:18px!important}
 /* Editor compacto: prioriza visualizar os campos e ações sem rolagem no caso comum. */
-      #serviceEditBox{display:flex!important;flex-direction:column!important;width:min(1380px,98vw)!important;height:96vh!important;max-height:96vh!important;overflow:hidden!important;padding:12px 16px!important}
+      #serviceEditBox{display:flex!important;flex-direction:column!important;width:min(1186px,96vw)!important;height:90vh!important;max-height:90vh!important;overflow:hidden!important;padding:12px 16px!important}
       #serviceEditHeader{position:relative!important;top:auto!important;flex:0 0 auto!important;margin:0 0 7px!important;padding:0 0 7px!important}
       #serviceEditBox>#order{display:flex!important;flex:1 1 auto!important;min-height:0!important;flex-direction:column!important;gap:5px!important;overflow-y:auto!important;overflow-x:hidden!important}
       #serviceEditBox>#order>.grid{display:grid!important;grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:6px!important;flex:0 0 auto!important}
@@ -53,7 +53,7 @@
         #serviceEditBox #order .totals{grid-template-columns:repeat(2,minmax(0,1fr))!important}
         #serviceEditBox #order .foot{position:sticky!important;bottom:0!important}
       }
-      #serviceEditHeader{position:sticky!important;top:-18px!important;z-index:20!important;display:flex!important;align-items:center!important;justify-content:space-between!important;background:#fff!important;padding:3px 0 12px!important;margin-bottom:14px!important;border-bottom:1px solid #e5e7eb!important}
+      #serviceEditHeader{position:sticky!important;top:-18px!important;z-index:20!important;display:flex!important;align-items:center!important;justify-content:space-between!important;background:#fff!important;color:#172033!important;padding:3px 0 12px!important;margin-bottom:14px!important;border-bottom:1px solid #e5e7eb!important}
       #serviceEditTitle{margin:0!important;font-size:22px!important;color:#172033!important}
       #serviceEditHeaderActions{display:flex!important;align-items:center!important;gap:8px!important;flex-wrap:wrap!important}
       #serviceEditPrintReceipt{border:0!important;border-radius:9px!important;padding:9px 14px!important;background:#173b67!important;color:#fff!important;font-weight:800!important;cursor:pointer!important}
