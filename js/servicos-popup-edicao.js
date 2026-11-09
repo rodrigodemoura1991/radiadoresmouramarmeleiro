@@ -14,7 +14,7 @@
 /* Editor compacto: prioriza visualizar os campos e ações sem rolagem no caso comum. */
       #serviceEditBox{display:flex!important;flex-direction:column!important;width:min(1380px,98vw)!important;height:96vh!important;max-height:96vh!important;overflow:hidden!important;padding:12px 16px!important}
       #serviceEditHeader{position:relative!important;top:auto!important;flex:0 0 auto!important;margin:0 0 7px!important;padding:0 0 7px!important}
-      #serviceEditBox>#order{display:flex!important;flex:1 1 auto!important;min-height:0!important;flex-direction:column!important;gap:5px!important;overflow:hidden!important}
+      #serviceEditBox>#order{display:flex!important;flex:1 1 auto!important;min-height:0!important;flex-direction:column!important;gap:5px!important;overflow-y:auto!important;overflow-x:hidden!important}
       #serviceEditBox>#order>.grid{display:grid!important;grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:6px!important;flex:0 0 auto!important}
       #serviceEditBox #order .field{gap:3px!important;min-width:0!important}
       #serviceEditBox #order .field label{font-size:10px!important;line-height:1.1!important}
@@ -29,7 +29,7 @@
       #serviceEditBox #order .svc-row input,#serviceEditBox #order .svc-row select{height:30px!important;min-height:30px!important;padding:4px 6px!important;font-size:11px!important}
       #serviceEditBox #order #add{padding:6px 10px!important;margin-top:4px!important;font-size:11px!important}
       #serviceEditBox #order .order-notes-field{min-height:0!important}
-      #serviceEditBox #order .order-notes-field textarea{height:43px!important;min-height:43px!important;padding:6px 8px!important;font-size:11px!important;resize:none!important}
+      #serviceEditBox #order .order-notes-field textarea{height:100px!important;min-height:100px!important;max-height:180px!important;padding:8px 10px!important;font-size:12px!important;line-height:1.4!important;resize:vertical!important}
       #serviceEditBox #order>.field.g12{gap:3px!important}
       #serviceEditBox #order #discountPercent{max-width:180px!important}
       #serviceEditBox #order .totals{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important;margin:0!important}
@@ -42,11 +42,11 @@
         #serviceEditBox{height:98vh!important;max-height:98vh!important;padding:8px 12px!important}
         #serviceEditBox #order>.grid{gap:4px!important}
         #serviceEditBox #order .services{max-height:145px!important}
-        #serviceEditBox #order .order-notes-field textarea{height:34px!important;min-height:34px!important}
+        #serviceEditBox #order .order-notes-field textarea{height:80px!important;min-height:80px!important}
       }
       @media(max-width:700px){
         #serviceEditBox{height:98vh!important;max-height:98vh!important;overflow:auto!important;padding:9px!important}
-        #serviceEditBox>#order{overflow:visible!important}
+        #serviceEditBox>#order{overflow-y:auto!important;overflow-x:hidden!important}
         #serviceEditBox #order>.grid{grid-template-columns:repeat(6,minmax(0,1fr))!important}
         #serviceEditBox #order .g8{grid-column:span 6!important}
         #serviceEditBox #order .g3,#serviceEditBox #order .g2{grid-column:span 3!important}
