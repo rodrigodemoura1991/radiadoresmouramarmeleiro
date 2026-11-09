@@ -282,39 +282,40 @@
     const number = order.numero_lancamento || order.pedido || '—';
     const client = (Array.isArray(window.clients) ? window.clients : []).find(x => String(x.id) === String(order.client_id)) || {};
     const clientName = client.razao_social || client.name || order.client_name || 'cliente';
-    const message = 'Olá, ' + clientName + '! Segue em anexo o orçamento nº ' + number + ' da ' + (window.company?.name || 'Radiadores Moura') + '.';
-    const popup = window.open('about:blank', '_blank');
+    const message = 'Olá, ' + clientName + '! Segue o orçamento nº ' + number + ' da ' + (window.company?.name || 'Radiadores Moura') + '.';
     try {
       const doc = await receiptPdfData(order, paymentConditions, extraObservations);
       const filename = ('orcamento-' + number).replace(/[^a-z0-9_-]/gi, '-') + '.pdf';
       const blob = doc.output('blob');
       const file = new File([blob], filename, { type: 'application/pdf' });
+
+      // Compartilhamento nativo: o usuário escolhe WhatsApp no menu do próprio dispositivo.
+      // Não abre WhatsApp Web, não cria abas e não tenta acessar conversas automaticamente.
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({ files: [file], title: 'Orçamento ' + number, text: message });
-          if (popup && !popup.closed) popup.close();
-          if (typeof window.toast === 'function') window.toast('Compartilhamento iniciado.');
+          if (typeof window.toast === 'function') window.toast('Compartilhamento concluído ou encaminhado pelo menu do dispositivo.');
           return;
         } catch (shareError) {
           if (shareError?.name === 'AbortError') return;
-          console.warn('Compartilhamento nativo indisponível; usando envio assistido.', shareError);
+          console.warn('Compartilhamento nativo indisponível:', shareError);
         }
       }
+
+      // Alternativa sem abrir qualquer aba: baixa o PDF para anexar manualmente no WhatsApp.
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
-      const phone = String(client.whatsapp || client.phone || '').replace(/\D/g, '');
-      const waUrl = phone
-        ? 'https://wa.me/' + (phone.startsWith('55') ? phone : '55' + phone) + '?text=' + encodeURIComponent(message)
-        : 'https://wa.me/?text=' + encodeURIComponent(message);
-      if (popup && !popup.closed) popup.location.href = waUrl;
-      else window.open(waUrl, '_blank');
-      if (typeof window.toast === 'function') window.toast('PDF baixado. Anexe o arquivo baixado na conversa do WhatsApp.');
-      else alert('O PDF foi baixado. Anexe o arquivo à conversa do WhatsApp que foi aberta.');
+      const msg = 'PDF baixado. Este navegador não oferece compartilhamento direto de arquivos. Abra o WhatsApp manualmente e anexe o PDF baixado.';
+      if (typeof window.toast === 'function') window.toast(msg);
+      else alert(msg);
     } catch (error) {
-      if (popup && !popup.closed) popup.close();
-      console.error('Erro ao gerar PDF para WhatsApp:', error);
+      console.error('Erro ao gerar PDF para compartilhamento:', error);
       alert('Não foi possível gerar o PDF: ' + (error?.message || error));
     }
   }
