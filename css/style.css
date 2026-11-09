@@ -97,7 +97,7 @@
 #launchList .launch.keyboard-selected{
   outline:3px solid var(--brand,#173b67)!important;
   outline-offset:2px!important;
-  scroll-margin:100px 18px 24px!important;
+  scroll-margin:18px!important;
 }
 #launchList .launch:focus-visible{
   outline:3px solid var(--brand,#173b67)!important;
