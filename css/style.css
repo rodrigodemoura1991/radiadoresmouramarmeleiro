@@ -111,3 +111,30 @@
 #launch>.card form{width:100%!important;box-sizing:border-box!important}
 #launch>.card .grid{width:100%!important;box-sizing:border-box!important}
 #launchAdminAccess{display:block!important;width:100%!important;box-sizing:border-box!important}
+
+
+/* Formulário de lançamento compacto: menos rolagem e ações sempre visíveis. */
+@media(min-width:1001px){
+  #launch>.card{padding:12px!important}
+  #launch>.card #order .grid{gap:7px!important}
+  #launch>.card #order .field{gap:4px!important}
+  #launch>.card #order .field label{font-size:11px!important}
+  #launch>.card #order input,#launch>.card #order select{min-height:34px!important;height:34px!important;padding:6px 9px!important;font-size:12px!important}
+  #launch>.card #order .sectiontitle{margin-bottom:5px!important}
+  #launch>.card #order .sectiontitle h3{font-size:14px!important}
+  #launch>.card #order .services{max-height:190px!important;overflow:auto!important}
+  #launch>.card #order .svc-head{padding:5px 7px!important}
+  #launch>.card #order .svc-row{padding:5px 7px!important;gap:5px!important}
+  #launch>.card #order .svc-row input,#launch>.card #order .svc-row select{height:30px!important;min-height:30px!important;padding:4px 6px!important;font-size:11px!important}
+  #launch>.card #order .order-notes-field textarea{height:44px!important;min-height:44px!important;padding:6px 8px!important;resize:none!important}
+  #launch>.card #order .totals{gap:7px!important}
+  #launch>.card #order .metric{padding:8px 10px!important}
+  #launch>.card #order .metric b{font-size:16px!important}
+  #launch>.card #order .foot{position:sticky!important;bottom:0!important;z-index:25!important;background:#fff!important;padding:8px 0 2px!important;margin-top:4px!important;border-top:1px solid #e5e7eb!important}
+}
+@media(max-height:800px) and (min-width:1001px){
+  #launch>.card{padding:9px!important}
+  #launch>.card #order .grid{gap:5px!important}
+  #launch>.card #order .services{max-height:140px!important}
+  #launch>.card #order .order-notes-field textarea{height:34px!important;min-height:34px!important}
+}
