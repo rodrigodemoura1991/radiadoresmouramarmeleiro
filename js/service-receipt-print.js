@@ -278,9 +278,9 @@
   }
 
   async function sendReceiptWhatsApp(order, paymentConditions, extraObservations) {
-    const number = order.numero_lancamento || order.pedido || '—';
+    const number = order.numero_lancamento ?? order.pedido ?? order.os_number ?? order.order_number ?? order.id ?? '—';
     const client = (Array.isArray(window.clients) ? window.clients : []).find(x => String(x.id) === String(order.client_id)) || {};
-    const clientName = client.razao_social || client.name || order.client_name || 'cliente';
+    const clientName = order.client_name || client.razao_social || client.name || 'cliente';
     const message = 'Olá, ' + clientName + '! Segue o orçamento nº ' + number + ' da ' + (window.company?.name || 'Radiadores Moura') + '.';
     try {
       const doc = await receiptPdfData(order, paymentConditions, extraObservations);
