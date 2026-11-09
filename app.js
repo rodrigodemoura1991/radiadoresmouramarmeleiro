@@ -143,6 +143,25 @@ function renderAll(){renderLaunches();renderClients();calc();renderBalance()}$('
   const visibleCards=()=>[...document.querySelectorAll('#launchList .launch')].filter(x=>x.offsetParent!==null);
   let selectedCardId=null;
 
+  function keepSelectedCardVisible(card){
+    if(!card)return;
+    requestAnimationFrame(()=>{
+      const header=document.querySelector('.top');
+      const topLimit=(header?.getBoundingClientRect().bottom||0)+14;
+      const bottomLimit=(window.innerHeight||document.documentElement.clientHeight)-14;
+      const rect=card.getBoundingClientRect();
+      let offset=0;
+      if(rect.height>bottomLimit-topLimit){
+        offset=rect.top-topLimit;
+      }else if(rect.top<topLimit){
+        offset=rect.top-topLimit;
+      }else if(rect.bottom>bottomLimit){
+        offset=rect.bottom-bottomLimit;
+      }
+      if(Math.abs(offset)>1)window.scrollBy({top:offset,behavior:'smooth'});
+    });
+  }
+
   function setSelectedCard(card,focus=true){
     const cards=visibleCards();
     cards.forEach(c=>{c.classList.remove('keyboard-selected');c.setAttribute('aria-selected','false')});
@@ -150,7 +169,10 @@ function renderAll(){renderLaunches();renderClients();calc();renderBalance()}$('
     selectedCardId=card.dataset.id||null;
     card.classList.add('keyboard-selected');
     card.setAttribute('aria-selected','true');
-    if(focus){card.focus({preventScroll:true});card.scrollIntoView({block:'nearest',behavior:'smooth'})}
+    if(focus){
+      card.focus({preventScroll:true});
+      keepSelectedCardVisible(card);
+    }
   }
 
   function selectCard(delta){
