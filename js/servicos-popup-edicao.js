@@ -56,7 +56,7 @@
   function close(){
     if(!opened)return;const form=$('order');
     if(form&&originalParent){if(originalNext&&originalNext.parentNode===originalParent)originalParent.insertBefore(form,originalNext);else originalParent.appendChild(form)}
-    popup?.classList.add('hidden');document.documentElement.classList.remove('service-edit-popup-html');document.body.classList.remove('service-edit-popup-open');opened=false;originalParent=null;originalNext=null;currentOrderId=null;
+    popup?.classList.add('hidden');window.__serviceEditCurrentOrderId=null;document.documentElement.classList.remove('service-edit-popup-html');document.body.classList.remove('service-edit-popup-open');opened=false;originalParent=null;originalNext=null;currentOrderId=null;
   }
   function configureDeliveryControl(){
     const checkbox=$('notDelivered'),exit=$('exit');
@@ -82,7 +82,7 @@
   }
   function open(id){
     if(!id)return;const edit=window.editOrder,form=$('order');if(typeof edit!=='function'||!form)return;ensurePopup();currentOrderId=String(id);
-    originalParent=form.parentNode;originalNext=form.nextSibling;$('serviceEditBox').appendChild(form);popup.classList.remove('hidden');document.documentElement.classList.add('service-edit-popup-html');document.body.classList.add('service-edit-popup-open');opened=true;
+    originalParent=form.parentNode;originalNext=form.nextSibling;window.__serviceEditCurrentOrderId=String(id);$('serviceEditBox').appendChild(form);popup.classList.remove('hidden');document.documentElement.classList.add('service-edit-popup-html');document.body.classList.add('service-edit-popup-open');opened=true;
     const nativeScrollTo=window.scrollTo;window.scrollTo=function(){};try{edit(String(id));configureDeliveryControl()}finally{window.scrollTo=nativeScrollTo}
     const o=(window.orders||[]).find(x=>String(x.id)===String(id));$('serviceEditTitle').textContent=o?.numero_lancamento!=null?'Editar lançamento #'+o.numero_lancamento:'Editar lançamento';
     const save=form.querySelector('button[type="submit"]');if(save)save.textContent='Salvar alterações';
@@ -117,6 +117,23 @@
     const list=$('allServicesList');if(list){decorate();new MutationObserver(()=>requestAnimationFrame(decorate)).observe(list,{childList:true,subtree:true})}
     document.addEventListener('input',()=>requestAnimationFrame(decorate),true);document.addEventListener('change',()=>requestAnimationFrame(decorate),true);
   }
+  // Captura o clique no botão de impressão mesmo se outro script interceptar eventos.
+  document.addEventListener('click',function(e){
+    const button=e.target.closest?.('#serviceEditPrintReceipt');
+    if(!button)return;
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+    const id=window.__serviceEditCurrentOrderId;
+    if(!id){alert('Não foi possível identificar o lançamento. Feche e abra novamente.');return;}
+    if(typeof window.printServiceReceipt!=='function'){
+      alert('O módulo de impressão não carregou. Recarregue a página com Ctrl + Shift + R.');
+      console.error('[Radiadores Moura] Módulo service-receipt-print.js ausente.');
+      return;
+    }
+    Promise.resolve(window.printServiceReceipt(id)).catch(err=>{
+      console.error('[Radiadores Moura] Falha na impressão:',err);
+      alert('Erro ao abrir impressão: '+(err?.message||err));
+    });
+  },true);
   window.openServiceEditPopup=open;window.closeServiceEditPopup=close;window.openFix=open;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{css();bind()},{once:true});else{css();bind()}
 })();
