@@ -42,7 +42,7 @@
     style.id = 'clientBillingCss';
     style.textContent = `
       #clientGrid .client{position:relative}
-      .client-billing-btn{display:inline-flex;align-items:center;justify-content:center;margin:8px 0 0;padding:8px 11px;border:0;border-radius:8px;background:#173b67;color:#fff;font-size:11px;font-weight:800;cursor:pointer}
+      .client-card-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}\n      .client-billing-btn{display:inline-flex;align-items:center;justify-content:center;margin:8px 0 0;padding:8px 11px;border:0;border-radius:8px;background:#173b67;color:#fff;font-size:11px;font-weight:800;cursor:pointer}\n      .client-card-actions .client-billing-btn{margin:0}
       .client-billing-btn:hover{background:#24548c}
       #clientBillingOverlay{position:fixed;inset:0;z-index:2147482500;background:rgba(8,20,36,.62);display:flex;align-items:center;justify-content:center;padding:14px}
       #clientBillingOverlay.hidden{display:none}
