@@ -358,17 +358,25 @@
     // Garantia adicional: não manter páginas extras no PDF final.
     while (doc.internal.getNumberOfPages() > 1) doc.deletePage(doc.internal.getNumberOfPages());
     doc.setPage(1);
+    // Define os metadados do PDF para que leitores e diálogos de salvamento
+    // também reconheçam o nome do cliente e o número da OS.
+    doc.setProperties({ title: receiptFilename(order), subject: 'Ordem de Serviço / Orçamento' });
     return doc;
   }
 
   function receiptFilename(order) {
     const client = (Array.isArray(window.clients) ? window.clients : []).find(x => String(x.id) === String(order.client_id)) || {};
-    const clientName = order.client_name || client.razao_social || client.name || 'cliente';
-    const number = order.numero_lancamento ?? order.os_number ?? order.order_number ?? order.id ?? '—';
-    const safePart = value => String(value ?? '').normalize('NFD')
-      .replace(/[\\u0300-\\u036f]/g, '')
-      .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toUpperCase();
-    return 'ORCAMENTO-' + (safePart(clientName) || 'CLIENTE') + '-OS-' + (safePart(number) || 'SEM-NUMERO') + '.pdf';
+    // Use exactly the same client and OS fields shown in the generated PDF.
+    const clientName = String(order.client_name || client.razao_social || client.name || 'CLIENTE').trim();
+    const number = String(order.numero_lancamento ?? order.os_number ?? order.order_number ?? 'SEM NUMERO').trim();
+    const clean = value => String(value)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[\\/:*?"<>|]/g, '')
+      .replace(/\\s+/g, ' ')
+      .replace(/[. ]+$/g, '')
+      .trim();
+    return clean(clientName) + ' - OS ' + clean(number) + '.pdf';
   }
 
   async function sendReceiptWhatsApp(order, paymentConditions, extraObservations) {
