@@ -158,8 +158,8 @@
   }
   function bind(){
     if(document.documentElement.dataset.servicePopupBound==='1')return;document.documentElement.dataset.servicePopupBound='1';
-    const launchHead=document.querySelector('#launch .head');
-    if(launchHead&&!$('launchNewService')){const b=document.createElement('button');b.type='button';b.id='launchNewService';b.className='btn primary';b.textContent='＋ Novo lançamento';b.style.marginRight='8px';b.addEventListener('click',openNew);launchHead.insertBefore(b,launchHead.firstChild.nextSibling);}
+    const side=document.querySelector('.side');
+    if(side&&!$('launchNewService')){const b=document.createElement('button');b.type='button';b.id='launchNewService';b.className='btn primary';b.textContent='＋ Novo lançamento';b.style.width='100%';b.style.margin='0 0 16px';b.addEventListener('click',openNew);side.insertBefore(b,side.firstChild);}
     const toast=$('toast');if(toast){new MutationObserver(()=>{if(creating&&toast.textContent.includes('Lançamento salvo na nuvem'))close()}).observe(toast,{childList:true,subtree:true,characterData:true});}
     document.addEventListener('keydown',function(e){
       if(e.key==='Escape'&&opened){e.preventDefault();e.stopPropagation();close();}
