@@ -126,6 +126,11 @@
     const form=$('order');if(!form||opened)return;ensurePopup();creating=true;currentOrderId=null;
     originalParent=form.parentNode;originalNext=form.nextSibling;originalParentDisplay=originalParent?.style.display||'';const clearButton=$('clear');if(clearButton&&originalClearText===null){originalClearText=clearButton.textContent;originalClearOnclick=clearButton.onclick;}
     if(typeof window.clearOrder==='function')window.clearOrder();else $('clear')?.click();
+    // Ao abrir um novo lançamento, entrada e saída começam com a data local de hoje.
+    const now=new Date(),todayLocal=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,10);
+    $('entry').value=todayLocal;$('exit').value=todayLocal;
+    const deliveryCheckbox=$('notDelivered');if(deliveryCheckbox)deliveryCheckbox.checked=false;
+    $('exit').disabled=false;
     $('serviceEditBox').appendChild(form);popup.classList.remove('hidden');document.documentElement.classList.add('service-edit-popup-html');document.body.classList.add('service-edit-popup-open');opened=true;
     $('serviceEditTitle').textContent='Novo lançamento de serviço';$('serviceEditPrintReceipt')?.classList.add('hidden');
     const save=form.querySelector('button[type="submit"]');if(save)save.textContent='Salvar lançamento';
