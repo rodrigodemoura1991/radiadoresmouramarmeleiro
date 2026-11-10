@@ -174,26 +174,18 @@
     const notes = $('cbNotes').value.trim();
     printDocument(activeClient, selected, due, terms, notes);
   }
-  function decorateClients() {
-    const grid = $('clientGrid');
-    if (!grid) return;
-    grid.querySelectorAll('.client[data-id]').forEach(card => {
-      if (card.querySelector('.client-billing-btn')) return;
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'client-billing-btn';
-      button.textContent = 'Gerar cobrança PDF';
-      button.dataset.billingClient = card.dataset.id;
-      button.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openForClient(button.dataset.billingClient); });
-      card.appendChild(button);
-    });
-  }
   function init() {
     const grid = $('clientGrid');
     if (!grid || document.documentElement.dataset.clientBillingReady === '1') return;
     document.documentElement.dataset.clientBillingReady = '1';
-    decorateClients();
-    new MutationObserver(decorateClients).observe(grid, { childList: true, subtree: true });
+    window.openClientBillingReport = openForClient;
+    document.addEventListener('click', e => {
+      const button = e.target.closest && e.target.closest('[data-billing-client]');
+      if (!button) return;
+      e.preventDefault();
+      e.stopPropagation();
+      openForClient(button.dataset.billingClient);
+    }, true);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
