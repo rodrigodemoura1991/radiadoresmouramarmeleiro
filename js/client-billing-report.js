@@ -34,7 +34,7 @@
     return Math.max(0, subtotal - discount + freight);
   }
   function orderLabel(o) {
-    return o.numero_lancamento ?? o.os_number ?? o.order_number ?? o.id ?? '—';
+    return o.numero_lancamento ?? o.os_number ?? o.order_number ?? 'Não informada';
   }
   function css() {
     if ($('clientBillingCss')) return;
