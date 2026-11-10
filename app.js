@@ -472,7 +472,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     $('clientGrid').innerHTML=a.map(c=>{
       const contact=c.phone||c.whatsapp||c.email||'Sem contato';
       const location=[c.city,c.uf].filter(Boolean).join(' / ');
-      return `<article class="client" data-id="${c.id}"><div class="client-details"><button type="button" class="client-name" data-edit-client="${c.id}" title="Editar cliente">${esc(c.name)}</button><span class="client-meta">${esc(contact)}${location?' • '+esc(location):''}</span></div><button type="button" class="client-delete" data-delete-client="${c.id}">Excluir</button></article>`;
+      return `<article class="client" data-id="${c.id}"><div class="client-details"><button type="button" class="client-name" data-edit-client="${c.id}" title="Editar cliente">${esc(c.name)}</button><span class="client-meta">${esc(contact)}${location?' • '+esc(location):''}</span></div><div class="client-card-actions"><button type="button" class="client-billing-btn" data-billing-client="${c.id}">Gerar cobrança PDF</button><button type="button" class="client-delete" data-delete-client="${c.id}">Excluir</button></div></article>`;
     }).join('')||'<div class="empty">Nenhum cliente cadastrado.</div>';
     $('clientGrid').querySelectorAll('[data-edit-client]').forEach(b=>b.onclick=()=>openClient(b.dataset.editClient));
     $('clientGrid').querySelectorAll('[data-delete-client]').forEach(b=>b.onclick=()=>removeClient(b.dataset.deleteClient));
