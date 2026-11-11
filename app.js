@@ -142,6 +142,26 @@ function renderAll(){renderLaunches();renderClients();calc();renderBalance()}$('
   const formFields=form=>[...form.querySelectorAll('input,select,textarea')].filter(isField);
   const visibleCards=()=>[...document.querySelectorAll('#launchList .launch')].filter(x=>x.offsetParent!==null);
   let selectedCardId=null;
+  let selectedCardDocumentTop=null;
+  let selectedCardScrollFrame=0;
+
+  function updateSelectedCardPin(){
+    if(selectedCardScrollFrame)return;
+    selectedCardScrollFrame=requestAnimationFrame(()=>{
+      selectedCardScrollFrame=0;
+      if(!selectedCardId||selectedCardDocumentTop===null)return;
+      const card=visibleCards().find(x=>x.dataset.id===selectedCardId);
+      if(!card)return;
+      const header=document.querySelector('.top');
+      const topLimit=(header?.getBoundingClientRect().bottom||0)+10;
+      const shouldPin=window.scrollY+topLimit>=selectedCardDocumentTop;
+      card.classList.toggle('scroll-pinned',shouldPin);
+      const stickyTop=Math.max(8,topLimit);
+      document.documentElement.style.setProperty('--selected-card-sticky-top',stickyTop+'px');
+    });
+  }
+  window.addEventListener('scroll',updateSelectedCardPin,{passive:true});
+  window.addEventListener('resize',updateSelectedCardPin);
 
   function keepSelectedCardVisible(card){
     if(!card)return;
@@ -164,14 +184,13 @@ function renderAll(){renderLaunches();renderClients();calc();renderBalance()}$('
 
   function setSelectedCard(card,focus=true){
     const cards=visibleCards();
-    cards.forEach(c=>{c.classList.remove('keyboard-selected');c.setAttribute('aria-selected','false')});
-    if(!card)return;
+    cards.forEach(c=>{c.classList.remove('keyboard-selected','scroll-pinned');c.setAttribute('aria-selected','false')});
+    if(!card){selectedCardId=null;selectedCardDocumentTop=null;return;}
     selectedCardId=card.dataset.id||null;
     card.classList.add('keyboard-selected');
     card.setAttribute('aria-selected','true');
-    const stickyHeader=document.querySelector('.top');
-    const stickyTop=(stickyHeader?.getBoundingClientRect().bottom||0)+10;
-    document.documentElement.style.setProperty('--selected-card-sticky-top',Math.max(8,stickyTop)+'px');
+    selectedCardDocumentTop=card.getBoundingClientRect().top+window.scrollY;
+    updateSelectedCardPin();
     if(focus){
       card.focus({preventScroll:true});
       keepSelectedCardVisible(card);
