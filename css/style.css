@@ -95,11 +95,14 @@
 
 /* Navegação por teclado — cartão atualmente selecionado */
 #launchList .launch.keyboard-selected{
-  outline:none!important;
-  outline-offset:0!important;
+  outline:3px solid var(--brand,#173b67)!important;
+  outline-offset:2px!important;
   scroll-margin:18px!important;
 }
-#launchList .launch:focus-visible{outline:none!important}
+#launchList .launch:focus-visible{
+  outline:3px solid var(--brand,#173b67)!important;
+  outline-offset:2px!important;
+}
 
 /* FIX — largura da tela de lançamentos */
 .shell>main,.shell>.view{min-width:0!important;width:auto!important}
