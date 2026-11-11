@@ -99,14 +99,6 @@
   outline-offset:2px!important;
   scroll-margin:18px!important;
 }
-/* Só prende o cartão quando ele alcança o topo da área visível */
-#launchList .launch.scroll-pinned{
-  position:sticky!important;
-  top:var(--selected-card-sticky-top,112px)!important;
-  z-index:30!important;
-  background:#fff!important;
-  box-shadow:0 5px 16px rgba(16,35,58,.16)!important;
-}
 #launchList .launch:focus-visible{
   outline:3px solid var(--brand,#173b67)!important;
   outline-offset:2px!important;
