@@ -127,42 +127,6 @@ function updateLaunchFilters(){
   try{if(svc.querySelector(`option[value="${CSS.escape(currentSvc)}"]`))svc.value=currentSvc;else svc.value='';}catch(e){svc.value='';}
 }
 let selectedLaunchCardId=null;
-let selectedVisibilityFrame=0;
-let correctingSelectedScroll=false;
-function keepSelectedLaunchVisible(){
-  if(selectedVisibilityFrame||correctingSelectedScroll)return;
-  selectedVisibilityFrame=requestAnimationFrame(()=>{
-    selectedVisibilityFrame=0;
-    if(!selectedLaunchCardId)return;
-    const list=document.getElementById('launchList');
-    if(!list)return;
-    const cards=[...list.querySelectorAll('.launch-reference-card')];
-    const selectedIndex=cards.findIndex(x=>String(x.dataset.id)===selectedLaunchCardId);
-    if(selectedIndex<0)return;
-    const card=cards[selectedIndex];
-    /* Mantém o selecionado e mais um cartão logo abaixo dentro da área visível. */
-    const nextCard=cards[selectedIndex+1]||null;
-    const header=document.querySelector('.top');
-    const safeTop=(header?.getBoundingClientRect().bottom||0)+8;
-    const safeBottom=window.innerHeight-12;
-    const selectedRect=card.getBoundingClientRect();
-    const nextRect=nextCard?.getBoundingClientRect();
-    let delta=0;
-    if(selectedRect.top<safeTop)delta=selectedRect.top-safeTop;
-    else if(nextRect && nextRect.bottom>safeBottom)delta=nextRect.bottom-safeBottom;
-    else if(!nextRect && selectedRect.bottom>safeBottom)delta=selectedRect.bottom-safeBottom;
-    if(delta){
-      correctingSelectedScroll=true;
-      window.scrollBy({top:delta,left:0,behavior:'auto'});
-      requestAnimationFrame(()=>{correctingSelectedScroll=false;});
-    }
-  });
-}
-/* Ajusta a posição somente após mudar a seleção ou redimensionar a janela.
-   A rolagem manual do usuário nunca deve ser interceptada. */
-window.removeEventListener('scroll',keepSelectedLaunchVisible);
-window.addEventListener('resize',keepSelectedLaunchVisible);
-
 /* Navegação por setas entre os cartões de lançamentos. Não intercepta setas
    enquanto o usuário estiver digitando ou navegando em campos/formulários. */
 function installLaunchCardArrowNavigation(){
@@ -178,7 +142,7 @@ function installLaunchCardArrowNavigation(){
     const cards=[...list.querySelectorAll('.launch-reference-card')].filter(card=>card.getClientRects().length>0);
     if(!cards.length) return;
     const active=cards.findIndex(card=>card.classList.contains('launch-card-outline-selected'));
-    if(active<0 && !['ArrowDown','ArrowUp','Home','End'].includes(e.key)) return;
+    if(active<0) return;
     let next;
     if(e.key==='ArrowDown') next=active<0?0:Math.min(active+1,cards.length-1);
     else if(e.key==='ArrowUp') next=active<0?cards.length-1:Math.max(active-1,0);
@@ -250,7 +214,7 @@ function renderLaunchesReference(){
       if(e.target.closest('[data-edit],[data-delete]'))return;
       const id=String(x.dataset.id||'');if(!id)return;
       list.querySelectorAll('.launch-reference-card.launch-card-outline-selected').forEach(card=>card.classList.remove('launch-card-outline-selected'));
-      selectedLaunchCardId=id;x.classList.add('launch-card-outline-selected');keepSelectedLaunchVisible();
+      selectedLaunchCardId=id;x.classList.add('launch-card-outline-selected');
     };
     x.ondblclick=e=>{
       if(e.target.closest('[data-edit],[data-delete]'))return;
