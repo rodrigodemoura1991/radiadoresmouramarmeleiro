@@ -158,7 +158,9 @@ function keepSelectedLaunchVisible(){
     }
   });
 }
-window.addEventListener('scroll',keepSelectedLaunchVisible,{passive:true});
+/* Ajusta a posição somente após mudar a seleção ou redimensionar a janela.
+   A rolagem manual do usuário nunca deve ser interceptada. */
+window.removeEventListener('scroll',keepSelectedLaunchVisible);
 window.addEventListener('resize',keepSelectedLaunchVisible);
 
 /* Navegação por setas entre os cartões de lançamentos. Não intercepta setas
