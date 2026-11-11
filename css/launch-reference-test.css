@@ -136,9 +136,9 @@
   z-index:2!important;
 }
 #launchList .launch-reference-card.launch-card-outline-selected.launch-card-pinned{
-  position:sticky!important;
+  position:fixed!important;
   top:var(--launch-selected-top,112px)!important;
-  z-index:45!important;
+  z-index:1000!important;
   background:#fff!important;
   box-shadow:0 5px 18px rgba(139,0,0,.2)!important;
 }
