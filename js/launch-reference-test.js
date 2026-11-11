@@ -127,58 +127,43 @@ function updateLaunchFilters(){
   try{if(svc.querySelector(`option[value="${CSS.escape(currentSvc)}"]`))svc.value=currentSvc;else svc.value='';}catch(e){svc.value='';}
 }
 let selectedLaunchCardId=null;
-let selectedPinFrame=0;
+let selectedVisibilityFrame=0;
+let correctingSelectedScroll=false;
 function releaseSelectedLaunchCard(){
   const list=document.getElementById('launchList');
-  if(list){
-    const old=list.querySelector('.launch-card-pinned');
-    if(old){
-      old.classList.remove('launch-card-pinned');
-      old.style.removeProperty('position');old.style.removeProperty('top');
-      old.style.removeProperty('left');old.style.removeProperty('width');
-      old.style.removeProperty('z-index');old.style.removeProperty('margin');
+  if(!list)return;
+  list.querySelectorAll('.launch-card-pinned,.launch-card-pin-spacer').forEach(el=>{
+    if(el.classList.contains('launch-card-pin-spacer'))el.remove();
+    else{
+      el.classList.remove('launch-card-pinned');
+      ['position','top','left','width','z-index','margin'].forEach(prop=>el.style.removeProperty(prop));
     }
-    list.querySelectorAll('.launch-card-pin-spacer').forEach(x=>x.remove());
-  }
+  });
 }
-function pinSelectedLaunchCard(card){
-  if(!card)return;
-  releaseSelectedLaunchCard();
-  const header=document.querySelector('.top');
-  /* Mantém o cartão abaixo da faixa de título, busca e filtros, sem cobri-los. */
-  const top=Math.max(8,(header?.getBoundingClientRect().bottom||0)+Math.min(160,Math.max(125,window.innerHeight*.18)));
-  document.documentElement.style.setProperty('--launch-selected-top',top+'px');
-  const rect=card.getBoundingClientRect();
-  const spacer=document.createElement('div');
-  spacer.className='launch-card-pin-spacer';
-  spacer.style.height=rect.height+'px';
-  spacer.style.marginBottom=getComputedStyle(card).marginBottom;
-  card.parentNode.insertBefore(spacer,card);
-  card.classList.add('launch-card-pinned');
-  Object.assign(card.style,{position:'fixed',top:top+'px',left:rect.left+'px',width:rect.width+'px',zIndex:'1000',margin:'0'});
-}
-function updateSelectedLaunchPin(){
-  if(selectedPinFrame)return;
-  selectedPinFrame=requestAnimationFrame(()=>{
-    selectedPinFrame=0;
+function keepSelectedLaunchVisible(){
+  if(selectedVisibilityFrame||correctingSelectedScroll)return;
+  selectedVisibilityFrame=requestAnimationFrame(()=>{
+    selectedVisibilityFrame=0;
     const list=document.getElementById('launchList');
     if(!list||!selectedLaunchCardId)return;
     const card=[...list.querySelectorAll('.launch-reference-card')].find(x=>String(x.dataset.id)===selectedLaunchCardId);
     if(!card)return;
-    if(!card.classList.contains('launch-card-pinned'))pinSelectedLaunchCard(card);
-    else{
-      const header=document.querySelector('.top');
-      const top=Math.max(8,(header?.getBoundingClientRect().bottom||0)+Math.min(160,Math.max(125,window.innerHeight*.18)));
-      document.documentElement.style.setProperty('--launch-selected-top',top+'px');
-      const listRect=list.getBoundingClientRect();
-      card.style.top=top+'px';
-      card.style.left=listRect.left+'px';
-      card.style.width=listRect.width+'px';
+    const header=document.querySelector('.top');
+    const safeTop=(header?.getBoundingClientRect().bottom||0)+8;
+    const safeBottom=window.innerHeight-12;
+    const rect=card.getBoundingClientRect();
+    let delta=0;
+    if(rect.top<safeTop)delta=rect.top-safeTop;
+    else if(rect.bottom>safeBottom)delta=rect.bottom-safeBottom;
+    if(delta){
+      correctingSelectedScroll=true;
+      window.scrollBy({top:delta,left:0,behavior:'auto'});
+      requestAnimationFrame(()=>{correctingSelectedScroll=false;});
     }
   });
 }
-window.addEventListener('scroll',updateSelectedLaunchPin,{passive:true});
-window.addEventListener('resize',updateSelectedLaunchPin);
+window.addEventListener('scroll',keepSelectedLaunchVisible,{passive:true});
+window.addEventListener('resize',keepSelectedLaunchVisible);
 
 /* Navegação por setas entre os cartões de lançamentos. Não intercepta setas
    enquanto o usuário estiver digitando ou navegando em campos/formulários. */
@@ -257,7 +242,7 @@ function renderLaunchesReference(){
   }).join('')||'<div class="empty">Nenhum lançamento encontrado.</div>';
   if(selectedLaunchCardId){
     const selected=[...list.querySelectorAll('.launch-reference-card')].find(card=>String(card.dataset.id)===selectedLaunchCardId);
-    if(selected){selected.classList.add('launch-card-outline-selected');pinSelectedLaunchCard(selected);}
+    if(selected){selected.classList.add('launch-card-outline-selected');keepSelectedLaunchVisible();}
     else{selectedLaunchCardId=null;releaseSelectedLaunchCard();}
   }
   list.querySelectorAll('[data-edit]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof openFix==='function')openFix(b.dataset.edit);else if(typeof editOrder==='function')editOrder(b.dataset.edit);});
@@ -268,7 +253,7 @@ function renderLaunchesReference(){
       const id=String(x.dataset.id||'');if(!id)return;
       releaseSelectedLaunchCard();
       list.querySelectorAll('.launch-reference-card.launch-card-outline-selected').forEach(card=>card.classList.remove('launch-card-outline-selected'));
-      selectedLaunchCardId=id;x.classList.add('launch-card-outline-selected');pinSelectedLaunchCard(x);
+      selectedLaunchCardId=id;x.classList.add('launch-card-outline-selected');keepSelectedLaunchVisible();
     };
     x.ondblclick=e=>{
       if(e.target.closest('[data-edit],[data-delete]'))return;
