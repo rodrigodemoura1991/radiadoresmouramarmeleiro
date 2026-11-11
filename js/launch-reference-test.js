@@ -146,6 +146,7 @@ function pinSelectedLaunchCard(card){
   releaseSelectedLaunchCard();
   const header=document.querySelector('.top');
   const top=Math.max(8,(header?.getBoundingClientRect().bottom||0)+8);
+  document.documentElement.style.setProperty('--launch-selected-top',top+'px');
   const rect=card.getBoundingClientRect();
   const spacer=document.createElement('div');
   spacer.className='launch-card-pin-spacer';
@@ -167,6 +168,7 @@ function updateSelectedLaunchPin(){
     else{
       const header=document.querySelector('.top');
       const top=Math.max(8,(header?.getBoundingClientRect().bottom||0)+8);
+      document.documentElement.style.setProperty('--launch-selected-top',top+'px');
       const listRect=list.getBoundingClientRect();
       card.style.top=top+'px';
       card.style.left=listRect.left+'px';
