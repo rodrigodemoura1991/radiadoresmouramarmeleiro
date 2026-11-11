@@ -127,6 +127,24 @@ function updateLaunchFilters(){
   try{if(svc.querySelector(`option[value="${CSS.escape(currentSvc)}"]`))svc.value=currentSvc;else svc.value='';}catch(e){svc.value='';}
 }
 let selectedLaunchCardId=null;
+let selectedLaunchCardTop=null;
+let selectedPinFrame=0;
+function updateSelectedLaunchPin(){
+  if(selectedPinFrame)return;
+  selectedPinFrame=requestAnimationFrame(()=>{
+    selectedPinFrame=0;
+    const list=document.getElementById('launchList');
+    if(!list||!selectedLaunchCardId||selectedLaunchCardTop===null)return;
+    const card=[...list.querySelectorAll('.launch-reference-card')].find(x=>String(x.dataset.id)===selectedLaunchCardId);
+    if(!card)return;
+    const header=document.querySelector('.top');
+    const top=(header?.getBoundingClientRect().bottom||0)+8;
+    document.documentElement.style.setProperty('--launch-selected-top',Math.max(8,top)+'px');
+    card.classList.toggle('launch-card-pinned',window.scrollY+top>=selectedLaunchCardTop);
+  });
+}
+window.addEventListener('scroll',updateSelectedLaunchPin,{passive:true});
+window.addEventListener('resize',updateSelectedLaunchPin);
 
 /* Navegação por setas entre os cartões de lançamentos. Não intercepta setas
    enquanto o usuário estiver digitando ou navegando em campos/formulários. */
@@ -152,10 +170,12 @@ function installLaunchCardArrowNavigation(){
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
-    cards.forEach(card=>card.classList.remove('launch-card-outline-selected'));
+    cards.forEach(card=>card.classList.remove('launch-card-outline-selected','launch-card-pinned'));
     const chosen=cards[next];
     chosen.classList.add('launch-card-outline-selected');
     selectedLaunchCardId=String(chosen.dataset.id||'')||null;
+    selectedLaunchCardTop=chosen.getBoundingClientRect().top+window.scrollY;
+    updateSelectedLaunchPin();
   },true);
 }
 installLaunchCardArrowNavigation();
@@ -201,9 +221,14 @@ function renderLaunchesReference(){
       ${String(o.notes||'').trim()?`<div class="launch-observation-card"><span>⚠ Observação:</span> ${esc2(o.notes.trim())}</div>`:''}
     </article>`;
   }).join('')||'<div class="empty">Nenhum lançamento encontrado.</div>';
+  if(selectedLaunchCardId){
+    const selected=[...list.querySelectorAll('.launch-reference-card')].find(card=>String(card.dataset.id)===selectedLaunchCardId);
+    if(selected){selected.classList.add('launch-card-outline-selected');selectedLaunchCardTop=selected.getBoundingClientRect().top+window.scrollY;updateSelectedLaunchPin();}
+    else{selectedLaunchCardId=null;selectedLaunchCardTop=null;}
+  }
   list.querySelectorAll('[data-edit]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof openFix==='function')openFix(b.dataset.edit);else if(typeof editOrder==='function')editOrder(b.dataset.edit);});
   list.querySelectorAll('[data-delete]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();deleteLaunchDirect(b.dataset.delete);});
-  list.querySelectorAll('.launch-reference-card').forEach(x=>x.onclick=e=>{if(e.target.closest('[data-edit],[data-delete]'))return;const id=String(x.dataset.id||'');if(!id)return;if(selectedLaunchCardId===id){x.classList.remove('launch-card-outline-selected');selectedLaunchCardId=null;if(typeof openFix==='function')openFix(id);else if(typeof editOrder==='function')editOrder(id);return;}list.querySelectorAll('.launch-reference-card.launch-card-outline-selected').forEach(card=>card.classList.remove('launch-card-outline-selected'));selectedLaunchCardId=id;x.classList.add('launch-card-outline-selected');});
+  list.querySelectorAll('.launch-reference-card').forEach(x=>x.onclick=e=>{if(e.target.closest('[data-edit],[data-delete]'))return;const id=String(x.dataset.id||'');if(!id)return;if(selectedLaunchCardId===id){x.classList.remove('launch-card-outline-selected','launch-card-pinned');selectedLaunchCardId=null;selectedLaunchCardTop=null;if(typeof openFix==='function')openFix(id);else if(typeof editOrder==='function')editOrder(id);return;}list.querySelectorAll('.launch-reference-card.launch-card-outline-selected').forEach(card=>card.classList.remove('launch-card-outline-selected','launch-card-pinned'));selectedLaunchCardId=id;x.classList.add('launch-card-outline-selected');selectedLaunchCardTop=x.getBoundingClientRect().top+window.scrollY;updateSelectedLaunchPin();});
 }
 function install(){
   installClientPersistence();
