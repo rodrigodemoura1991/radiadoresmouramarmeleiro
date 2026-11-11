@@ -155,7 +155,7 @@ function installLaunchCardArrowNavigation(){
     const chosen=cards[next];
     chosen.classList.add('launch-card-outline-selected');
     selectedLaunchCardId=String(chosen.dataset.id||'')||null;
-    keepSelectedLaunchVisible();
+    /* Sem rolagem automática: as setas mudam apenas o cartão selecionado. */
     
   },true);
 }
