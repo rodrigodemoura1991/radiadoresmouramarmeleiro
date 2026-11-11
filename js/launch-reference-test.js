@@ -127,6 +127,33 @@ function updateLaunchFilters(){
   try{if(svc.querySelector(`option[value="${CSS.escape(currentSvc)}"]`))svc.value=currentSvc;else svc.value='';}catch(e){svc.value='';}
 }
 let selectedLaunchCardId=null;
+let selectedVisibilityFrame=0;
+let correctingSelectedScroll=false;
+function keepSelectedLaunchVisible(){
+  if(selectedVisibilityFrame||correctingSelectedScroll)return;
+  selectedVisibilityFrame=requestAnimationFrame(()=>{
+    selectedVisibilityFrame=0;
+    if(!selectedLaunchCardId)return;
+    const list=document.getElementById('launchList');
+    if(!list)return;
+    const card=[...list.querySelectorAll('.launch-reference-card')].find(x=>String(x.dataset.id)===selectedLaunchCardId);
+    if(!card)return;
+    const header=document.querySelector('.top');
+    const safeTop=(header?.getBoundingClientRect().bottom||0)+8;
+    const safeBottom=window.innerHeight-12;
+    const rect=card.getBoundingClientRect();
+    let delta=0;
+    if(rect.top<safeTop)delta=rect.top-safeTop;
+    else if(rect.bottom>safeBottom)delta=rect.bottom-safeBottom;
+    if(delta){
+      correctingSelectedScroll=true;
+      window.scrollBy({top:delta,left:0,behavior:'auto'});
+      requestAnimationFrame(()=>{correctingSelectedScroll=false;});
+    }
+  });
+}
+window.addEventListener('scroll',keepSelectedLaunchVisible,{passive:true});
+window.addEventListener('resize',keepSelectedLaunchVisible);
 
 /* Navegação por setas entre os cartões de lançamentos. Não intercepta setas
    enquanto o usuário estiver digitando ou navegando em campos/formulários. */
@@ -152,11 +179,11 @@ function installLaunchCardArrowNavigation(){
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
-    releaseSelectedLaunchCard();
     cards.forEach(card=>card.classList.remove('launch-card-outline-selected'));
     const chosen=cards[next];
     chosen.classList.add('launch-card-outline-selected');
     selectedLaunchCardId=String(chosen.dataset.id||'')||null;
+    keepSelectedLaunchVisible();
     
   },true);
 }
@@ -215,7 +242,7 @@ function renderLaunchesReference(){
       if(e.target.closest('[data-edit],[data-delete]'))return;
       const id=String(x.dataset.id||'');if(!id)return;
       list.querySelectorAll('.launch-reference-card.launch-card-outline-selected').forEach(card=>card.classList.remove('launch-card-outline-selected'));
-      selectedLaunchCardId=id;x.classList.add('launch-card-outline-selected');
+      selectedLaunchCardId=id;x.classList.add('launch-card-outline-selected');keepSelectedLaunchVisible();
     };
     x.ondblclick=e=>{
       if(e.target.closest('[data-edit],[data-delete]'))return;
