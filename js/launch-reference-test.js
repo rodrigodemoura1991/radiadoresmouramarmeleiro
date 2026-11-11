@@ -194,7 +194,7 @@ function installLaunchCardArrowNavigation(){
     const chosen=cards[next];
     chosen.classList.add('launch-card-outline-selected');
     selectedLaunchCardId=String(chosen.dataset.id||'')||null;
-    pinSelectedLaunchCard(chosen);
+    keepSelectedLaunchVisible();
   },true);
 }
 installLaunchCardArrowNavigation();
