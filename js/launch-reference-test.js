@@ -136,15 +136,21 @@ function keepSelectedLaunchVisible(){
     if(!selectedLaunchCardId)return;
     const list=document.getElementById('launchList');
     if(!list)return;
-    const card=[...list.querySelectorAll('.launch-reference-card')].find(x=>String(x.dataset.id)===selectedLaunchCardId);
-    if(!card)return;
+    const cards=[...list.querySelectorAll('.launch-reference-card')];
+    const selectedIndex=cards.findIndex(x=>String(x.dataset.id)===selectedLaunchCardId);
+    if(selectedIndex<0)return;
+    const card=cards[selectedIndex];
+    /* Mantém o selecionado e mais um cartão logo abaixo dentro da área visível. */
+    const nextCard=cards[selectedIndex+1]||null;
     const header=document.querySelector('.top');
     const safeTop=(header?.getBoundingClientRect().bottom||0)+8;
     const safeBottom=window.innerHeight-12;
-    const rect=card.getBoundingClientRect();
+    const selectedRect=card.getBoundingClientRect();
+    const nextRect=nextCard?.getBoundingClientRect();
     let delta=0;
-    if(rect.top<safeTop)delta=rect.top-safeTop;
-    else if(rect.bottom>safeBottom)delta=rect.bottom-safeBottom;
+    if(selectedRect.top<safeTop)delta=selectedRect.top-safeTop;
+    else if(nextRect && nextRect.bottom>safeBottom)delta=nextRect.bottom-safeBottom;
+    else if(!nextRect && selectedRect.bottom>safeBottom)delta=selectedRect.bottom-safeBottom;
     if(delta){
       correctingSelectedScroll=true;
       window.scrollBy({top:delta,left:0,behavior:'auto'});
