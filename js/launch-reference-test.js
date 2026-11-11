@@ -127,43 +127,6 @@ function updateLaunchFilters(){
   try{if(svc.querySelector(`option[value="${CSS.escape(currentSvc)}"]`))svc.value=currentSvc;else svc.value='';}catch(e){svc.value='';}
 }
 let selectedLaunchCardId=null;
-let selectedVisibilityFrame=0;
-let correctingSelectedScroll=false;
-function releaseSelectedLaunchCard(){
-  const list=document.getElementById('launchList');
-  if(!list)return;
-  list.querySelectorAll('.launch-card-pinned,.launch-card-pin-spacer').forEach(el=>{
-    if(el.classList.contains('launch-card-pin-spacer'))el.remove();
-    else{
-      el.classList.remove('launch-card-pinned');
-      ['position','top','left','width','z-index','margin'].forEach(prop=>el.style.removeProperty(prop));
-    }
-  });
-}
-function keepSelectedLaunchVisible(){
-  if(selectedVisibilityFrame||correctingSelectedScroll)return;
-  selectedVisibilityFrame=requestAnimationFrame(()=>{
-    selectedVisibilityFrame=0;
-    const list=document.getElementById('launchList');
-    if(!list||!selectedLaunchCardId)return;
-    const card=[...list.querySelectorAll('.launch-reference-card')].find(x=>String(x.dataset.id)===selectedLaunchCardId);
-    if(!card)return;
-    const header=document.querySelector('.top');
-    const safeTop=(header?.getBoundingClientRect().bottom||0)+8;
-    const safeBottom=window.innerHeight-12;
-    const rect=card.getBoundingClientRect();
-    let delta=0;
-    if(rect.top<safeTop)delta=rect.top-safeTop;
-    else if(rect.bottom>safeBottom)delta=rect.bottom-safeBottom;
-    if(delta){
-      correctingSelectedScroll=true;
-      window.scrollBy({top:delta,left:0,behavior:'auto'});
-      requestAnimationFrame(()=>{correctingSelectedScroll=false;});
-    }
-  });
-}
-window.addEventListener('scroll',keepSelectedLaunchVisible,{passive:true});
-window.addEventListener('resize',keepSelectedLaunchVisible);
 
 /* Navegação por setas entre os cartões de lançamentos. Não intercepta setas
    enquanto o usuário estiver digitando ou navegando em campos/formulários. */
@@ -194,7 +157,7 @@ function installLaunchCardArrowNavigation(){
     const chosen=cards[next];
     chosen.classList.add('launch-card-outline-selected');
     selectedLaunchCardId=String(chosen.dataset.id||'')||null;
-    keepSelectedLaunchVisible();
+    
   },true);
 }
 installLaunchCardArrowNavigation();
@@ -242,8 +205,8 @@ function renderLaunchesReference(){
   }).join('')||'<div class="empty">Nenhum lançamento encontrado.</div>';
   if(selectedLaunchCardId){
     const selected=[...list.querySelectorAll('.launch-reference-card')].find(card=>String(card.dataset.id)===selectedLaunchCardId);
-    if(selected){selected.classList.add('launch-card-outline-selected');keepSelectedLaunchVisible();}
-    else{selectedLaunchCardId=null;releaseSelectedLaunchCard();}
+    if(selected){selected.classList.add('launch-card-outline-selected');}
+    else{selectedLaunchCardId=null;}
   }
   list.querySelectorAll('[data-edit]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof openFix==='function')openFix(b.dataset.edit);else if(typeof editOrder==='function')editOrder(b.dataset.edit);});
   list.querySelectorAll('[data-delete]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();deleteLaunchDirect(b.dataset.delete);});
@@ -251,9 +214,8 @@ function renderLaunchesReference(){
     x.onclick=e=>{
       if(e.target.closest('[data-edit],[data-delete]'))return;
       const id=String(x.dataset.id||'');if(!id)return;
-      releaseSelectedLaunchCard();
       list.querySelectorAll('.launch-reference-card.launch-card-outline-selected').forEach(card=>card.classList.remove('launch-card-outline-selected'));
-      selectedLaunchCardId=id;x.classList.add('launch-card-outline-selected');keepSelectedLaunchVisible();
+      selectedLaunchCardId=id;x.classList.add('launch-card-outline-selected');
     };
     x.ondblclick=e=>{
       if(e.target.closest('[data-edit],[data-delete]'))return;
