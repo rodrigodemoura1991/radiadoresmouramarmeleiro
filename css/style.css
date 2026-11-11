@@ -93,15 +93,21 @@
 }
 
 
-/* Navegação por teclado — cartão atualmente selecionado */
+/* Cartão selecionado: destaque vermelho e acompanha a rolagem */
 #launchList .launch.keyboard-selected{
-  outline:3px solid var(--brand,#173b67)!important;
+  outline:3px solid #c62828!important;
   outline-offset:2px!important;
   scroll-margin:18px!important;
 }
 #launchList .launch:focus-visible{
-  outline:3px solid var(--brand,#173b67)!important;
-  outline-offset:2px!important;
+  outline:none!important;
+}
+#launchList .launch.scroll-pinned{
+  position:sticky!important;
+  top:var(--selected-card-sticky-top,112px)!important;
+  z-index:35!important;
+  background:#fff!important;
+  box-shadow:0 5px 16px rgba(160,25,25,.18)!important;
 }
 
 /* FIX — largura da tela de lançamentos */
