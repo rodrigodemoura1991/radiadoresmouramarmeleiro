@@ -169,6 +169,9 @@ function renderAll(){renderLaunches();renderClients();calc();renderBalance()}$('
     selectedCardId=card.dataset.id||null;
     card.classList.add('keyboard-selected');
     card.setAttribute('aria-selected','true');
+    const stickyHeader=document.querySelector('.top');
+    const stickyTop=(stickyHeader?.getBoundingClientRect().bottom||0)+10;
+    document.documentElement.style.setProperty('--selected-card-sticky-top',Math.max(8,stickyTop)+'px');
     if(focus){
       card.focus({preventScroll:true});
       keepSelectedCardVisible(card);
