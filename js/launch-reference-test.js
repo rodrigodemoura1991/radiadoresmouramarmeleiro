@@ -127,6 +127,28 @@ function updateLaunchFilters(){
   try{if(svc.querySelector(`option[value="${CSS.escape(currentSvc)}"]`))svc.value=currentSvc;else svc.value='';}catch(e){svc.value='';}
 }
 let selectedLaunchCardId=null;
+function keepSelectedLaunchVisibleAfterArrow(){
+  requestAnimationFrame(()=>{
+    if(!selectedLaunchCardId)return;
+    const list=document.getElementById('launchList');
+    if(!list)return;
+    const cards=[...list.querySelectorAll('.launch-reference-card')];
+    const index=cards.findIndex(card=>String(card.dataset.id)===selectedLaunchCardId);
+    if(index<0)return;
+    const selected=cards[index];
+    const next=cards[index+1]||null;
+    const header=document.querySelector('.top');
+    const safeTop=(header?.getBoundingClientRect().bottom||0)+8;
+    const safeBottom=window.innerHeight-12;
+    const selectedRect=selected.getBoundingClientRect();
+    const nextRect=next?.getBoundingClientRect();
+    let delta=0;
+    if(selectedRect.top<safeTop)delta=selectedRect.top-safeTop;
+    else if(nextRect&&nextRect.bottom>safeBottom)delta=nextRect.bottom-safeBottom;
+    else if(!nextRect&&selectedRect.bottom>safeBottom)delta=selectedRect.bottom-safeBottom;
+    if(delta)window.scrollBy({top:delta,left:0,behavior:'auto'});
+  });
+}
 /* Navegação por setas entre os cartões de lançamentos. Não intercepta setas
    enquanto o usuário estiver digitando ou navegando em campos/formulários. */
 function installLaunchCardArrowNavigation(){
@@ -155,7 +177,8 @@ function installLaunchCardArrowNavigation(){
     const chosen=cards[next];
     chosen.classList.add('launch-card-outline-selected');
     selectedLaunchCardId=String(chosen.dataset.id||'')||null;
-    /* Sem rolagem automática: as setas mudam apenas o cartão selecionado. */
+    /* A tela acompanha apenas a navegação por setas; scroll manual permanece livre. */
+    keepSelectedLaunchVisibleAfterArrow();
     
   },true);
 }
