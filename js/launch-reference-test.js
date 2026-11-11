@@ -145,7 +145,8 @@ function pinSelectedLaunchCard(card){
   if(!card)return;
   releaseSelectedLaunchCard();
   const header=document.querySelector('.top');
-  const top=Math.max(8,(header?.getBoundingClientRect().bottom||0)+8);
+  /* Mantém o cartão abaixo da faixa de título, busca e filtros, sem cobri-los. */
+  const top=Math.max(8,(header?.getBoundingClientRect().bottom||0)+Math.min(160,Math.max(125,window.innerHeight*.18)));
   document.documentElement.style.setProperty('--launch-selected-top',top+'px');
   const rect=card.getBoundingClientRect();
   const spacer=document.createElement('div');
@@ -167,7 +168,7 @@ function updateSelectedLaunchPin(){
     if(!card.classList.contains('launch-card-pinned'))pinSelectedLaunchCard(card);
     else{
       const header=document.querySelector('.top');
-      const top=Math.max(8,(header?.getBoundingClientRect().bottom||0)+8);
+      const top=Math.max(8,(header?.getBoundingClientRect().bottom||0)+Math.min(160,Math.max(125,window.innerHeight*.18)));
       document.documentElement.style.setProperty('--launch-selected-top',top+'px');
       const listRect=list.getBoundingClientRect();
       card.style.top=top+'px';
