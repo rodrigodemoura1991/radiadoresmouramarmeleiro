@@ -79,7 +79,68 @@ function rowItems(){return [...document.querySelectorAll('.svc-row')].map(r=>({d
 function calc(){const a=rowItems(),sale=a.reduce((s,x)=>s+x.sale_value,0),cost=a.reduce((s,x)=>s+x.cost_value,0),tax=a.reduce((s,x)=>s+x.sale_value*x.tax_rate/100,0);$('saleTotal').textContent=money(sale);$('costTotal').textContent=money(cost);$('taxTotal').textContent=money(tax);$('profitTotal').textContent=money(sale-cost-tax);$('grand').textContent=money(sale)}
 function addRow(item={}){const r=document.createElement('div');r.className='svc-row';r.innerHTML=`<input class="desc" list="catalogList" placeholder="Descrição serviço / produto" value="${esc(item.description||'')}"><input class="sale money" inputmode="decimal" placeholder="R$ 0,00" value="${item.sale_value?money(item.sale_value):''}"><input class="cost money" inputmode="decimal" placeholder="R$ 0,00" value="${item.cost_value?money(item.cost_value):''}"><input class="tax" type="number" min="0" step=".01" placeholder="%" value="${item.tax_rate??''}"><select class="status"><option>Liberado</option><option>Parado</option><option>Pronto</option><option>Pronto entregue</option></select><button type="button" class="btn">×</button>`;$('rows').appendChild(r);r.querySelector('.status').value=item.service_status||'Liberado';r.querySelector('button').onclick=()=>{r.remove();calc()};r.querySelectorAll('input,select').forEach(x=>x.oninput=calc);['sale','cost'].forEach(k=>{const x=r.querySelector('.'+k);x.onblur=()=>{const n=parseMoney(x.value);x.value=n?money(n):'';calc()}});calc()}
 $('add').onclick=()=>addRow();function updateCatalog(){let d=document.getElementById('catalogList');if(!d){d=document.createElement('datalist');d.id='catalogList';document.body.appendChild(d)}d.innerHTML=catalog.map(x=>`<option value="${esc(x.description)}"></option>`).join('')}
-$('clientInput').oninput=()=>{const q=$('clientInput').value.toLowerCase().trim();if(!q){$('clientSug').classList.add('hidden');return}const a=clients.filter(c=>c.name.toLowerCase().includes(q)).slice(0,8);$('clientSug').innerHTML=a.map(c=>`<button type="button" data-id="${c.id}"><b>${esc(c.name)}</b><small style="display:block;color:var(--muted)">${esc(c.phone||c.whatsapp||'')}</small></button>`).join('')||'<div style="padding:11px;color:var(--muted)">Nenhum cliente encontrado</div>';$('clientSug').classList.remove('hidden');$('clientSug').querySelectorAll('button').forEach(b=>b.onclick=()=>{$('clientInput').value=clients.find(c=>c.id===b.dataset.id).name;$('clientSug').classList.add('hidden')})};document.addEventListener('click',e=>{if(!e.target.closest('.search'))$('clientSug').classList.add('hidden')});
+let activeClientSuggestion=-1;
+function clientSuggestionButtons(){return [...$('clientSug').querySelectorAll('button[data-id]')]}
+function highlightClientSuggestion(index){
+  const buttons=clientSuggestionButtons();
+  if(!buttons.length){activeClientSuggestion=-1;return}
+  activeClientSuggestion=Math.max(0,Math.min(index,buttons.length-1));
+  buttons.forEach((b,i)=>{
+    const active=i===activeClientSuggestion;
+    b.classList.toggle('keyboard-active',active);
+    b.setAttribute('aria-selected',active?'true':'false');
+    b.style.background=active?'#dceaff':'';
+    b.style.outline=active?'2px solid #3478c8':'';
+    b.style.outlineOffset=active?'-2px':'';
+  });
+  $('clientInput').setAttribute('aria-activedescendant',buttons[activeClientSuggestion].id||(buttons[activeClientSuggestion].id='client-suggestion-'+activeClientSuggestion));
+}
+function chooseActiveClientSuggestion(){
+  const buttons=clientSuggestionButtons();
+  if(activeClientSuggestion<0||!buttons[activeClientSuggestion])return false;
+  buttons[activeClientSuggestion].click();
+  activeClientSuggestion=-1;
+  $('clientInput').removeAttribute('aria-activedescendant');
+  return true;
+}
+$('clientInput').oninput=()=>{
+  activeClientSuggestion=-1;
+  $('clientInput').removeAttribute('aria-activedescendant');
+  const q=$('clientInput').value.toLowerCase().trim();
+  if(!q){$('clientSug').classList.add('hidden');return}
+  const a=clients.filter(c=>c.name.toLowerCase().includes(q)).slice(0,8);
+  $('clientSug').innerHTML=a.map((c,i)=>`<button type="button" tabindex="-1" id="client-suggestion-${i}" data-id="${c.id}"><b>${esc(c.name)}</b><small style="display:block;color:var(--muted)">${esc(c.phone||c.whatsapp||'')}</small></button>`).join('')||'<div style="padding:11px;color:var(--muted)">Nenhum cliente encontrado</div>';
+  $('clientSug').classList.remove('hidden');
+  $('clientSug').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    const selected=clients.find(c=>c.id===b.dataset.id);
+    if(selected)$('clientInput').value=selected.name;
+    $('clientSug').classList.add('hidden');
+    activeClientSuggestion=-1;
+    $('clientInput').removeAttribute('aria-activedescendant');
+  });
+};
+$('clientInput').addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    const buttons=clientSuggestionButtons();
+    if(!buttons.length)return;
+    e.preventDefault();
+    if($('clientSug').classList.contains('hidden'))$('clientSug').classList.remove('hidden');
+    const next=activeClientSuggestion<0?(e.key==='ArrowDown'?0:buttons.length-1):activeClientSuggestion+(e.key==='ArrowDown'?1:-1);
+    highlightClientSuggestion((next+buttons.length)%buttons.length);
+  }else if(e.key==='Tab'&&!e.shiftKey){
+    if(!$('clientSug').classList.contains('hidden'))chooseActiveClientSuggestion();
+  }else if(e.key==='Enter'&&!$('clientSug').classList.contains('hidden')&&activeClientSuggestion>=0){
+    e.preventDefault();
+    chooseActiveClientSuggestion();
+  }else if(e.key==='Escape'&&!$('clientSug').classList.contains('hidden')){
+    e.preventDefault();
+    $('clientSug').classList.add('hidden');
+    activeClientSuggestion=-1;
+    $('clientInput').removeAttribute('aria-activedescendant');
+  }
+});
+document.addEventListener('click',e=>{if(!e.target.closest('.search')){$('clientSug').classList.add('hidden');activeClientSuggestion=-1;$('clientInput').removeAttribute('aria-activedescendant')}});
+
 $('order').onkeydown=e=>{if(e.key==='Enter'&&e.target.tagName!=='TEXTAREA'){if(e.target.id==='add'){e.preventDefault();addRow();requestAnimationFrame(()=>{const rows=document.querySelectorAll('#rows .svc-row');rows[rows.length-1]?.querySelector('.desc')?.focus()});return}e.preventDefault();const f=[...$('order').querySelectorAll('input,select,button')].filter(x=>!x.disabled);const i=f.indexOf(e.target);if(i>=0&&f[i+1])f[i+1].focus()}};
 async function saveCatalog(a){for(const x of a){if(!x.description||catalog.some(c=>c.description.toLowerCase()===x.description.toLowerCase()))continue;const r=await sb.from('catalog_items').insert({company_id:company.id,description:x.description,type:'servico'}).select().single();if(!r.error&&r.data)catalog.unshift(r.data)}updateCatalog()}
 $('order').onsubmit=async e=>{e.preventDefault();const printReceiptAfterSave=!!window.__printReceiptAfterSave;window.__printReceiptAfterSave=false;if(!company)return toast('Escolha a empresa primeiro');const a=rowItems();if(!a.length)return toast('Adicione pelo menos um serviço ou produto');cloud('Salvando...');let c=clients.find(x=>x.name.toLowerCase()===$('clientInput').value.trim().toLowerCase());if(!c&&$('clientInput').value.trim()){const r=await sb.from('clients').insert({company_id:company.id,name:$('clientInput').value.trim()}).select().single();if(r.error)return toast(r.error.message);c=r.data;clients.unshift(c)}const sale=a.reduce((s,x)=>s+x.sale_value,0),cost=a.reduce((s,x)=>s+x.cost_value,0),tax=a.reduce((s,x)=>s+x.sale_value*x.tax_rate/100,0);const payment=String($('payment').value||'').trim();const p=sanitizeDates({company_id:company.id,client_id:c?.id||null,entry_date:$('entry').value||null,exit_date:$('notDelivered')?.checked?null:($('exit').value||null),client_name:$('clientInput').value.trim(),vehicle_make_model:$('vehicle').value.trim(),plate:$('plate').value.trim(),pedido:$('pedido').value.trim(),payment_status:payment||null,total_sale:sale,total_cost:cost,total_tax:tax,net_profit:sale-cost-tax,notes:$('orderNotes')?.value.trim()||''});let r=editing?await sb.from('orders').update(p).eq('id',editing.id).select().single():await sb.from('orders').insert(p).select().single();if(r.error){cloud('Erro ao salvar',false);return toast('Erro ao salvar lançamento: '+r.error.message)}if(editing){const dr=await sb.from('order_items').delete().eq('order_id',editing.id);if(dr.error){cloud('Erro ao salvar',false);return toast('Erro ao atualizar serviços: '+dr.error.message)}}const ir=await sb.from('order_items').insert(a.map(x=>({...x,order_id:r.data.id})));if(ir.error){cloud('Erro ao salvar',false);return toast('Lançamento salvo, mas os serviços falharam: '+ir.error.message)}await saveCatalog(a);editing=null;clearOrder();await loadData();toast('Lançamento salvo na nuvem');if(printReceiptAfterSave&&typeof window.printServiceReceipt==='function'){setTimeout(()=>window.printServiceReceipt(r.data.id),250)}};
