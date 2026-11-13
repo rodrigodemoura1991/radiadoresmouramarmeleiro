@@ -42,8 +42,12 @@
     style.id = 'clientBillingCss';
     style.textContent = `
       #clientGrid .client{position:relative}
-      .client-card-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}\n      .client-billing-btn{display:inline-flex;align-items:center;justify-content:center;margin:8px 0 0;padding:8px 11px;border:0;border-radius:8px;background:#173b67;color:#fff;font-size:11px;font-weight:800;cursor:pointer}\n      .client-card-actions .client-billing-btn{margin:0}
-      .client-billing-btn:hover{background:#24548c}
+      .client-card-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
+      .client-billing-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;margin:0;padding:9px 14px;border:1px solid #173b67;border-radius:9px;background:#173b67;color:#fff;font:700 12px inherit;cursor:pointer;box-shadow:0 2px 5px rgba(23,59,103,.14);transition:background .15s,border-color .15s,transform .15s}
+      .client-card-actions .client-billing-btn{margin:0}
+      .client-billing-btn:hover{background:#24548c;border-color:#24548c;transform:translateY(-1px)}
+      .client-billing-btn:focus-visible{outline:3px solid rgba(52,120,200,.35);outline-offset:2px}
+      .client-billing-btn:active{transform:translateY(0)}
       #clientBillingOverlay{position:fixed;inset:0;z-index:2147482500;background:rgba(8,20,36,.62);display:flex;align-items:center;justify-content:center;padding:14px}
       #clientBillingOverlay.hidden{display:none}
       #clientBillingBox{width:min(850px,97vw);max-height:94vh;overflow:auto;background:#fff;border-radius:16px;padding:20px;box-shadow:0 22px 70px rgba(0,0,0,.35);color:#172b46}
