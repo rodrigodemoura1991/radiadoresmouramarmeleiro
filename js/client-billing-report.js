@@ -81,7 +81,11 @@
       </div>
       <div class="cb-field"><label for="cbTerms">CONDIÇÕES DE PAGAMENTO (OPCIONAL)</label><input id="cbTerms" type="text" placeholder="Ex.: Pix, transferência ou boleto"></div>
       <div class="cb-field" style="margin-top:9px"><label for="cbNotes">OBSERVAÇÕES</label><textarea id="cbNotes" rows="2" placeholder="Informações adicionais para o cliente"></textarea></div>
-      <div class="cb-total"><span>TOTAL SELECIONADO</span><strong id="cbTotal">R$ 0,00</strong></div>
+      <div class="cb-total"><span>TOTAL DOS SERVIÇOS</span><strong id="cbGrossTotal">R$ 0,00</strong></div>
+      <div class="cb-tools">
+        <div class="cb-field"><label for="cbPaidAmount">VALOR JÁ PAGO (R$)</label><input id="cbPaidAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></div>
+      </div>
+      <div class="cb-total"><span>SALDO A PAGAR</span><strong id="cbTotal">R$ 0,00</strong></div>
       <footer class="cb-actions"><button type="button" class="cb-btn" id="cbCancel">Cancelar</button><button type="button" class="cb-btn primary" id="cbGenerate">Gerar PDF / Imprimir</button></footer>
     </section>`;
     document.body.appendChild(modal);
@@ -91,12 +95,15 @@
     $('cbSelectAll').onclick = () => { modal.querySelectorAll('.cb-check').forEach(x => x.checked = true); refreshTotal(); };
     $('cbClearAll').onclick = () => { modal.querySelectorAll('.cb-check').forEach(x => x.checked = false); refreshTotal(); };
     $('cbGenerate').onclick = generate;
+    $('cbPaidAmount').addEventListener('input', refreshTotal);
   }
   function closeModal() { if (modal) modal.classList.add('hidden'); }
   function refreshTotal() {
     const selected = [...modal.querySelectorAll('.cb-check:checked')];
     const sum = selected.reduce((s,x) => s + Number(x.dataset.amount || 0), 0);
-    $('cbTotal').textContent = money(sum);
+    const paid = Math.max(0, Number($('cbPaidAmount')?.value) || 0);
+    $('cbGrossTotal').textContent = money(sum);
+    $('cbTotal').textContent = money(Math.max(0, sum - paid));
     $('cbCount').textContent = selected.length + ' lançamento(s) selecionado(s)';
   }
   function openForClient(clientId) {
@@ -113,13 +120,14 @@
       return `<label class="cb-order"><input class="cb-check" type="checkbox" data-index="${index}" data-amount="${amountOf(o)}"><span><b>${esc(details)}</b><small>${esc(descriptions)} • Pagamento: ${esc(o.payment_status || 'Não informado')}</small></span><strong>${money(amountOf(o))}</strong></label>`;
     }).join('') || '<div class="cb-muted">Este cliente ainda não possui lançamentos vinculados.</div>';
     $('cbDueDate').value = '';
+    $('cbPaidAmount').value = '';
     $('cbTerms').value = '';
     $('cbNotes').value = '';
     modal.querySelectorAll('.cb-check').forEach(x => x.addEventListener('change',refreshTotal));
     refreshTotal();
     modal.classList.remove('hidden');
   }
-  function printDocument(client, selected, dueDate, terms, notes) {
+  function printDocument(client, selected, dueDate, terms, notes, paidAmount) {
     const company = window.company || {};
     const isMarmeleiro = String(company.id || '') === 'f3cd9d20-a341-41fe-87fe-c0726a19b65b';
     const isMoura = String(company.id || '') === '48f0eb3d-22ff-4506-9d9c-b6dd4455946b';
@@ -130,9 +138,13 @@
         ? 'CNPJ: 65.435.170/0001-44 • Avenida Dom Agostinho José Sartori, 2695 • São Cristóvão • Francisco Beltrão - PR • CEP: 85601-090<br>Tel.: (46) 3524-5810 • radiadoresmoura@gmail.com'
         : '';
     const total = selected.reduce((s,o) => s + amountOf(o), 0);
+    const paid = Math.max(0, Number(paidAmount) || 0);
+    const balance = Math.max(0, total - paid);
     const rows = selected.map((o,i) => {
       const desc = itemsOf(o).map(x => x.description || 'Serviço / produto').join(' • ');
-      return '<tr><td>'+(i+1)+'</td><td>OS '+esc(orderLabel(o))+'</td><td>'+esc(desc)+'</td><td>'+dateBR(o.entry_date)+'</td><td class="money">'+money(amountOf(o))+'</td></tr>';
+      const vehicle = String(o.vehicle_make_model || '').trim();
+      const descriptionCell = esc(desc) + (vehicle ? '<br><small class="vehicle">VEÍCULO: '+esc(vehicle)+'</small>' : '');
+      return '<tr><td>'+(i+1)+'</td><td>OS '+esc(orderLabel(o))+'</td><td>'+descriptionCell+'</td><td>'+dateBR(o.entry_date)+'</td><td class="money">'+money(amountOf(o))+'</td></tr>';
     }).join('');
     const issued = dateBR(new Date().toISOString().slice(0,10));
     const due = dueDate ? dateBR(dueDate) : 'Não informado';
@@ -146,8 +158,9 @@
       .client b{color:#173b67}.meta{display:flex;justify-content:space-between;gap:12px;margin-top:6px;font-size:10px;color:#64748b}
       table{width:100%;border-collapse:collapse;margin-top:10px}th{background:#173b67;color:#fff;text-align:left;font-size:10px;padding:10px 8px}
       td{border-bottom:1px solid #dbe3ec;padding:11px 8px;vertical-align:top}td:first-child{text-align:center;width:7%}.money{text-align:right;white-space:nowrap;font-weight:bold}
-      .total{display:flex;justify-content:space-between;align-items:center;background:#edf3f9;border:1px solid #cbd8e6;border-radius:8px;padding:15px;margin-top:14px;font-weight:bold}
-      .total strong{font-size:22px;color:#173b67}.payment{margin-top:16px;line-height:1.7}.notes{margin-top:10px;white-space:pre-wrap;line-height:1.6}
+      .vehicle{display:inline-block;margin-top:5px;color:#52657d;font-size:10px;font-weight:700}
+      .total{display:flex;justify-content:space-between;align-items:center;background:#edf3f9;border:1px solid #cbd8e6;border-radius:8px;padding:13px 15px;margin-top:10px;font-weight:bold}
+      .total strong{font-size:20px;color:#173b67}.total.paid{background:#f0f7f2;border-color:#c8dfce}.total.paid strong{color:#247044}.total.balance{background:#e8f1ff;border-color:#b8d0f1}.total.balance strong{font-size:23px;color:#174b86}.payment{margin-top:16px;line-height:1.7}.notes{margin-top:10px;white-space:pre-wrap;line-height:1.6}
       .foot{margin-top:30px;border-top:1px solid #dbe3ec;padding-top:10px;text-align:center;font-size:9px;color:#718096}
       @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
     </style></head><body><main class="sheet">
@@ -155,7 +168,9 @@
       <h2>RELAÇÃO DE SERVIÇOS PARA COBRANÇA</h2>
       <section class="client"><b>CLIENTE:</b> ${esc(client.name)}<br><b>CPF/CNPJ:</b> ${esc(client.cpf_cnpj || '—')}<br><b>ENDEREÇO:</b> ${esc([client.address,client.city,client.uf].filter(Boolean).join(' - ') || '—')}<div class="meta"><span>EMITIDO EM: ${issued}</span><span>VENCIMENTO: ${due}</span></div></section>
       <table><thead><tr><th>ITEM</th><th>OS</th><th>DESCRIÇÃO DOS SERVIÇOS</th><th>ENTRADA</th><th style="text-align:right">VALOR</th></tr></thead><tbody>${rows}</tbody></table>
-      <div class="total"><span>TOTAL A PAGAR</span><strong>${money(total)}</strong></div>
+      <div class="total"><span>TOTAL DOS SERVIÇOS</span><strong>${money(total)}</strong></div>
+      <div class="total paid"><span>VALOR JÁ PAGO</span><strong>${money(paid)}</strong></div>
+      <div class="total balance"><span>SALDO A PAGAR</span><strong>${money(balance)}</strong></div>
       <div class="payment"><b>CONDIÇÕES DE PAGAMENTO:</b> ${esc(terms || 'A combinar')}</div>
       ${notes ? '<div class="notes"><b>OBSERVAÇÕES:</b><br>'+esc(notes)+'</div>' : ''}
       <div class="foot">Documento de conferência e cobrança • ${esc(companyName)}</div>
@@ -172,7 +187,10 @@
     const due = $('cbDueDate').value;
     const terms = $('cbTerms').value.trim();
     const notes = $('cbNotes').value.trim();
-    printDocument(activeClient, selected, due, terms, notes);
+    const paid = Math.max(0, Number($('cbPaidAmount').value) || 0);
+    const total = selected.reduce((s,o) => s + amountOf(o), 0);
+    if (paid > total) { alert('O valor já pago não pode ser maior que o total dos serviços.'); $('cbPaidAmount').focus(); return; }
+    printDocument(activeClient, selected, due, terms, notes, paid);
   }
   function init() {
     const grid = $('clientGrid');
