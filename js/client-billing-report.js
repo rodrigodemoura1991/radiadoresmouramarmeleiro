@@ -83,7 +83,7 @@
       <div class="cb-field" style="margin-top:9px"><label for="cbNotes">OBSERVAÇÕES</label><textarea id="cbNotes" rows="2" placeholder="Informações adicionais para o cliente"></textarea></div>
       <div class="cb-total"><span>TOTAL DOS SERVIÇOS</span><strong id="cbGrossTotal">R$ 0,00</strong></div>
       <div class="cb-tools">
-        <div class="cb-field"><label for="cbPaidAmount">VALOR JÁ PAGO (R$)</label><input id="cbPaidAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></div>
+        <div class="cb-field"><label for="cbPaidAmount">VALOR PAGO (R$)</label><input id="cbPaidAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></div>
       </div>
       <div class="cb-total"><span>SALDO A PAGAR</span><strong id="cbTotal">R$ 0,00</strong></div>
       <footer class="cb-actions"><button type="button" class="cb-btn" id="cbCancel">Cancelar</button><button type="button" class="cb-btn primary" id="cbGenerate">Gerar PDF / Imprimir</button></footer>
@@ -169,7 +169,7 @@
       <section class="client"><b>CLIENTE:</b> ${esc(client.name)}<br><b>CPF/CNPJ:</b> ${esc(client.cpf_cnpj || '—')}<br><b>ENDEREÇO:</b> ${esc([client.address,client.city,client.uf].filter(Boolean).join(' - ') || '—')}<div class="meta"><span>EMITIDO EM: ${issued}</span><span>VENCIMENTO: ${due}</span></div></section>
       <table><thead><tr><th>ITEM</th><th>OS</th><th>DESCRIÇÃO DOS SERVIÇOS</th><th>ENTRADA</th><th style="text-align:right">VALOR</th></tr></thead><tbody>${rows}</tbody></table>
       <div class="total"><span>TOTAL DOS SERVIÇOS</span><strong>${money(total)}</strong></div>
-      <div class="total paid"><span>VALOR JÁ PAGO</span><strong>${money(paid)}</strong></div>
+      <div class="total paid"><span>VALOR PAGO</span><strong>${money(paid)}</strong></div>
       <div class="total balance"><span>SALDO A PAGAR</span><strong>${money(balance)}</strong></div>
       <div class="payment"><b>CONDIÇÕES DE PAGAMENTO:</b> ${esc(terms || 'A combinar')}</div>
       ${notes ? '<div class="notes"><b>OBSERVAÇÕES:</b><br>'+esc(notes)+'</div>' : ''}
