@@ -90,7 +90,7 @@
         <div class="cb-field"><label for="cbPaidAmount">VALOR PAGO (R$)</label><input id="cbPaidAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></div>
       </div>
       <div class="cb-total"><span>SALDO A PAGAR</span><strong id="cbTotal">R$ 0,00</strong></div>
-      <footer class="cb-actions"><button type="button" class="cb-btn" id="cbCancel">Cancelar</button><button type="button" class="cb-btn primary" id="cbGenerate">Gerar PDF / Imprimir</button></footer>
+      <footer class="cb-actions"><button type="button" class="cb-btn" id="cbCancel">Cancelar</button><button type="button" class="cb-btn primary" id="cbGenerate">Gerar PDF / Imprimir</button><button type="button" class="cb-btn" id="cbWhatsApp" style="background:#168447;color:#fff;border-color:#168447">Enviar pelo WhatsApp</button></footer>
     </section>`;
     document.body.appendChild(modal);
     $('cbClose').onclick = closeModal;
@@ -99,6 +99,7 @@
     $('cbSelectAll').onclick = () => { modal.querySelectorAll('.cb-check').forEach(x => x.checked = true); refreshTotal(); };
     $('cbClearAll').onclick = () => { modal.querySelectorAll('.cb-check').forEach(x => x.checked = false); refreshTotal(); };
     $('cbGenerate').onclick = generate;
+    $('cbWhatsApp').onclick = generateAndShare;
     $('cbPaidAmount').addEventListener('input', refreshTotal);
   }
   function closeModal() { if (modal) modal.classList.add('hidden'); }
@@ -131,6 +132,21 @@
     refreshTotal();
     modal.classList.remove('hidden');
   }
+  function oVehicle(order) { return order.vehicle_make_model || ''; }
+  function billingLinesOf(order) {
+    const items = itemsOf(order);
+    const subtotal = items.reduce((sum,item) => sum + (Number(item.sale_value) || 0), 0) || Number(order.total_sale) || 0;
+    const discount = subtotal * Math.min(100, Math.max(0, Number(order.discount_percent) || 0)) / 100;
+    const itemFreightTotal = items.reduce((sum,item) => sum + (Number(item.freight_value) || 0), 0);
+    const orderFreight = itemFreightTotal || Number(order.total_freight) || 0;
+    return items.map(item => {
+      const sale = Number(item.sale_value) || 0;
+      const share = subtotal > 0 ? sale / subtotal : 1 / Math.max(1,items.length);
+      const allocatedDiscount = discount * share;
+      const allocatedFreight = itemFreightTotal ? (Number(item.freight_value) || 0) : orderFreight * share;
+      return {order,description:item.description || 'Serviço / produto',amount:Math.max(0,sale-allocatedDiscount+allocatedFreight)};
+    });
+  }
   function printDocument(client, selected, dueDate, terms, notes, paidAmount) {
     const company = window.company || {};
     const isMarmeleiro = String(company.id || '') === 'f3cd9d20-a341-41fe-87fe-c0726a19b65b';
@@ -144,11 +160,10 @@
     const total = selected.reduce((s,o) => s + amountOf(o), 0);
     const paid = Math.max(0, Number(paidAmount) || 0);
     const balance = Math.max(0, total - paid);
-    const rows = selected.map((o,i) => {
-      const desc = itemsOf(o).map(x => x.description || 'Serviço / produto').join(' • ');
-      const vehicle = String(o.vehicle_make_model || '').trim();
-      const descriptionCell = esc(desc) + (vehicle ? '<br><small class="vehicle">VEÍCULO: '+esc(vehicle)+'</small>' : '');
-      return '<tr><td>'+(i+1)+'</td><td>OS '+esc(orderLabel(o))+'</td><td>'+descriptionCell+'</td><td>'+dateBR(o.entry_date)+'</td><td class="money">'+money(amountOf(o))+'</td></tr>';
+    const rows = selected.flatMap(o => billingLinesOf(o)).map((line,i) => {
+      const vehicle = String(oVehicle(line.order) || '').trim();
+      const descriptionCell = esc(line.description) + (vehicle ? '<br><small class="vehicle">VEÍCULO: '+esc(vehicle)+'</small>' : '');
+      return '<tr><td>'+(i+1)+'</td><td>OS '+esc(orderLabel(line.order))+'</td><td>'+descriptionCell+'</td><td>'+dateBR(line.order.entry_date)+'</td><td class="money">'+money(line.amount)+'</td></tr>';
     }).join('');
     const issued = dateBR(new Date().toISOString().slice(0,10));
     const due = dueDate ? dateBR(dueDate) : 'Não informado';
@@ -183,18 +198,84 @@
     if (!win) { alert('O navegador bloqueou a janela de impressão. Permita pop-ups para este aplicativo e tente novamente.'); return; }
     win.document.open(); win.document.write(html); win.document.close();
   }
-  function generate() {
+  function getBillingSelection() {
     const indexes = [...modal.querySelectorAll('.cb-check:checked')].map(x => Number(x.dataset.index));
     const list = clientOrders(activeClient);
     const selected = indexes.map(i => list[i]).filter(Boolean);
-    if (!selected.length) { alert('Selecione pelo menos um lançamento para gerar a cobrança.'); return; }
+    if (!selected.length) { alert('Selecione pelo menos um lançamento para gerar a cobrança.'); return null; }
     const due = $('cbDueDate').value;
     const terms = $('cbTerms').value.trim();
     const notes = $('cbNotes').value.trim();
     const paid = Math.max(0, Number($('cbPaidAmount').value) || 0);
     const total = selected.reduce((s,o) => s + amountOf(o), 0);
-    if (paid > total) { alert('O valor já pago não pode ser maior que o total dos serviços.'); $('cbPaidAmount').focus(); return; }
-    printDocument(activeClient, selected, due, terms, notes, paid);
+    if (paid > total) { alert('O valor pago não pode ser maior que o total dos serviços.'); $('cbPaidAmount').focus(); return null; }
+    return {selected,due,terms,notes,paid,total};
+  }
+  function generate() {
+    const data = getBillingSelection();
+    if (!data) return;
+    printDocument(activeClient, data.selected, data.due, data.terms, data.notes, data.paid);
+  }
+  async function generateAndShare() {
+    const data = getBillingSelection();
+    if (!data) return;
+    const button = $('cbWhatsApp');
+    button.disabled = true;
+    button.textContent = 'Gerando PDF...';
+    try {
+      const blob = createBillingPdf(activeClient,data.selected,data.due,data.terms,data.notes,data.paid);
+      const filename = 'COBRANCA - '+String(activeClient.name||'CLIENTE').replace(/[^a-z0-9-_ ]/gi,'').trim()+'.pdf';
+      const file = new File([blob],filename,{type:'application/pdf'});
+      if (navigator.share && navigator.canShare && navigator.canShare({files:[file]})) {
+        await navigator.share({files:[file],title:'Cobrança '+activeClient.name});
+        if(typeof window.toast==='function')window.toast('PDF pronto para compartilhar pelo WhatsApp.');
+        return;
+      }
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),60000);
+      const msg='PDF da cobrança baixado. Abra o WhatsApp e anexe o arquivo baixado.';
+      if(typeof window.toast==='function')window.toast(msg);else alert(msg);
+    } catch(error) {
+      if(error?.name!=='AbortError'){console.error('Erro ao compartilhar cobrança:',error);alert('Não foi possível compartilhar o PDF: '+(error?.message||error));}
+    } finally {
+      if(button.isConnected){button.disabled=false;button.textContent='Enviar pelo WhatsApp';}
+    }
+  }
+  function createBillingPdf(client,selected,dueDate,terms,notes,paidAmount) {
+    const JsPDF=window.jspdf?.jsPDF;
+    if(!JsPDF)throw new Error('A biblioteca de PDF não foi carregada. Atualize o aplicativo e tente novamente.');
+    const doc=new JsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const company=window.company||{};
+    const companyName=company.name||'RADIADORES MOURA';
+    const total=selected.reduce((sum,o)=>sum+amountOf(o),0);
+    const paid=Math.max(0,Number(paidAmount)||0);
+    const balance=Math.max(0,total-paid);
+    const issued=dateBR(new Date().toISOString().slice(0,10));
+    const isMarmeleiro=String(company.id||'')==='f3cd9d20-a341-41fe-87fe-c0726a19b65b';
+    const companyDetails=isMarmeleiro?'CNPJ: 48.903.995/0001-27 • Rua dos Miosótis, 203 • Alvorada • Marmeleiro - PR • Tel.: (46) 9976-0694':'CNPJ: 65.435.170/0001-44 • Avenida Dom Agostinho José Sartori, 2695 • Francisco Beltrão - PR • Tel.: (46) 3524-5810';
+    doc.setTextColor(23,59,103);doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text(companyName.toUpperCase(),14,18);
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(82,101,125);doc.text(doc.splitTextToSize(companyDetails,180),14,24);
+    doc.setDrawColor(23,59,103);doc.setLineWidth(.8);doc.line(14,34,196,34);
+    doc.setTextColor(23,59,103);doc.setFont('helvetica','bold');doc.setFontSize(13);doc.text('RELACAO DE SERVICOS PARA COBRANCA',105,43,{align:'center'});
+    doc.setDrawColor(203,213,225);doc.setLineWidth(.3);doc.roundedRect(14,49,182,25,2,2,'S');
+    doc.setFontSize(9);doc.setTextColor(23,59,103);doc.text('CLIENTE: '+String(client.name||''),18,56);
+    doc.setFont('helvetica','normal');doc.setTextColor(60,70,85);doc.text('CPF/CNPJ: '+String(client.cpf_cnpj||'—'),18,62);
+    doc.text('EMITIDO EM: '+issued+'     VENCIMENTO: '+(dueDate?dateBR(dueDate):'Nao informado'),18,69);
+    const body=[];
+    selected.forEach(order=>billingLinesOf(order).forEach(line=>{
+      const vehicle=String(order.vehicle_make_model||'').trim();
+      body.push(['OS '+orderLabel(order),line.description+(vehicle?'\nVEICULO: '+vehicle:''),dateBR(order.entry_date),money(line.amount)]);
+    }));
+    doc.autoTable({startY:80,head:[['OS','DESCRICAO DOS SERVICOS / VEICULO','ENTRADA','VALOR']],body,theme:'grid',styles:{font:'helvetica',fontSize:8,cellPadding:2.5,textColor:[35,49,67],lineColor:[219,227,236],lineWidth:.2},headStyles:{fillColor:[23,59,103],textColor:255,fontStyle:'bold'},columnStyles:{0:{cellWidth:22},1:{cellWidth:94},2:{cellWidth:28},3:{cellWidth:30,halign:'right'}},margin:{left:14,right:14}});
+    let y=doc.lastAutoTable.finalY+7;
+    const summary=(label,value,fill,textColor)=>{doc.setFillColor(...fill);doc.setDrawColor(...fill);doc.roundedRect(14,y,182,12,1.5,1.5,'FD');doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(35,49,67);doc.text(label,18,y+7.5);doc.setTextColor(...textColor);doc.setFontSize(11);doc.text(money(value),192,y+7.5,{align:'right'});y+=15;};
+    summary('TOTAL DOS SERVICOS',total,[237,243,249],[23,59,103]);
+    summary('VALOR PAGO',paid,[240,247,242],[36,112,68]);
+    summary('SALDO A PAGAR',balance,[232,241,255],[23,75,134]);
+    y+=2;doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(35,49,67);doc.text('CONDICOES DE PAGAMENTO: '+(terms||'A combinar'),14,y);y+=6;
+    if(notes){doc.setFont('helvetica','normal');const noteLines=doc.splitTextToSize('OBSERVACOES: '+notes,180);doc.text(noteLines,14,y);}
+    return doc.output('blob');
   }
   function init() {
     const grid = $('clientGrid');
