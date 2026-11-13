@@ -127,8 +127,22 @@ $('clientInput').addEventListener('keydown',e=>{
     if($('clientSug').classList.contains('hidden'))$('clientSug').classList.remove('hidden');
     const next=activeClientSuggestion<0?(e.key==='ArrowDown'?0:buttons.length-1):activeClientSuggestion+(e.key==='ArrowDown'?1:-1);
     highlightClientSuggestion((next+buttons.length)%buttons.length);
-  }else if(e.key==='Tab'&&!e.shiftKey){
-    if(!$('clientSug').classList.contains('hidden'))chooseActiveClientSuggestion();
+  }else if(e.key==='Tab'&&!e.shiftKey&&!$('clientSug').classList.contains('hidden')){
+    const buttons=clientSuggestionButtons();
+    if(buttons.length){
+      e.preventDefault();
+      e.stopPropagation();
+      if(activeClientSuggestion<0)highlightClientSuggestion(0);
+      chooseActiveClientSuggestion();
+      requestAnimationFrame(()=>{
+        const form=$('order');
+        const focusable=[...form.querySelectorAll('input:not([type="hidden"]),select,textarea,button,[tabindex]:not([tabindex="-1"])')]
+          .filter(el=>!el.disabled&&el.tabIndex>=0&&el.getClientRects().length);
+        const index=focusable.indexOf($('clientInput'));
+        const next=focusable.slice(index+1).find(el=>el!==$('clientSug')&&!el.closest('#clientSug'));
+        if(next)next.focus();
+      });
+    }
   }else if(e.key==='Enter'&&!$('clientSug').classList.contains('hidden')&&activeClientSuggestion>=0){
     e.preventDefault();
     chooseActiveClientSuggestion();
