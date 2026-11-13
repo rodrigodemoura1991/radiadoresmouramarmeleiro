@@ -39,9 +39,9 @@
       #serviceEditBox #order .grand{font-size:17px!important;margin:0!important;padding:2px 0!important}
       /* Resumo financeiro: três indicadores à esquerda e lucro em destaque à direita. */
       #serviceEditBox #order .totals{grid-template-columns:repeat(3,minmax(0,1fr)) minmax(220px,1.35fr)!important;align-items:stretch!important}
-      #serviceEditBox #order .totals .metric:last-child{display:flex!important;flex-direction:column!important;justify-content:center!important;padding:10px 16px!important;background:linear-gradient(135deg,#e8f7ef 0%,#d9f1e4 100%)!important;border:2px solid #36a36c!important;border-radius:12px!important;box-shadow:0 4px 12px rgba(20,125,75,.12)!important}
-      #serviceEditBox #order .totals .metric:last-child small{font-size:11px!important;font-weight:900!important;color:#176b45!important;text-transform:uppercase!important;letter-spacing:.35px!important}
-      #serviceEditBox #order .totals .metric:last-child b{font-size:23px!important;line-height:1.2!important;font-weight:950!important;color:#075c38!important;margin-top:7px!important;white-space:nowrap!important}
+      #serviceEditBox #order .totals .metric:last-child{display:flex!important;flex-direction:column!important;justify-content:center!important;padding:10px 16px!important;background:linear-gradient(135deg,#e8f1ff 0%,#d7e7ff 100%)!important;border:2px solid #3478c8!important;border-radius:12px!important;box-shadow:0 4px 14px rgba(23,75,145,.18)!important}
+      #serviceEditBox #order .totals .metric:last-child small{font-size:11px!important;font-weight:900!important;color:#174b86!important;text-transform:uppercase!important;letter-spacing:.35px!important}
+      #serviceEditBox #order .totals .metric:last-child b{font-size:23px!important;line-height:1.2!important;font-weight:950!important;color:#103e75!important;margin-top:7px!important;white-space:nowrap!important}
       @media(max-width:700px){
         #serviceEditBox #order .totals{grid-template-columns:repeat(2,minmax(0,1fr))!important}
         #serviceEditBox #order .totals .metric:last-child{grid-column:1/-1!important}
