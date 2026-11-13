@@ -133,6 +133,22 @@
     modal.classList.remove('hidden');
   }
   function oVehicle(order) { return order.vehicle_make_model || ''; }
+  function groupOrdersByOS(selected) {
+    const groups = new Map();
+    selected.forEach(order => {
+      const key = String(orderLabel(order));
+      if (!groups.has(key)) groups.set(key,{label:key,orders:[],lines:[],amount:0,dates:[],vehicles:[]});
+      const group=groups.get(key);
+      group.orders.push(order);
+      group.amount+=amountOf(order);
+      const date=dateBR(order.entry_date);
+      if(date!=='—'&&!group.dates.includes(date))group.dates.push(date);
+      const vehicle=String(oVehicle(order)||'').trim();
+      if(vehicle&&!group.vehicles.includes(vehicle))group.vehicles.push(vehicle);
+      billingLinesOf(order).forEach(line=>group.lines.push({...line,vehicle}));
+    });
+    return [...groups.values()];
+  }
   function billingLinesOf(order) {
     const items = itemsOf(order);
     const subtotal = items.reduce((sum,item) => sum + (Number(item.sale_value) || 0), 0) || Number(order.total_sale) || 0;
@@ -160,10 +176,10 @@
     const total = selected.reduce((s,o) => s + amountOf(o), 0);
     const paid = Math.max(0, Number(paidAmount) || 0);
     const balance = Math.max(0, total - paid);
-    const rows = selected.flatMap(o => billingLinesOf(o)).map((line,i) => {
-      const vehicle = String(oVehicle(line.order) || '').trim();
-      const descriptionCell = esc(line.description) + (vehicle ? '<br><small class="vehicle">VEÍCULO: '+esc(vehicle)+'</small>' : '');
-      return '<tr><td>'+(i+1)+'</td><td>OS '+esc(orderLabel(line.order))+'</td><td>'+descriptionCell+'</td><td>'+dateBR(line.order.entry_date)+'</td><td class="money">'+money(line.amount)+'</td></tr>';
+    const rows = groupOrdersByOS(selected).map((group,i) => {
+      const descriptions=group.lines.map(line=>'<div class="service-line">• '+esc(line.description)+'</div>').join('');
+      const vehicle=group.vehicles.length?'<small class="vehicle">VEÍCULO: '+esc(group.vehicles.join(' / '))+'</small>':'';
+      return '<tr><td>'+(i+1)+'</td><td>OS '+esc(group.label)+'</td><td>'+descriptions+vehicle+'</td><td>'+esc(group.dates.join(' / ')||'—')+'</td><td class="money">'+money(group.amount)+'</td></tr>';
     }).join('');
     const issued = dateBR(new Date().toISOString().slice(0,10));
     const due = dueDate ? dateBR(dueDate) : 'Não informado';
@@ -262,11 +278,11 @@
     doc.setFontSize(9);doc.setTextColor(23,59,103);doc.text('CLIENTE: '+String(client.name||''),18,56);
     doc.setFont('helvetica','normal');doc.setTextColor(60,70,85);doc.text('CPF/CNPJ: '+String(client.cpf_cnpj||'—'),18,62);
     doc.text('EMITIDO EM: '+issued+'     VENCIMENTO: '+(dueDate?dateBR(dueDate):'Nao informado'),18,69);
-    const body=[];
-    selected.forEach(order=>billingLinesOf(order).forEach(line=>{
-      const vehicle=String(order.vehicle_make_model||'').trim();
-      body.push(['OS '+orderLabel(order),line.description+(vehicle?'\nVEICULO: '+vehicle:''),dateBR(order.entry_date),money(line.amount)]);
-    }));
+    const body=groupOrdersByOS(selected).map(group=>{
+      const descriptions=group.lines.map(line=>'• '+line.description).join('\\n');
+      const vehicle=group.vehicles.length?'\\nVEICULO: '+group.vehicles.join(' / '):'';
+      return ['OS '+group.label,descriptions+vehicle,group.dates.join(' / ')||'—',money(group.amount)];
+    });
     doc.autoTable({startY:80,head:[['OS','DESCRICAO DOS SERVICOS / VEICULO','ENTRADA','VALOR']],body,theme:'grid',styles:{font:'helvetica',fontSize:8,cellPadding:2.5,textColor:[35,49,67],lineColor:[219,227,236],lineWidth:.2},headStyles:{fillColor:[23,59,103],textColor:255,fontStyle:'bold'},columnStyles:{0:{cellWidth:22},1:{cellWidth:94},2:{cellWidth:28},3:{cellWidth:30,halign:'right'}},margin:{left:14,right:14}});
     let y=doc.lastAutoTable.finalY+7;
     const summary=(label,value,fill,textColor)=>{doc.setFillColor(...fill);doc.setDrawColor(...fill);doc.roundedRect(14,y,182,12,1.5,1.5,'FD');doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(35,49,67);doc.text(label,18,y+7.5);doc.setTextColor(...textColor);doc.setFontSize(11);doc.text(money(value),192,y+7.5,{align:'right'});y+=15;};
