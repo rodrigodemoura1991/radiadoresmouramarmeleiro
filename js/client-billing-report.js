@@ -176,15 +176,16 @@
     const total = selected.reduce((s,o) => s + amountOf(o), 0);
     const paid = Math.max(0, Number(paidAmount) || 0);
     const balance = Math.max(0, total - paid);
-    const rows = groupOrdersByOS(selected).map((group,i) => {
-      const descriptions=group.lines.map(line=>'<div class="service-line">• '+esc(line.description)+'</div>').join('');
-      const vehicle=group.vehicles.length?'<small class="vehicle">VEÍCULO: '+esc(group.vehicles.join(' / '))+'</small>':'';
-      return '<tr><td>'+(i+1)+'</td><td>OS '+esc(group.label)+'</td><td>'+descriptions+vehicle+'</td><td>'+esc(group.dates.join(' / ')||'—')+'</td><td class="money">'+money(group.amount)+'</td></tr>';
+    const rows = groupOrdersByOS(selected).map(group => {
+      const vehicle=group.vehicles.length?' <span class="vehicle">• VEÍCULO: '+esc(group.vehicles.join(' / '))+'</span>':'';
+      const heading='<tr class="os-group"><td colspan="4">OS '+esc(group.label)+vehicle+'</td></tr>';
+      const details=group.lines.map((line,index)=>'<tr><td class="service-index">Serviço '+(index+1)+'</td><td>'+esc(line.description)+'</td><td>'+dateBR(line.order.entry_date)+'</td><td class="money">'+money(line.amount)+'</td></tr>').join('');
+      return heading+details;
     }).join('');
     const issued = dateBR(new Date().toISOString().slice(0,10));
     const due = dueDate ? dateBR(dueDate) : 'Não informado';
     const logo = new URL('8857A320-4E57-4A00-933D-C76434BC6953.png', location.href).href;
-    const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>COBRANÇA - ${esc(client.name)} - ${issued.replaceAll('/','-')}</title><style>
+    const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>RELATÓRIO DE COBRANÇA</title><style>
       @page{size:A4 portrait;margin:14mm}*{box-sizing:border-box}body{font:12px Arial,Helvetica,sans-serif;color:#172b46;margin:0}
       .sheet{max-width:190mm;margin:auto}.head{display:flex;gap:18px;align-items:center;border-bottom:3px solid #173b67;padding-bottom:13px}
       .logo{width:82px;height:82px;object-fit:contain}.company h1{font-size:21px;margin:0 0 6px;color:#173b67;text-transform:uppercase}.company p{font-size:9px;line-height:1.5;margin:0;color:#52657d}
@@ -192,8 +193,10 @@
       .client{border:1px solid #cbd5e1;border-radius:8px;padding:12px;margin-bottom:17px;line-height:1.7}
       .client b{color:#173b67}.meta{display:flex;justify-content:space-between;gap:12px;margin-top:6px;font-size:10px;color:#64748b}
       table{width:100%;border-collapse:collapse;margin-top:10px}th{background:#173b67;color:#fff;text-align:left;font-size:10px;padding:10px 8px}
-      td{border-bottom:1px solid #dbe3ec;padding:11px 8px;vertical-align:top}td:first-child{text-align:center;width:7%}.money{text-align:right;white-space:nowrap;font-weight:bold}
-      .vehicle{display:inline-block;margin-top:5px;color:#52657d;font-size:10px;font-weight:700}
+      td{border-bottom:1px solid #dbe3ec;padding:9px 8px;vertical-align:top}.money{text-align:right;white-space:nowrap;font-weight:bold}
+      .os-group td{background:#edf3f9;color:#173b67;font-weight:800;border-top:1px solid #cbd8e6;padding:9px 8px}
+      .service-index{width:18%;color:#52657d;font-size:10px;font-weight:700;white-space:nowrap}
+      .vehicle{display:inline-block;margin-left:8px;color:#52657d;font-size:10px;font-weight:700}
       .total{display:flex;justify-content:space-between;align-items:center;background:#edf3f9;border:1px solid #cbd8e6;border-radius:8px;padding:13px 15px;margin-top:10px;font-weight:bold}
       .total strong{font-size:20px;color:#173b67}.total.paid{background:#f0f7f2;border-color:#c8dfce}.total.paid strong{color:#247044}.total.balance{background:#e8f1ff;border-color:#b8d0f1}.total.balance strong{font-size:23px;color:#174b86}.payment{margin-top:16px;line-height:1.7}.notes{margin-top:10px;white-space:pre-wrap;line-height:1.6}
       .foot{margin-top:30px;border-top:1px solid #dbe3ec;padding-top:10px;text-align:center;font-size:9px;color:#718096}
@@ -202,7 +205,7 @@
       <header class="head"><img class="logo" src="${esc(logo)}"><div class="company"><h1>${esc(companyName)}</h1><p>${details}</p></div></header>
       <h2>RELAÇÃO DE SERVIÇOS PARA COBRANÇA</h2>
       <section class="client"><b>CLIENTE:</b> ${esc(client.name)}<br><b>CPF/CNPJ:</b> ${esc(client.cpf_cnpj || '—')}<br><b>ENDEREÇO:</b> ${esc([client.address,client.city,client.uf].filter(Boolean).join(' - ') || '—')}<div class="meta"><span>EMITIDO EM: ${issued}</span><span>VENCIMENTO: ${due}</span></div></section>
-      <table><thead><tr><th>ITEM</th><th>OS</th><th>DESCRIÇÃO DOS SERVIÇOS</th><th>ENTRADA</th><th style="text-align:right">VALOR</th></tr></thead><tbody>${rows}</tbody></table>
+      <table><thead><tr><th>OS / ITEM</th><th>DESCRIÇÃO DO SERVIÇO</th><th>ENTRADA</th><th style="text-align:right">VALOR</th></tr></thead><tbody>${rows}</tbody></table>
       <div class="total"><span>TOTAL DOS SERVIÇOS</span><strong>${money(total)}</strong></div>
       <div class="total paid"><span>VALOR PAGO</span><strong>${money(paid)}</strong></div>
       <div class="total balance"><span>SALDO A PAGAR</span><strong>${money(balance)}</strong></div>
@@ -240,7 +243,7 @@
     button.textContent = 'Gerando PDF...';
     try {
       const blob = createBillingPdf(activeClient,data.selected,data.due,data.terms,data.notes,data.paid);
-      const filename = 'COBRANCA - '+String(activeClient.name||'CLIENTE').replace(/[^a-z0-9-_ ]/gi,'').trim()+'.pdf';
+      const filename = 'RELATÓRIO DE COBRANÇA.pdf';
       const file = new File([blob],filename,{type:'application/pdf'});
       if (navigator.share && navigator.canShare && navigator.canShare({files:[file]})) {
         await navigator.share({files:[file],title:'Cobrança '+activeClient.name});
@@ -278,12 +281,16 @@
     doc.setFontSize(9);doc.setTextColor(23,59,103);doc.text('CLIENTE: '+String(client.name||''),18,56);
     doc.setFont('helvetica','normal');doc.setTextColor(60,70,85);doc.text('CPF/CNPJ: '+String(client.cpf_cnpj||'—'),18,62);
     doc.text('EMITIDO EM: '+issued+'     VENCIMENTO: '+(dueDate?dateBR(dueDate):'Nao informado'),18,69);
-    const body=groupOrdersByOS(selected).map(group=>{
-      const descriptions=group.lines.map(line=>'• '+line.description).join('\\n');
-      const vehicle=group.vehicles.length?'\\nVEICULO: '+group.vehicles.join(' / '):'';
-      return ['OS '+group.label,descriptions+vehicle,group.dates.join(' / ')||'—',money(group.amount)];
+    doc.setProperties({title:'RELATÓRIO DE COBRANÇA',subject:'Relação de serviços para cobrança'});
+    const body=[];
+    groupOrdersByOS(selected).forEach(group=>{
+      const vehicle=group.vehicles.length?' • VEICULO: '+group.vehicles.join(' / '):'';
+      body.push([{content:'OS '+group.label+vehicle,colSpan:4,styles:{fillColor:[237,243,249],textColor:[23,59,103],fontStyle:'bold'}}]);
+      group.lines.forEach((line,index)=>{
+        body.push(['Servico '+(index+1),line.description,dateBR(line.order.entry_date),money(line.amount)]);
+      });
     });
-    doc.autoTable({startY:80,head:[['OS','DESCRICAO DOS SERVICOS / VEICULO','ENTRADA','VALOR']],body,theme:'grid',styles:{font:'helvetica',fontSize:8,cellPadding:2.5,textColor:[35,49,67],lineColor:[219,227,236],lineWidth:.2},headStyles:{fillColor:[23,59,103],textColor:255,fontStyle:'bold'},columnStyles:{0:{cellWidth:22},1:{cellWidth:94},2:{cellWidth:28},3:{cellWidth:30,halign:'right'}},margin:{left:14,right:14}});
+    doc.autoTable({startY:80,head:[['OS / ITEM','DESCRICAO DO SERVICO','ENTRADA','VALOR']],body,theme:'grid',styles:{font:'helvetica',fontSize:8,cellPadding:2.5,textColor:[35,49,67],lineColor:[219,227,236],lineWidth:.2},headStyles:{fillColor:[23,59,103],textColor:255,fontStyle:'bold'},columnStyles:{0:{cellWidth:28},1:{cellWidth:88},2:{cellWidth:28},3:{cellWidth:30,halign:'right'}},margin:{left:14,right:14}});
     let y=doc.lastAutoTable.finalY+7;
     const summary=(label,value,fill,textColor)=>{doc.setFillColor(...fill);doc.setDrawColor(...fill);doc.roundedRect(14,y,182,12,1.5,1.5,'FD');doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(35,49,67);doc.text(label,18,y+7.5);doc.setTextColor(...textColor);doc.setFontSize(11);doc.text(money(value),192,y+7.5,{align:'right'});y+=15;};
     summary('TOTAL DOS SERVICOS',total,[237,243,249],[23,59,103]);
