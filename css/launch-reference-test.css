@@ -690,3 +690,20 @@
   #launchList .launch-reference-card .launch-client-block{max-width:40%!important;flex-basis:40%!important}
   #launchList .launch-reference-card .launch-client-vehicle-row > .launch-vehicle{max-width:58%!important}
 }
+
+
+/* AJUSTE 2026-11-17 — maior legibilidade para marca/modelo e placa nos cartões de Lançamentos. */
+#launchList .launch-reference-card .launch-client-vehicle-row > .launch-vehicle{
+  font-size:14px!important;
+  line-height:1.2!important;
+  font-weight:950!important;
+  max-width:58%!important;
+  overflow-wrap:anywhere!important;
+}
+@media(max-width:700px){
+  #launchList .launch-reference-card .launch-client-vehicle-row > .launch-vehicle{
+    font-size:12px!important;
+    line-height:1.2!important;
+    max-width:60%!important;
+  }
+}
