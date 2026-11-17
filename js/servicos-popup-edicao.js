@@ -101,7 +101,7 @@
         sale:moneyValue(row.querySelector('.sale')?.value)
       })).filter(item=>item.description||item.sale);
       const total=items.reduce((sum,item)=>sum+item.sale,0);
-      const lines=['RADIADORES MOURA',''];
+      const lines=[];
       if(client)lines.push('CLIENTE: '+client);
       if(os)lines.push('OS: '+os);
       if(vehicle)lines.push('VEÍCULO: '+vehicle);
