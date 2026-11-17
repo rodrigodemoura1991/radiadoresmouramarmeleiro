@@ -96,6 +96,14 @@
       const plate=String($('plate')?.value||'').trim();
       const order=(window.orders||[]).find(x=>String(x.id)===String(currentOrderId));
       const os=order?.numero_lancamento!=null&&String(order.numero_lancamento).trim()?String(order.numero_lancamento).trim():'';
+      const formatDate=value=>{
+        const raw=String(value||'').trim();
+        if(!raw)return '';
+        const match=raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+        return match?match[3]+'/'+match[2]+'/'+match[1]:raw;
+      };
+      const serviceDate=formatDate($('entry')?.value);
+      const deliveryDate=formatDate($('exit')?.value);
       const items=[...document.querySelectorAll('#rows .svc-row')].map(row=>({
         description:String(row.querySelector('.desc')?.value||'').trim(),
         sale:moneyValue(row.querySelector('.sale')?.value)
@@ -103,6 +111,8 @@
       const total=items.reduce((sum,item)=>sum+item.sale,0);
       const lines=[];
       if(client)lines.push('CLIENTE: '+client);
+      if(serviceDate)lines.push('DATA: '+serviceDate);
+      if(deliveryDate)lines.push(deliveryDate);
       if(os)lines.push('OS: '+os);
       if(vehicle)lines.push('VEÍCULO: '+vehicle);
       if(plate)lines.push('PLACA: '+plate);
