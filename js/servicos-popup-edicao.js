@@ -187,7 +187,7 @@
     const deliveryCheckbox=$('notDelivered');if(deliveryCheckbox)deliveryCheckbox.checked=false;
     $('exit').disabled=false;
     $('serviceEditBox').appendChild(form);popup.classList.remove('hidden');document.documentElement.classList.add('service-edit-popup-html');document.body.classList.add('service-edit-popup-open');opened=true;
-    $('serviceEditTitle').textContent='Novo lançamento de serviço';$('serviceEditPrintReceipt')?.classList.add('hidden');
+    $('serviceEditTitle').textContent='Novo lançamento de serviço';$('serviceEditPrintReceipt')?.classList.add('hidden');$('serviceEditCopySummary')?.classList.add('hidden');
     const save=form.querySelector('button[type="submit"]');if(save)save.textContent='Salvar lançamento';
     const clear=$('clear');if(clear){clear.textContent='Cancelar';clear.onclick=e=>{e.preventDefault();e.stopPropagation();close()}}
     setTimeout(()=>$('clientInput')?.focus(),50);
@@ -196,7 +196,7 @@
     if(!id)return;const edit=window.editOrder,form=$('order');if(typeof edit!=='function'||!form)return;ensurePopup();creating=false;currentOrderId=String(id);
     originalParent=form.parentNode;originalNext=form.nextSibling;window.__serviceEditCurrentOrderId=String(id);$('serviceEditBox').appendChild(form);popup.classList.remove('hidden');document.documentElement.classList.add('service-edit-popup-html');document.body.classList.add('service-edit-popup-open');opened=true;
     const nativeScrollTo=window.scrollTo;window.scrollTo=function(){};try{edit(String(id));configureDeliveryControl()}finally{window.scrollTo=nativeScrollTo}
-    const o=(window.orders||[]).find(x=>String(x.id)===String(id));$('serviceEditTitle').textContent=o?.numero_lancamento!=null?'Editar lançamento #'+o.numero_lancamento:'Editar lançamento';
+    const o=(window.orders||[]).find(x=>String(x.id)===String(id));$('serviceEditTitle').textContent=o?.numero_lancamento!=null?'Editar lançamento #'+o.numero_lancamento:'Editar lançamento';$('serviceEditCopySummary')?.classList.remove('hidden');
     const save=form.querySelector('button[type="submit"]');if(save)save.textContent='Salvar alterações';
     const clear=$('clear');if(clear){if(clear.dataset.popupOriginalText==null)clear.dataset.popupOriginalText=clear.textContent;clear.textContent='Cancelar';clear.onclick=e=>{e.preventDefault();e.stopPropagation();close()}}
     setTimeout(()=>$('clientInput')?.focus(),50);
