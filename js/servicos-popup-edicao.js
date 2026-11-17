@@ -67,6 +67,8 @@
       #serviceEditTitle{margin:0!important;font-size:22px!important;color:#172033!important}
       #serviceEditHeaderActions{display:flex!important;align-items:center!important;gap:8px!important;flex-wrap:wrap!important}
       #serviceEditPrintReceipt{border:0!important;border-radius:9px!important;padding:9px 14px!important;background:#173b67!important;color:#fff!important;font-weight:800!important;cursor:pointer!important}
+      #serviceEditCopySummary{border:0!important;border-radius:9px!important;padding:9px 14px!important;background:#0f766e!important;color:#fff!important;font-weight:800!important;cursor:pointer!important}
+      #serviceEditCopySummary:hover{background:#0b625c!important}
       #serviceEditClose{border:0!important;border-radius:9px!important;padding:9px 14px!important;background:#eee!important;color:#172033!important;font-weight:800!important;cursor:pointer!important}
       #serviceEditBox>#order{display:block!important;width:100%!important;max-width:none!important;margin:0!important}
       #allServicesList .service-actions-v2{display:flex!important;justify-content:flex-end!important;gap:8px!important;margin-top:10px!important}
@@ -76,9 +78,52 @@
   }
   function ensurePopup(){
     if(popup)return;css();popup=document.createElement('div');popup.id='serviceEditOverlay';popup.className='hidden';
-    popup.innerHTML='<div id="serviceEditBox" role="dialog" aria-modal="true"><div id="serviceEditHeader"><h2 id="serviceEditTitle">Editar lançamento</h2><div id="serviceEditHeaderActions"><button type="button" id="serviceEditPrintReceipt">Imprimir</button><button type="button" id="serviceEditClose">Fechar ×</button></div></div></div>';
+    popup.innerHTML='<div id="serviceEditBox" role="dialog" aria-modal="true"><div id="serviceEditHeader"><h2 id="serviceEditTitle">Editar lançamento</h2><div id="serviceEditHeaderActions"><button type="button" id="serviceEditCopySummary">Copiar resumo</button><button type="button" id="serviceEditPrintReceipt">Imprimir</button><button type="button" id="serviceEditClose">Fechar ×</button></div></div></div>';
     document.body.appendChild(popup);
     $('serviceEditClose').onclick=close;
+    $('serviceEditCopySummary').addEventListener('click',async function(e){
+      e.preventDefault();e.stopPropagation();
+      const moneyValue=value=>{
+        const raw=String(value??'').trim();
+        if(!raw)return 0;
+        const normalized=raw.replace(/R\$\s?/g,'').replace(/\./g,'').replace(',','.');
+        const n=Number(normalized);
+        return Number.isFinite(n)?n:0;
+      };
+      const brl=value=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(value);
+      const client=String($('clientInput')?.value||'').trim();
+      const vehicle=String($('vehicle')?.value||'').trim();
+      const plate=String($('plate')?.value||'').trim();
+      const order=(window.orders||[]).find(x=>String(x.id)===String(currentOrderId));
+      const os=order?.numero_lancamento!=null&&String(order.numero_lancamento).trim()?String(order.numero_lancamento).trim():'';
+      const items=[...document.querySelectorAll('#rows .svc-row')].map(row=>({
+        description:String(row.querySelector('.desc')?.value||'').trim(),
+        sale:moneyValue(row.querySelector('.sale')?.value)
+      })).filter(item=>item.description||item.sale);
+      const total=items.reduce((sum,item)=>sum+item.sale,0);
+      const lines=['RADIADORES MOURA',''];
+      if(client)lines.push('CLIENTE: '+client);
+      if(os)lines.push('OS: '+os);
+      if(vehicle)lines.push('VEÍCULO: '+vehicle);
+      if(plate)lines.push('PLACA: '+plate);
+      lines.push('','SERVIÇOS:');
+      items.forEach((item,index)=>lines.push((index+1)+'. '+(item.description||'Serviço')+' — '+brl(item.sale)));
+      lines.push('','VALOR TOTAL: '+brl(total));
+      const summary=lines.join('\n');
+      try{
+        if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(summary);
+        else{
+          const area=document.createElement('textarea');area.value=summary;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();
+          const copied=document.execCommand('copy');area.remove();if(!copied)throw new Error('Não foi possível acessar a área de transferência');
+        }
+        const button=$('serviceEditCopySummary'),previous=button.textContent;button.textContent='Copiado!';
+        if(typeof window.toast==='function')window.toast('Resumo copiado. Cole no WhatsApp ou e-mail.');
+        setTimeout(()=>{if(button.isConnected)button.textContent=previous},1800);
+      }catch(error){
+        console.error('[Radiadores Moura] Erro ao copiar resumo:',error);
+        alert('Não foi possível copiar automaticamente. Verifique a permissão da área de transferência.');
+      }
+    });
     $('serviceEditPrintReceipt').addEventListener('click',function(e){
       e.preventDefault();
       e.stopPropagation();
