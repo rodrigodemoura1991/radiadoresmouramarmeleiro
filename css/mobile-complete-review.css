@@ -97,3 +97,62 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior:auto !important; transition:none !important; animation:none !important; }
 }
+/* Correção específica para celular: navegação, botão e bloco de notas sem sobreposição. */
+@media (max-width: 760px) {
+  /* A navegação inferior contém somente as quatro áreas principais. */
+  .side > #adminHistoricalNav { display:none !important; }
+  .side { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
+  /* A ação principal deixa de ser fixa e passa a ocupar uma linha própria. */
+  #launchNewService, .side > #localCreateLaunch {
+    position:static !important;
+    inset:auto !important;
+    transform:none !important;
+    display:flex !important;
+    grid-column:1 / -1 !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-height:54px !important;
+    margin:8px 0 14px !important;
+    padding:13px 16px !important;
+    border-radius:14px !important;
+    box-shadow:0 4px 12px rgba(17,45,78,.14) !important;
+    text-align:center !important;
+    justify-content:center !important;
+    font-size:16px !important;
+    order:0 !important;
+  }
+  /* O bloco de notas agora é parte da página, abaixo dos lançamentos. */
+  #launch > .local-home-notepad {
+    position:static !important;
+    inset:auto !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    align-items:start !important;
+    width:100% !important;
+    max-width:100% !important;
+    margin:12px 0 18px !important;
+    padding:14px !important;
+    gap:9px !important;
+    border-radius:13px !important;
+    box-sizing:border-box !important;
+  }
+  #launch .local-home-notepad-head { width:100% !important; min-width:0 !important; }
+  #launch .local-home-notepad-head strong { font-size:15px !important; line-height:1.35 !important; }
+  #launch .local-home-notepad-head span { font-size:12px !important; }
+  #launch #localHomeNotes {
+    display:block !important;
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    height:110px !important;
+    min-height:100px !important;
+    max-height:220px !important;
+    resize:vertical !important;
+    font-size:16px !important;
+    line-height:1.4 !important;
+    padding:11px !important;
+    box-sizing:border-box !important;
+  }
+  /* A lista não precisa reservar espaço para um botão flutuante. */
+  #launchList { padding-bottom:8px !important; }
+}
