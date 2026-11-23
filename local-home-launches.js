@@ -46,6 +46,41 @@
     const subtitle = launch.querySelector('.head p');
     if (subtitle) subtitle.textContent = 'Consulte os serviços ou faça um novo lançamento.';
 
+    // Em telas pequenas, notas e ação principal passam para o fluxo do conteúdo.
+    // Em telas maiores, ambos retornam à barra lateral original.
+    const moveMobileElements = () => {
+      const mobile = window.matchMedia('(max-width: 760px)').matches;
+      const note = document.getElementById('localHomeNotepad');
+      const create = document.getElementById('launchNewService') || document.getElementById('localCreateLaunch');
+      const launchHead = launch.querySelector('.head');
+      if (mobile) {
+        if (note && note.parentElement !== launch) listCard.insertAdjacentElement('afterend', note);
+        if (create && create.parentElement !== launch) {
+          if (launchHead) launchHead.insertAdjacentElement('afterend', create);
+          else launch.insertBefore(create, launch.firstChild);
+        }
+      } else {
+        if (note && note.parentElement !== side) side.appendChild(note);
+        if (create && create.parentElement !== side) side.insertBefore(create, side.firstChild);
+      }
+    };
+    moveMobileElements();
+    if (!window.__radiadoresMobileLayoutBound) {
+      window.__radiadoresMobileLayoutBound = true;
+      const mq = window.matchMedia('(max-width: 760px)');
+      if (mq.addEventListener) mq.addEventListener('change', () => setTimeout(init, 0));
+      else if (mq.addListener) mq.addListener(() => setTimeout(init, 0));
+      const sideObserver = new MutationObserver(() => {
+        const mobile = window.matchMedia('(max-width: 760px)').matches;
+        if (mobile) {
+          const button = document.getElementById('launchNewService') || document.getElementById('localCreateLaunch');
+          const head = launch.querySelector('.head');
+          if (button && button.parentElement === side && head) head.insertAdjacentElement('afterend', button);
+        }
+      });
+      sideObserver.observe(side, { childList: true });
+    }
+
     // O botão único de novo lançamento é criado por js/servicos-popup-edicao.js no cabeçalho.
     // Mantemos o formulário oculto até que esse botão abra a janela de lançamento.
     return true;
