@@ -113,16 +113,16 @@
         sale:moneyValue(row.querySelector('.sale')?.value)
       })).filter(item=>item.description||item.sale);
       const total=items.reduce((sum,item)=>sum+item.sale,0);
-      const lines=[];
-      if(client)lines.push('CLIENTE: '+client);
-      if(deliveryDate)lines.push('DATA DE SAÍDA: '+deliveryDate);
-      if(os)lines.push('OS: '+os);
-      if(vehicle)lines.push('VEÍCULO: '+vehicle);
-      if(plate)lines.push('PLACA: '+plate);
-      lines.push('','SERVIÇOS:');
+      const lines=['*RESUMO DO SERVIÇO*',''];
+      if(os)lines.push('*OS: '+os+'*');
+      if(client)lines.push('*CLIENTE:* '+client);
+      if(deliveryDate)lines.push('*DATA DE SAÍDA:* '+deliveryDate);
+      if(vehicle)lines.push('*VEÍCULO:* '+vehicle);
+      if(plate)lines.push('*PLACA:* '+plate);
+      lines.push('','*SERVIÇOS REALIZADOS*');
       items.forEach((item,index)=>lines.push((index+1)+'. '+(item.description||'Serviço')+' — '+brl(item.sale)));
-      lines.push('','VALOR TOTAL: '+brl(total));
-      const summary=lines.join('\n');
+      lines.push('','────────────────────','*VALOR TOTAL: '+brl(total)+'*');
+      const summary=lines.join('\\n');
       try{
         if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(summary);
         else{
