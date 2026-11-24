@@ -113,7 +113,7 @@
         sale:moneyValue(row.querySelector('.sale')?.value)
       })).filter(item=>item.description||item.sale);
       const total=items.reduce((sum,item)=>sum+item.sale,0);
-      const lines=['*RESUMO DO SERVIÇO*',''];
+      const lines=[];
       if(os)lines.push('*OS: '+os+'*');
       if(client)lines.push('*CLIENTE:* '+client);
       if(deliveryDate)lines.push('*DATA DE SAÍDA:* '+deliveryDate);
