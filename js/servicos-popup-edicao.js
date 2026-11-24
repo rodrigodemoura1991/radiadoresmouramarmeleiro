@@ -102,7 +102,7 @@
         const match=raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
         return match?match[3]+'/'+match[2]+'/'+match[1]:raw;
       };
-      const serviceDate=formatDate($('entry')?.value);
+      // No resumo copiado, mostrar somente a data de saída do serviço.
       const deliveryDate=formatDate($('exit')?.value);
       const items=[...document.querySelectorAll('#rows .svc-row')].map(row=>({
         description:String(row.querySelector('.desc')?.value||'').trim(),
@@ -111,8 +111,7 @@
       const total=items.reduce((sum,item)=>sum+item.sale,0);
       const lines=[];
       if(client)lines.push('CLIENTE: '+client);
-      if(serviceDate)lines.push('DATA: '+serviceDate);
-      if(deliveryDate)lines.push(deliveryDate);
+      if(deliveryDate)lines.push('DATA DE SAÍDA: '+deliveryDate);
       if(os)lines.push('OS: '+os);
       if(vehicle)lines.push('VEÍCULO: '+vehicle);
       if(plate)lines.push('PLACA: '+plate);
