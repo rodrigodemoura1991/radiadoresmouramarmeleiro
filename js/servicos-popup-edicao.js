@@ -99,8 +99,12 @@
       const formatDate=value=>{
         const raw=String(value||'').trim();
         if(!raw)return '';
-        const match=raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
-        return match?match[3]+'/'+match[2]+'/'+match[1]:raw;
+        // Datas de campos HTML date chegam como AAAA-MM-DD.
+        const parts=raw.split('-');
+        if(parts.length===3&&parts[0].length===4&&parts[1].length===2&&parts[2].length===2){
+          return parts[2]+'/'+parts[1]+'/'+parts[0];
+        }
+        return raw;
       };
       // No resumo copiado, mostrar somente a data de saída do serviço.
       const deliveryDate=formatDate($('exit')?.value);
