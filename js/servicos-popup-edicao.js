@@ -122,7 +122,7 @@
       lines.push('','*SERVIÇOS REALIZADOS*');
       items.forEach((item,index)=>lines.push((index+1)+'. '+(item.description||'Serviço')+' — '+brl(item.sale)));
       lines.push('','────────────────────','*VALOR TOTAL: '+brl(total)+'*');
-      const summary=lines.join('\\n');
+      const summary=lines.join('\n');
       try{
         if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(summary);
         else{
