@@ -1,0 +1,14 @@
+{
+  "name": "Radiadores Moura • Lançamentos",
+  "short_name": "Lançamentos",
+  "start_url": "./lancamentos.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f6fb",
+  "theme_color": "#173b68",
+  "description": "Acesso rápido para lançar ordens de serviço e anexar fotos da Radiadores Moura.",
+  "icons": [
+    {"src":"8857A320-4E57-4A00-933D-C76434BC6953.png","sizes":"any","type":"image/png","purpose":"any"}
+  ]
+}
