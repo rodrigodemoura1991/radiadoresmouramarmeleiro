@@ -4,7 +4,7 @@
  const params=new URLSearchParams(location.search);
  if(params.get('modo')!=='rapido')return;
  document.documentElement.classList.add('quick-launch-mode');
- const css=document.createElement('link');css.rel='stylesheet';css.href='./css/quick-launch.css?v=quick1';document.head.appendChild(css);
+ const css=document.createElement('link');css.rel='stylesheet';css.href='./css/quick-launch.css?v=quick2';document.head.appendChild(css);
  function mount(){
   if(document.getElementById('quickLaunchBar'))return;
   const bar=document.createElement('div');bar.id='quickLaunchBar';
