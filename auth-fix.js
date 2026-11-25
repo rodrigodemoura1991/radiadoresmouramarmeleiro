@@ -33,7 +33,10 @@
       <div class="field"><label>Telefone</label><input id="launchClientPhone" type="tel" autocomplete="tel" placeholder="(00) 00000-0000"></div>
       <div class="field"><label>E-mail</label><input id="launchClientEmail" type="email" autocomplete="email" placeholder="cliente@email.com"></div>
       <div class="field"><label>CEP</label><input id="launchClientCep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000"></div>
-      <div class="field client-address-field"><label>Endereço</label><input id="launchClientAddress" autocomplete="street-address" placeholder="Rua, bairro ou endereço completo"></div>
+      <div class="field client-address-field"><label>Endereço (rua)</label><input id="launchClientAddress" autocomplete="address-line1" placeholder="Nome da rua"></div>
+      <div class="field"><label>Número</label><input id="launchClientNumber" autocomplete="address-line2" placeholder="Número"></div>
+      <div class="field"><label>Bairro</label><input id="launchClientNeighborhood" autocomplete="address-level3" placeholder="Bairro"></div>
+      <div class="field"><label>Complemento</label><input id="launchClientComplement" placeholder="Sala, bloco, barracão..."></div>
       <div class="field"><label>Cidade</label><input id="launchClientCity" autocomplete="address-level2" placeholder="Cidade"></div>
       <div class="field"><label>UF</label><input id="launchClientUf" maxlength="2" autocomplete="address-level1" placeholder="PR"></div>
     </div>`;
@@ -48,13 +51,13 @@
       @media(max-width:600px){#launchClientDetails .client-launch-grid{grid-template-columns:1fr}#launchClientDetails .client-address-field{grid-column:auto}}
     `;document.head.appendChild(s)}
     const clientList=()=>{try{return typeof clients!=='undefined'&&Array.isArray(clients)?clients:[]}catch(_){return[]}};
-    const getClient=()=>{const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();return clientList().find(c=>String(c.name||'').trim().toLowerCase()===name)||null};
-    const setFields=c=>{const val=id=>document.getElementById(id);if(!val('launchClientCnpj'))return;val('launchClientReasonSocial').value=c?.reason_social||'';val('launchClientCnpj').value=c?.cpf_cnpj||'';val('launchClientPhone').value=c?.phone||'';val('launchClientEmail').value=c?.email||'';val('launchClientCep').value=c?.cep||'';val('launchClientAddress').value=c?.address||'';val('launchClientCity').value=c?.city||'';val('launchClientUf').value=c?.uf||''};
+    const getClient=()=>{const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();return clientList().find(c=>[c.name,c.reason_social].some(v=>String(v||'').trim().toLowerCase()===name))||null};
+    const setFields=c=>{const val=id=>document.getElementById(id);if(!val('launchClientCnpj'))return;val('launchClientReasonSocial').value=c?.reason_social||'';val('launchClientCnpj').value=c?.cpf_cnpj||'';val('launchClientPhone').value=c?.phone||'';val('launchClientEmail').value=c?.email||'';val('launchClientCep').value=c?.cep||'';val('launchClientAddress').value=c?.address||'';val('launchClientNumber').value=c?.address_number||'';val('launchClientNeighborhood').value=c?.neighborhood||'';val('launchClientComplement').value=c?.complement||'';val('launchClientCity').value=c?.city||'';val('launchClientUf').value=c?.uf||''};
     let lastClientName='',lastClientSignature='';
     const fillFromName=force=>{
       const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();
       const c=getClient();
-      const signature=c?JSON.stringify([c.id,c.reason_social,c.cpf_cnpj,c.phone,c.email,c.cep,c.address,c.city,c.uf]):'';
+      const signature=c?JSON.stringify([c.id,c.reason_social,c.cpf_cnpj,c.phone,c.email,c.cep,c.address,c.address_number,c.neighborhood,c.complement,c.city,c.uf]):'';
       if(!force&&name===lastClientName&&signature===lastClientSignature)return;
       lastClientName=name;lastClientSignature=signature;
       if(c)setFields(c);else if(!name)setFields(null);
@@ -79,6 +82,9 @@
             email:field('launchClientEmail'),
             cep:field('launchClientCep'),
             address,
+            address_number:field('launchClientNumber'),
+            neighborhood:field('launchClientNeighborhood'),
+            complement:field('launchClientComplement'),
             city:field('launchClientCity'),
             uf:field('launchClientUf').toUpperCase()
           };
@@ -94,7 +100,7 @@
             }
             const upd=await sb.from('clients').update(clientData).eq('id',clientId).eq('company_id',company.id);
             if(upd.error){console.error('[Radiadores Moura] Erro ao salvar dados do cliente:',upd.error);toast('Lançamento salvo, mas os dados do cliente não foram atualizados: '+upd.error.message);return}
-            const idx=clientList().findIndex(c=>c.id===q.data[0].id);
+            const idx=clientList().findIndex(c=>c.id===clientId);
             if(idx>=0)Object.assign(clients[idx],clientData);
           }catch(err){console.error('[Radiadores Moura] Persistência do cliente:',err);if(typeof toast==='function')toast('Lançamento salvo, mas houve erro nos dados do cliente.');}
         };
