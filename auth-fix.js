@@ -23,6 +23,79 @@
     login.onsubmit=async function(ev){ev.preventDefault();msg.textContent='Entrando...';sessionStorage.removeItem('companyId');const {error}=await sb.auth.signInWithPassword({email:email.value.trim(),password:pass.value});if(error)msg.textContent='Erro: '+error.message;else msg.textContent=''};
   }
 
+
+  async function lookupCompanyByCnpj(raw, target){
+    const cnpj=String(raw||'').toUpperCase().replace(/[^0-9A-Z]/g,'');
+    if(!/^[0-9A-Z]{12}[0-9]{2}$/.test(cnpj)){
+      if(typeof toast==='function')toast('Digite um CNPJ válido com 14 caracteres.');
+      else alert('Digite um CNPJ válido com 14 caracteres.');
+      return;
+    }
+    const button=target?.querySelector('button[data-cnpj-search]');
+    const status=target?.querySelector('[data-cnpj-status]');
+    if(button){button.disabled=true;button.textContent='Consultando...'}
+    if(status)status.textContent='Consultando base pública...';
+    try{
+      const response=await fetch('https://brasilapi.com.br/api/cnpj/v1/'+encodeURIComponent(cnpj),{headers:{'Accept':'application/json'}});
+      if(!response.ok){
+        let message='Não foi possível consultar o CNPJ.';
+        if(response.status===404)message='CNPJ não encontrado na base pública.';
+        else if(response.status===400)message='CNPJ inválido ou mal formatado.';
+        else if(response.status===429)message='Muitas consultas em sequência. Aguarde um pouco e tente novamente.';
+        else if(response.status>=500)message='Serviço de consulta temporariamente indisponível.';
+        throw new Error(message);
+      }
+      const d=await response.json();
+      const put=(id,value)=>{const el=document.getElementById(id);if(el&&value!==undefined&&value!==null&&String(value).trim()!=='')el.value=String(value).trim()};
+      const phone=String(d.ddd_telefone_1||d.ddd_telefone_2||'').trim();
+      put(target.dataset.mode==='modal'?'clientReasonSocial':'launchClientReasonSocial',d.razao_social);
+      put(target.dataset.mode==='modal'?'clientName':'clientInput',d.razao_social);
+      put(target.dataset.mode==='modal'?'doc':'launchClientCnpj',d.cnpj||cnpj);
+      put(target.dataset.mode==='modal'?'phone':'launchClientPhone',phone);
+      put(target.dataset.mode==='modal'?'mail':'launchClientEmail',d.email);
+      put(target.dataset.mode==='modal'?'clientCep':'launchClientCep',d.cep);
+      put(target.dataset.mode==='modal'?'address':'launchClientAddress',d.logradouro);
+      put(target.dataset.mode==='modal'?'addressNumber':'launchClientNumber',d.numero);
+      put(target.dataset.mode==='modal'?'neighborhood':'launchClientNeighborhood',d.bairro);
+      put(target.dataset.mode==='modal'?'complement':'launchClientComplement',d.complemento);
+      put(target.dataset.mode==='modal'?'city':'launchClientCity',d.municipio);
+      put(target.dataset.mode==='modal'?'uf':'launchClientUf',d.uf);
+      if(status)status.textContent='Dados encontrados. Confira e complete os campos antes de salvar.';
+      if(typeof toast==='function')toast('Dados da empresa preenchidos. Confira antes de salvar.');
+    }catch(err){
+      console.error('[Radiadores Moura] Consulta CNPJ:',err);
+      if(status)status.textContent=err.message||'Falha na consulta.';
+      if(typeof toast==='function')toast(err.message||'Falha ao consultar CNPJ.');
+      else alert(err.message||'Falha ao consultar CNPJ.');
+    }finally{
+      if(button){button.disabled=false;button.textContent='Consultar CNPJ'}
+    }
+  }
+  function installCnpjLookup(){
+    const addButton=(input,mode)=>{
+      if(!input||input.dataset.cnpjLookupInstalled==='1')return;
+      input.dataset.cnpjLookupInstalled='1';
+      const wrap=document.createElement('div');wrap.className='cnpj-lookup-wrap';wrap.dataset.mode=mode;
+      input.parentNode.insertBefore(wrap,input);wrap.appendChild(input);
+      const button=document.createElement('button');button.type='button';button.className='btn cnpj-lookup-btn';button.dataset.cnpjSearch='1';button.textContent='Consultar CNPJ';
+      const status=document.createElement('small');status.dataset.cnpjStatus='1';status.className='cnpj-lookup-status';
+      wrap.appendChild(button);wrap.appendChild(status);
+      button.addEventListener('click',()=>lookupCompanyByCnpj(input.value,wrap));
+      input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();lookupCompanyByCnpj(input.value,wrap)}});
+      input.addEventListener('blur',()=>{const value=input.value.toUpperCase().replace(/[^0-9A-Z]/g,'');if(value.length===14)lookupCompanyByCnpj(value,wrap)});
+    };
+    addButton(document.getElementById('launchClientCnpj'),'launch');
+    addButton(document.getElementById('doc'),'modal');
+    if(!document.getElementById('cnpj-lookup-style')){
+      const style=document.createElement('style');style.id='cnpj-lookup-style';style.textContent=`
+        .cnpj-lookup-wrap{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+        .cnpj-lookup-wrap input{flex:1;min-width:120px}
+        .cnpj-lookup-btn{white-space:nowrap;padding:8px 10px;font-size:12px}
+        .cnpj-lookup-status{flex-basis:100%;color:var(--muted);font-size:11px;min-height:13px}
+      `;document.head.appendChild(style);
+    }
+  }
+
   function installLaunchClientFields(){
     const order=document.getElementById('order'), clientField=document.getElementById('clientInput')?.closest('.field');
     if(!order||!clientField||document.getElementById('launchClientDetails'))return;
@@ -116,6 +189,6 @@
       #launchList .launch .chip{font-size:13px!important;font-weight:800!important;line-height:1.3!important;padding:4px 8px!important;white-space:normal!important}
     `;document.head.appendChild(s)}
   }
-  function boot(){installLaunchClientFields();setTimeout(installLaunchClientFields,500);setTimeout(installLaunchClientFields,1500)}
+  function boot(){installLaunchClientFields();installCnpjLookup();setTimeout(()=>{installLaunchClientFields();installCnpjLookup()},500);setTimeout(()=>{installLaunchClientFields();installCnpjLookup()},1500)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{install();boot()},{once:true});else{install();boot()}
 })();
