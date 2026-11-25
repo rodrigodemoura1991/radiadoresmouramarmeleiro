@@ -80,9 +80,9 @@
       const button=document.createElement('button');button.type='button';button.className='btn cnpj-lookup-btn';button.dataset.cnpjSearch='1';button.textContent='Consultar CNPJ';
       const status=document.createElement('small');status.dataset.cnpjStatus='1';status.className='cnpj-lookup-status';
       wrap.appendChild(button);wrap.appendChild(status);
-      button.addEventListener('click',()=>lookupCompanyByCnpj(input.value,wrap));
+      button.addEventListener('click',()=>{input.dataset.lastCnpjLookup=input.value.toUpperCase().replace(/[^0-9A-Z]/g,'');lookupCompanyByCnpj(input.value,wrap)});
       input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();lookupCompanyByCnpj(input.value,wrap)}});
-      input.addEventListener('blur',()=>{const value=input.value.toUpperCase().replace(/[^0-9A-Z]/g,'');if(value.length===14)lookupCompanyByCnpj(value,wrap)});
+      input.addEventListener('blur',e=>{if(e.relatedTarget?.closest?.('button[data-cnpj-search]'))return;const value=input.value.toUpperCase().replace(/[^0-9A-Z]/g,'');if(value.length===14&&input.dataset.lastCnpjLookup!==value){input.dataset.lastCnpjLookup=value;lookupCompanyByCnpj(value,wrap)}});
     };
     addButton(document.getElementById('launchClientCnpj'),'launch');
     addButton(document.getElementById('doc'),'modal');
