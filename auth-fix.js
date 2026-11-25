@@ -115,23 +115,24 @@
     </div>`;
     clientField.after(box);
     if(!document.getElementById('launch-client-fields-style')){const s=document.createElement('style');s.id='launch-client-fields-style';s.textContent=`
-      #launchClientDetails{margin-top:2px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fafcff;display:block!important;width:100%;box-sizing:border-box}
+      #launchClientDetails{margin-top:2px;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:#fafcff;display:block!important;width:100%;box-sizing:border-box}
       #launchClientDetails .client-launch-title{font-weight:800;font-size:13px;margin-bottom:7px;color:var(--ink)}
-      #launchClientDetails .client-launch-grid{display:grid!important;grid-template-columns:repeat(8,minmax(0,1fr))!important;gap:7px 9px!important;align-items:end!important;width:100%;min-width:0}
-      #launchClientDetails .client-launch-grid>.field{margin:0!important;min-width:0!important;width:auto!important;grid-column:auto!important}
-      #launchClientDetails .client-reason-field,#launchClientDetails .client-cnpj-field{grid-column:span 4!important}
-      #launchClientDetails .client-phone-field,#launchClientDetails .client-email-field,#launchClientDetails .client-cep-field,#launchClientDetails .client-uf-field{grid-column:span 2!important}
-      #launchClientDetails .client-address-field{grid-column:span 3!important}
-      #launchClientDetails .client-number-field,#launchClientDetails .client-neighborhood-field,#launchClientDetails .client-complement-field{grid-column:span 1!important}
-      #launchClientDetails .client-city-field{grid-column:span 2!important}
+      #launchClientDetails .client-launch-grid{display:grid!important;grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:7px 9px!important;align-items:end!important;width:100%;min-width:0}
+      #launchClientDetails .client-launch-grid>.field{margin:0!important;min-width:0!important;width:auto!important}
+      #launchClientDetails .client-launch-grid>.client-reason-field,#launchClientDetails .client-launch-grid>.client-cnpj-field{grid-column:span 6!important}
+      #launchClientDetails .client-launch-grid>.client-phone-field,#launchClientDetails .client-launch-grid>.client-email-field{grid-column:span 3!important}
+      #launchClientDetails .client-launch-grid>.client-cep-field{grid-column:span 2!important}
+      #launchClientDetails .client-launch-grid>.client-address-field{grid-column:span 4!important}
+      #launchClientDetails .client-launch-grid>.client-number-field,#launchClientDetails .client-launch-grid>.client-neighborhood-field,#launchClientDetails .client-launch-grid>.client-uf-field{grid-column:span 2!important}
+      #launchClientDetails .client-launch-grid>.client-complement-field,#launchClientDetails .client-launch-grid>.client-city-field{grid-column:span 3!important}
       #launchClientDetails .client-launch-grid>.field label{display:block;margin-bottom:3px}
       #launchClientDetails input{display:block;width:100%!important;min-width:0!important;max-width:100%;box-sizing:border-box}
-      #launchClientDetails .cnpj-lookup-wrap{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:5px;align-items:center;width:100%;min-width:0}
+      #launchClientDetails .cnpj-lookup-wrap{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:6px;align-items:center;width:100%;min-width:0}
       #launchClientDetails .cnpj-lookup-wrap input{min-width:0!important;width:100%!important}
-      #launchClientDetails .cnpj-lookup-wrap .cnpj-lookup-btn{white-space:nowrap;min-height:36px;padding:6px 8px;font-size:11px}
+      #launchClientDetails .cnpj-lookup-wrap .cnpj-lookup-btn{white-space:nowrap;min-height:36px;padding:6px 10px;font-size:11px}
       #launchClientDetails .cnpj-lookup-wrap .cnpj-lookup-status{display:none!important}
-      @media(max-width:900px){#launchClientDetails .client-launch-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}#launchClientDetails .client-launch-grid>.field{grid-column:span 2!important}#launchClientDetails .client-launch-grid>.client-address-field{grid-column:span 4!important}}
-      @media(max-width:600px){#launchClientDetails .client-launch-grid{grid-template-columns:minmax(0,1fr)!important}#launchClientDetails .client-launch-grid>.field{grid-column:span 1!important}}    `;document.head.appendChild(s)}
+      @media(max-width:900px){#launchClientDetails .client-launch-grid{grid-template-columns:repeat(6,minmax(0,1fr))!important}#launchClientDetails .client-launch-grid>.field{grid-column:span 3!important}#launchClientDetails .client-launch-grid>.client-reason-field,#launchClientDetails .client-launch-grid>.client-cnpj-field,#launchClientDetails .client-launch-grid>.client-address-field{grid-column:span 6!important}}
+      @media(max-width:600px){#launchClientDetails .client-launch-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#launchClientDetails .client-launch-grid>.field{grid-column:span 1!important}#launchClientDetails .client-launch-grid>.client-reason-field,#launchClientDetails .client-launch-grid>.client-cnpj-field,#launchClientDetails .client-launch-grid>.client-phone-field,#launchClientDetails .client-launch-grid>.client-email-field,#launchClientDetails .client-launch-grid>.client-address-field,#launchClientDetails .client-launch-grid>.client-complement-field,#launchClientDetails .client-launch-grid>.client-city-field{grid-column:span 2!important}}`;document.head.appendChild(s)}
     const clientList=()=>{try{return typeof clients!=='undefined'&&Array.isArray(clients)?clients:[]}catch(_){return[]}};
     const getClient=()=>{const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();return clientList().find(c=>[c.name,c.reason_social].some(v=>String(v||'').trim().toLowerCase()===name))||null};
     const setFields=c=>{const val=id=>document.getElementById(id);if(!val('launchClientCnpj'))return;val('launchClientReasonSocial').value=c?.reason_social||'';val('launchClientCnpj').value=c?.cpf_cnpj||'';val('launchClientPhone').value=c?.phone||'';val('launchClientEmail').value=c?.email||'';val('launchClientCep').value=c?.cep||'';val('launchClientAddress').value=c?.address||'';val('launchClientNumber').value=c?.address_number||'';val('launchClientNeighborhood').value=c?.neighborhood||'';val('launchClientComplement').value=c?.complement||'';val('launchClientCity').value=c?.city||'';val('launchClientUf').value=c?.uf||''};
