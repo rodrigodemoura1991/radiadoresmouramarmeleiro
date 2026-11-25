@@ -49,7 +49,7 @@
       const put=(id,value)=>{const el=document.getElementById(id);if(el&&value!==undefined&&value!==null&&String(value).trim()!=='')el.value=String(value).trim()};
       const phone=String(d.ddd_telefone_1||d.ddd_telefone_2||'').trim();
       put(target.dataset.mode==='modal'?'clientReasonSocial':'launchClientReasonSocial',d.razao_social);
-      put(target.dataset.mode==='modal'?'clientName':'clientInput',d.razao_social);
+      put(target.dataset.mode==='modal'?'clientName':'launchClientReasonSocial',d.razao_social);if(target.dataset.mode!=='modal'&&d.razao_social){const nameInput=document.getElementById('clientInput');if(nameInput&&!nameInput.value.trim())nameInput.value=String(d.razao_social).trim();}
       put(target.dataset.mode==='modal'?'doc':'launchClientCnpj',d.cnpj||cnpj);
       put(target.dataset.mode==='modal'?'phone':'launchClientPhone',phone);
       put(target.dataset.mode==='modal'?'mail':'launchClientEmail',d.email);
@@ -135,7 +135,7 @@
       @media(max-width:600px){#launchClientDetails .client-launch-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#launchClientDetails .client-launch-grid>.field{grid-column:span 1!important}#launchClientDetails .client-launch-grid>.client-reason-field,#launchClientDetails .client-launch-grid>.client-cnpj-field,#launchClientDetails .client-launch-grid>.client-phone-field,#launchClientDetails .client-launch-grid>.client-email-field,#launchClientDetails .client-launch-grid>.client-address-field,#launchClientDetails .client-launch-grid>.client-complement-field,#launchClientDetails .client-launch-grid>.client-city-field{grid-column:span 2!important}}`;document.head.appendChild(s)}
     const clientList=()=>{try{return typeof clients!=='undefined'&&Array.isArray(clients)?clients:[]}catch(_){return[]}};
     const getClient=()=>{const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();return clientList().find(c=>[c.name,c.reason_social].some(v=>String(v||'').trim().toLowerCase()===name))||null};
-    const setFields=c=>{const val=id=>document.getElementById(id);if(!val('launchClientCnpj'))return;val('launchClientReasonSocial').value=c?.reason_social||'';val('launchClientCnpj').value=c?.cpf_cnpj||'';val('launchClientPhone').value=c?.phone||'';val('launchClientEmail').value=c?.email||'';val('launchClientCep').value=c?.cep||'';val('launchClientAddress').value=c?.address||'';val('launchClientNumber').value=c?.address_number||'';val('launchClientNeighborhood').value=c?.neighborhood||'';val('launchClientComplement').value=c?.complement||'';val('launchClientCity').value=c?.city||'';val('launchClientUf').value=c?.uf||''};
+    const setFields=c=>{const fields={launchClientReasonSocial:'reason_social',launchClientCnpj:'cpf_cnpj',launchClientPhone:'phone',launchClientEmail:'email',launchClientCep:'cep',launchClientAddress:'address',launchClientNumber:'address_number',launchClientNeighborhood:'neighborhood',launchClientComplement:'complement',launchClientCity:'city',launchClientUf:'uf'};for(const [id,key] of Object.entries(fields)){const el=document.getElementById(id);if(!el)continue;const value=String(c?.[key]??'').trim();/* Não apaga dados recém-consultados quando o cadastro existente ainda está incompleto. */if(value)el.value=key==='uf'?value.toUpperCase():value;}};
     let lastClientName='',lastClientSignature='';
     const fillFromName=force=>{
       const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();
@@ -158,7 +158,7 @@
           const clientName=(document.getElementById('clientInput')?.value||'').trim();
           const field=id=>(document.getElementById(id)?.value||'').trim();
           const address=field('launchClientAddress');
-          const clientData={
+          const clientData=Object.fromEntries(Object.entries({
             reason_social:field('launchClientReasonSocial'),
             cpf_cnpj:field('launchClientCnpj'),
             phone:field('launchClientPhone'),
@@ -170,7 +170,7 @@
             complement:field('launchClientComplement'),
             city:field('launchClientCity'),
             uf:field('launchClientUf').toUpperCase()
-          };
+          }).filter(([key,value])=>value!==''));
           try{
             await originalSubmit.call(this,ev);
             if(!clientName||typeof sb==='undefined'||typeof company==='undefined'||!company)return;
