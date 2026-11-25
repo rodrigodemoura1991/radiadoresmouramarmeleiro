@@ -119,6 +119,48 @@
 
   window.__radiadoresCalcEdit=calcEdit;
 
+  async function persistLaunchClientDetails(clientName, currentClient){
+    const value=id=>String($(id)?.value||'').trim();
+    const digits=s=>String(s||'').replace(/\\D/g,'');
+    const payload={
+      razao_social:value('launchClientReasonSocial'),
+      reason_social:value('launchClientReasonSocial'),
+      cpf_cnpj:value('launchClientCnpj'),
+      phone:value('launchClientPhone'),
+      email:value('launchClientEmail'),
+      cep:value('launchClientCep'),
+      address:value('launchClientAddress'),
+      address_number:value('launchClientNumber'),
+      neighborhood:value('launchClientNeighborhood'),
+      complement:value('launchClientComplement'),
+      city:value('launchClientCity'),
+      uf:value('launchClientUf').toUpperCase()
+    };
+    const clean=Object.fromEntries(Object.entries(payload).filter(([k,v])=>v!==''));
+    if(!clientName&&!Object.keys(clean).length)return {ok:true,client:currentClient||null};
+    let target=currentClient||clients.find(x=>
+      [x.name,x.reason_social,x.razao_social].some(v=>String(v||'').trim().toLowerCase()===String(clientName||'').trim().toLowerCase()) ||
+      (clean.cpf_cnpj&&digits(x.cpf_cnpj)===digits(clean.cpf_cnpj))
+    );
+    if(!target&&clean.cpf_cnpj){
+      const found=await sb.from('clients').select('*').eq('company_id',company.id).eq('cpf_cnpj',clean.cpf_cnpj).limit(1).maybeSingle();
+      if(found.error)return {ok:false,error:found.error.message};
+      target=found.data||null;
+    }
+    if(target){
+      if(!Object.keys(clean).length)return {ok:true,client:target};
+      const result=await sb.from('clients').update(clean).eq('id',target.id).eq('company_id',company.id).select().single();
+      if(result.error)return {ok:false,error:result.error.message};
+      Object.assign(target,result.data||clean);
+      return {ok:true,client:result.data||target};
+    }
+    if(!clientName)return {ok:true,client:null};
+    const result=await sb.from('clients').insert({company_id:company.id,name:clientName,...clean}).select().single();
+    if(result.error)return {ok:false,error:result.error.message};
+    if(Array.isArray(clients))clients.unshift(result.data);
+    return {ok:true,client:result.data};
+  }
+
   async function saveNew(e){
     e.preventDefault();
     if(e.stopImmediatePropagation) e.stopImmediatePropagation();
@@ -126,11 +168,12 @@
     patchNewRows(); const a=newItems();
     if(!a.length)return toast('Adicione pelo menos um serviço ou produto');
     cloud('Salvando...');
-    let c=clients.find(x=>x.name.toLowerCase()===$('clientInput').value.trim().toLowerCase());
-    if(!c&&$('clientInput').value.trim()){
-      const cr=await sb.from('clients').insert({company_id:company.id,name:$('clientInput').value.trim()}).select().single();
-      if(cr.error){cloud('Erro ao salvar',false);return toast(cr.error.message)} c=cr.data; clients.unshift(c);
-    }
+    const clientName=$('clientInput').value.trim();
+    let c=clients.find(x=>[x.name,x.reason_social,x.razao_social].some(v=>String(v||'').trim().toLowerCase()===clientName.toLowerCase()) ||
+      (String($('launchClientCnpj')?.value||'').replace(/\\D/g,'')&&String(x.cpf_cnpj||'').replace(/\\D/g,'')===String($('launchClientCnpj').value||'').replace(/\\D/g,'')));
+    const clientSave=await persistLaunchClientDetails(clientName,c);
+    if(!clientSave.ok){cloud('Erro ao salvar cliente',false);return toast('Não foi possível salvar os dados do cliente: '+clientSave.error)}
+    c=clientSave.client||c;
     const t=totals(a), payment=String($('payment').value||'').trim();
     const p=sanitizeDates({company_id:company.id,client_id:c?.id||null,entry_date:$('entry').value||null,exit_date:$('notDelivered')?.checked?null:($('exit').value||null),client_name:$('clientInput').value.trim(),vehicle_make_model:$('vehicle').value.trim(),plate:$('plate').value.trim(),pedido:$('pedido').value.trim(),payment_status:payment||null,total_sale:t.saleAfterDiscount,total_cost:t.cost+t.freight,total_freight:t.freight,total_tax:t.tax,net_profit:t.net,discount_percent:discountPercent(),notes:$('orderNotes')?.value.trim()||''});
     const r=editing?await sb.from('orders').update(p).eq('id',editing.id).select().single():await sb.from('orders').insert(p).select().single();
