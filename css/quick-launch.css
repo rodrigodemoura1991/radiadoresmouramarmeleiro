@@ -39,3 +39,8 @@ html.quick-launch-mode #quickLaunchBar button{background:#fff;color:#173b68;bord
  html.quick-launch-mode #order .totals .metric{padding:9px!important}
  html.quick-launch-mode #launch>.card{padding:10px!important}
 }
+
+/* Fotos: apenas dois botões compactos; galeria abre somente sob demanda. */
+html.quick-launch-mode #orderPhotosPanel{padding:0!important;margin:3px 0 8px!important;border:0!important;background:transparent!important}
+html.quick-launch-mode #orderPhotosPanel .order-photo-status{font-size:10px!important}
+html.quick-launch-mode #orderPhotosPanel .order-photo-add,html.quick-launch-mode #orderPhotosPanel .order-photo-view{min-height:40px!important;padding:7px 11px!important}
