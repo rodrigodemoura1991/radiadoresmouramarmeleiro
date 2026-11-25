@@ -115,20 +115,22 @@
     </div>`;
     clientField.after(box);
     if(!document.getElementById('launch-client-fields-style')){const s=document.createElement('style');s.id='launch-client-fields-style';s.textContent=`
-      #launchClientDetails{margin-top:2px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fafcff;display:block!important;width:100%;box-sizing:border-box}
-      #launchClientDetails .client-launch-title{font-weight:800;font-size:14px;margin-bottom:10px;color:var(--ink)}
-      #launchClientDetails .client-launch-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px 12px!important;align-items:end!important;width:100%;min-width:0}
+      #launchClientDetails{margin-top:2px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fafcff;display:block!important;width:100%;box-sizing:border-box}
+      #launchClientDetails .client-launch-title{font-weight:800;font-size:13px;margin-bottom:7px;color:var(--ink)}
+      #launchClientDetails .client-launch-grid{display:grid!important;grid-template-columns:repeat(8,minmax(0,1fr))!important;gap:7px 9px!important;align-items:end!important;width:100%;min-width:0}
       #launchClientDetails .client-launch-grid>.field{margin:0!important;min-width:0!important;width:auto!important;grid-column:auto!important}
-      #launchClientDetails .client-reason-field,#launchClientDetails .client-cnpj-field,#launchClientDetails .client-phone-field,#launchClientDetails .client-email-field{grid-column:span 2!important}
-      #launchClientDetails .client-cep-field,#launchClientDetails .client-number-field,#launchClientDetails .client-neighborhood-field,#launchClientDetails .client-complement-field,#launchClientDetails .client-city-field,#launchClientDetails .client-uf-field{grid-column:span 1!important}
-      #launchClientDetails .client-address-field{grid-column:span 2!important}
-      #launchClientDetails .client-launch-grid>.field label{display:block;margin-bottom:4px}
+      #launchClientDetails .client-reason-field,#launchClientDetails .client-cnpj-field{grid-column:span 4!important}
+      #launchClientDetails .client-phone-field,#launchClientDetails .client-email-field,#launchClientDetails .client-cep-field,#launchClientDetails .client-uf-field{grid-column:span 2!important}
+      #launchClientDetails .client-address-field{grid-column:span 3!important}
+      #launchClientDetails .client-number-field,#launchClientDetails .client-neighborhood-field,#launchClientDetails .client-complement-field{grid-column:span 1!important}
+      #launchClientDetails .client-city-field{grid-column:span 2!important}
+      #launchClientDetails .client-launch-grid>.field label{display:block;margin-bottom:3px}
       #launchClientDetails input{display:block;width:100%!important;min-width:0!important;max-width:100%;box-sizing:border-box}
-      #launchClientDetails .cnpj-lookup-wrap{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:6px;align-items:center;width:100%;min-width:0;flex-wrap:nowrap}
+      #launchClientDetails .cnpj-lookup-wrap{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:5px;align-items:center;width:100%;min-width:0}
       #launchClientDetails .cnpj-lookup-wrap input{min-width:0!important;width:100%!important}
-      #launchClientDetails .cnpj-lookup-wrap .cnpj-lookup-btn{white-space:nowrap;min-height:38px;padding:7px 10px;max-width:100%}
+      #launchClientDetails .cnpj-lookup-wrap .cnpj-lookup-btn{white-space:nowrap;min-height:36px;padding:6px 8px;font-size:11px}
       #launchClientDetails .cnpj-lookup-wrap .cnpj-lookup-status{display:none!important}
-      @media(max-width:900px){#launchClientDetails .client-launch-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#launchClientDetails .client-launch-grid>.field{grid-column:span 1!important}#launchClientDetails .client-launch-grid>.client-address-field{grid-column:span 2!important}}
+      @media(max-width:900px){#launchClientDetails .client-launch-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}#launchClientDetails .client-launch-grid>.field{grid-column:span 2!important}#launchClientDetails .client-launch-grid>.client-address-field{grid-column:span 4!important}}
       @media(max-width:600px){#launchClientDetails .client-launch-grid{grid-template-columns:minmax(0,1fr)!important}#launchClientDetails .client-launch-grid>.field{grid-column:span 1!important}}    `;document.head.appendChild(s)}
     const clientList=()=>{try{return typeof clients!=='undefined'&&Array.isArray(clients)?clients:[]}catch(_){return[]}};
     const getClient=()=>{const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();return clientList().find(c=>[c.name,c.reason_social].some(v=>String(v||'').trim().toLowerCase()===name))||null};
