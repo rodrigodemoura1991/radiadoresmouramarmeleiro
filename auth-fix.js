@@ -28,6 +28,7 @@
     if(!order||!clientField||document.getElementById('launchClientDetails'))return;
     const box=document.createElement('div');box.id='launchClientDetails';box.className='g12 client-launch-details';
     box.innerHTML=`<div class="client-launch-title">Dados completos do cliente</div><div class="client-launch-grid">
+      <div class="field"><label>Razão social</label><input id="launchClientReasonSocial" autocomplete="organization" placeholder="Razão social"></div>
       <div class="field"><label>CPF / CNPJ</label><input id="launchClientCnpj" inputmode="numeric" autocomplete="off" placeholder="CPF ou CNPJ"></div>
       <div class="field"><label>Telefone</label><input id="launchClientPhone" type="tel" autocomplete="tel" placeholder="(00) 00000-0000"></div>
       <div class="field"><label>E-mail</label><input id="launchClientEmail" type="email" autocomplete="email" placeholder="cliente@email.com"></div>
@@ -48,12 +49,12 @@
     `;document.head.appendChild(s)}
     const clientList=()=>{try{return typeof clients!=='undefined'&&Array.isArray(clients)?clients:[]}catch(_){return[]}};
     const getClient=()=>{const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();return clientList().find(c=>String(c.name||'').trim().toLowerCase()===name)||null};
-    const setFields=c=>{const val=id=>document.getElementById(id);if(!val('launchClientCnpj'))return;val('launchClientCnpj').value=c?.cpf_cnpj||'';val('launchClientPhone').value=c?.phone||'';val('launchClientEmail').value=c?.email||'';val('launchClientCep').value=c?.cep||'';val('launchClientAddress').value=c?.address||'';val('launchClientCity').value=c?.city||'';val('launchClientUf').value=c?.uf||''};
+    const setFields=c=>{const val=id=>document.getElementById(id);if(!val('launchClientCnpj'))return;val('launchClientReasonSocial').value=c?.reason_social||'';val('launchClientCnpj').value=c?.cpf_cnpj||'';val('launchClientPhone').value=c?.phone||'';val('launchClientEmail').value=c?.email||'';val('launchClientCep').value=c?.cep||'';val('launchClientAddress').value=c?.address||'';val('launchClientCity').value=c?.city||'';val('launchClientUf').value=c?.uf||''};
     let lastClientName='',lastClientSignature='';
     const fillFromName=force=>{
       const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();
       const c=getClient();
-      const signature=c?JSON.stringify([c.id,c.cpf_cnpj,c.phone,c.email,c.cep,c.address,c.city,c.uf]):'';
+      const signature=c?JSON.stringify([c.id,c.reason_social,c.cpf_cnpj,c.phone,c.email,c.cep,c.address,c.city,c.uf]):'';
       if(!force&&name===lastClientName&&signature===lastClientSignature)return;
       lastClientName=name;lastClientSignature=signature;
       if(c)setFields(c);else if(!name)setFields(null);
@@ -72,6 +73,7 @@
           const field=id=>(document.getElementById(id)?.value||'').trim();
           const address=field('launchClientAddress');
           const clientData={
+            reason_social:field('launchClientReasonSocial'),
             cpf_cnpj:field('launchClientCnpj'),
             phone:field('launchClientPhone'),
             email:field('launchClientEmail'),
@@ -83,7 +85,7 @@
           try{
             await originalSubmit.call(this,ev);
             if(!clientName||typeof sb==='undefined'||typeof company==='undefined'||!company)return;
-            const currentClient=clientList().find(c=>String(c.name||'').trim().toLowerCase()===clientName.toLowerCase());
+            const currentClient=clientList().find(c=>[c.name,c.reason_social].some(v=>String(v||'').trim().toLowerCase()===clientName.toLowerCase()));
             let clientId=currentClient?.id||null;
             if(!clientId){
               const q=await sb.from('clients').select('id').eq('company_id',company.id).ilike('name',clientName).limit(1);
