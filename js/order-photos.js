@@ -7,7 +7,7 @@
  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
  function mount(){
   const form=$('order');if(!form||$('orderPhotosPanel'))return;
-  const notes=form.querySelector('.order-notes-field');if(!notes)return;
+  const foot=form.querySelector('.foot');if(!foot)return;
   const panel=document.createElement('div');panel.id='orderPhotosPanel';panel.className='order-photos-actions';
   panel.innerHTML=`
    <label class="order-photo-add" for="orderPhotoInput">＋ Adicionar foto</label>
@@ -21,9 +21,9 @@
      <div id="orderPhotoGrid" class="order-photo-grid"></div>
     </div>
    </div>`;
-  notes.before(panel);
+  foot.insertBefore(panel,foot.firstChild);
   const style=document.createElement('style');style.id='order-photos-style';style.textContent=`
-   #orderPhotosPanel{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:3px 0 8px;min-width:0}
+   #orderPhotosPanel{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 auto 0 0;min-width:0}
    .order-photo-add,.order-photo-view{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:6px 11px;border:1px solid #cbd8e8;border-radius:8px;background:#fff;color:#173b67;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap}
    .order-photo-add:hover,.order-photo-view:hover{background:#edf4fc}
    .order-photo-status{font-size:10px;color:var(--muted,#718096)}
@@ -72,7 +72,7 @@
    if(file.size>MAX_BYTES){status('A foto '+file.name+' ultrapassa 12 MB.');continue}
    pending.push({file,preview:URL.createObjectURL(file)});
   }
-  $('orderPhotoInput').value='';render();status(pending.length?'':'');
+  $('orderPhotoInput').value='';render();if(activeOrderId&&pending.length){await save(activeOrderId)}else{status(pending.length?'Será enviada ao salvar o lançamento':'')}
  }
  async function optimized(file){
   if(!/^image\/(jpeg|png|webp)$/i.test(file.type)||file.size<900*1024)return file;
