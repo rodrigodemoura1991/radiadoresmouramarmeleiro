@@ -101,27 +101,33 @@
     if(!order||!clientField||document.getElementById('launchClientDetails'))return;
     const box=document.createElement('div');box.id='launchClientDetails';box.className='g12 client-launch-details';
     box.innerHTML=`<div class="client-launch-title">Dados completos do cliente</div><div class="client-launch-grid">
-      <div class="field"><label>Razão social</label><input id="launchClientReasonSocial" autocomplete="organization" placeholder="Razão social"></div>
-      <div class="field"><label>CPF / CNPJ</label><input id="launchClientCnpj" inputmode="numeric" autocomplete="off" placeholder="CPF ou CNPJ"></div>
-      <div class="field"><label>Telefone</label><input id="launchClientPhone" type="tel" autocomplete="tel" placeholder="(00) 00000-0000"></div>
-      <div class="field"><label>E-mail</label><input id="launchClientEmail" type="email" autocomplete="email" placeholder="cliente@email.com"></div>
-      <div class="field"><label>CEP</label><input id="launchClientCep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000"></div>
+      <div class="field client-reason-field"><label>Razão social</label><input id="launchClientReasonSocial" autocomplete="organization" placeholder="Razão social"></div>
+      <div class="field client-cnpj-field"><label>CPF / CNPJ</label><input id="launchClientCnpj" inputmode="numeric" autocomplete="off" placeholder="CPF ou CNPJ"></div>
+      <div class="field client-phone-field"><label>Telefone</label><input id="launchClientPhone" type="tel" autocomplete="tel" placeholder="(00) 00000-0000"></div>
+      <div class="field client-email-field"><label>E-mail</label><input id="launchClientEmail" type="email" autocomplete="email" placeholder="cliente@email.com"></div>
+      <div class="field client-cep-field"><label>CEP</label><input id="launchClientCep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000"></div>
       <div class="field client-address-field"><label>Endereço (rua)</label><input id="launchClientAddress" autocomplete="address-line1" placeholder="Nome da rua"></div>
-      <div class="field"><label>Número</label><input id="launchClientNumber" autocomplete="address-line2" placeholder="Número"></div>
-      <div class="field"><label>Bairro</label><input id="launchClientNeighborhood" autocomplete="address-level3" placeholder="Bairro"></div>
-      <div class="field"><label>Complemento</label><input id="launchClientComplement" placeholder="Sala, bloco, barracão..."></div>
-      <div class="field"><label>Cidade</label><input id="launchClientCity" autocomplete="address-level2" placeholder="Cidade"></div>
-      <div class="field"><label>UF</label><input id="launchClientUf" maxlength="2" autocomplete="address-level1" placeholder="PR"></div>
+      <div class="field client-number-field"><label>Número</label><input id="launchClientNumber" autocomplete="address-line2" placeholder="Número"></div>
+      <div class="field client-neighborhood-field"><label>Bairro</label><input id="launchClientNeighborhood" autocomplete="address-level3" placeholder="Bairro"></div>
+      <div class="field client-complement-field"><label>Complemento</label><input id="launchClientComplement" placeholder="Sala, bloco, barracão..."></div>
+      <div class="field client-city-field"><label>Cidade</label><input id="launchClientCity" autocomplete="address-level2" placeholder="Cidade"></div>
+      <div class="field client-uf-field"><label>UF</label><input id="launchClientUf" maxlength="2" autocomplete="address-level1" placeholder="PR"></div>
     </div>`;
     clientField.after(box);
     if(!document.getElementById('launch-client-fields-style')){const s=document.createElement('style');s.id='launch-client-fields-style';s.textContent=`
       #launchClientDetails{margin-top:2px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fafcff}
       #launchClientDetails .client-launch-title{font-weight:800;font-size:14px;margin-bottom:10px;color:var(--ink)}
-      #launchClientDetails .client-launch-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:end}
-      #launchClientDetails .client-launch-grid .field{margin:0;min-width:0}#launchClientDetails input{width:100%;min-width:0;box-sizing:border-box}
+      #launchClientDetails .client-launch-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px;align-items:end}
+      #launchClientDetails .client-launch-grid .field{margin:0;min-width:0}
+      #launchClientDetails input{width:100%;min-width:0;box-sizing:border-box}
+      #launchClientDetails .client-reason-field,#launchClientDetails .client-cnpj-field,#launchClientDetails .client-phone-field,#launchClientDetails .client-email-field{grid-column:span 2}
       #launchClientDetails .client-address-field{grid-column:span 2}
-      @media(max-width:900px){#launchClientDetails .client-launch-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#launchClientDetails .client-address-field{grid-column:span 2}}
-      @media(max-width:600px){#launchClientDetails .client-launch-grid{grid-template-columns:1fr}#launchClientDetails .client-address-field{grid-column:auto}}
+      #launchClientDetails .cnpj-lookup-wrap{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center;width:100%;min-width:0}
+      #launchClientDetails .cnpj-lookup-wrap input{min-width:0;width:100%}
+      #launchClientDetails .cnpj-lookup-wrap .cnpj-lookup-btn{white-space:nowrap;min-height:38px;padding:7px 10px}
+      #launchClientDetails .cnpj-lookup-wrap .cnpj-lookup-status{grid-column:1/-1;min-height:0;line-height:1.25}
+      @media(max-width:900px){#launchClientDetails .client-launch-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#launchClientDetails .client-reason-field,#launchClientDetails .client-cnpj-field,#launchClientDetails .client-phone-field,#launchClientDetails .client-email-field{grid-column:span 1}#launchClientDetails .client-address-field{grid-column:span 2}}
+      @media(max-width:600px){#launchClientDetails .client-launch-grid{grid-template-columns:1fr}#launchClientDetails .client-launch-grid .field{grid-column:1}#launchClientDetails .cnpj-lookup-wrap{grid-template-columns:minmax(0,1fr) auto}}
     `;document.head.appendChild(s)}
     const clientList=()=>{try{return typeof clients!=='undefined'&&Array.isArray(clients)?clients:[]}catch(_){return[]}};
     const getClient=()=>{const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();return clientList().find(c=>[c.name,c.reason_social].some(v=>String(v||'').trim().toLowerCase()===name))||null};
