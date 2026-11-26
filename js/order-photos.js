@@ -20,6 +20,13 @@
      <p class="order-photos-help">Até 10 fotos por ordem de serviço. Fotos novas são enviadas ao salvar o lançamento.</p>
      <div id="orderPhotoGrid" class="order-photo-grid"></div>
     </div>
+   </div>
+   <div id="orderPhotoLightbox" class="order-photo-lightbox" aria-hidden="true">
+    <div class="order-photo-lightbox-panel" role="dialog" aria-modal="true" aria-label="Foto ampliada">
+     <button type="button" id="orderPhotoLightboxClose" class="order-photo-lightbox-close" aria-label="Fechar foto">✕</button>
+     <img id="orderPhotoLightboxImage" alt="Foto ampliada do serviço">
+     <div id="orderPhotoLightboxCaption" class="order-photo-lightbox-caption"></div>
+    </div>
    </div>`;
   foot.insertBefore(panel,foot.firstChild);
   const style=document.createElement('style');style.id='order-photos-style';style.textContent=`
@@ -29,6 +36,12 @@
    .order-photo-status{font-size:10px;color:var(--muted,#718096)}
    #orderPhotosModal{display:none;position:fixed;inset:0;z-index:10050;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.58)}
    #orderPhotosModal.is-open{display:flex}
+   #orderPhotoLightbox{display:none;position:fixed;inset:0;z-index:10070;align-items:center;justify-content:center;padding:24px;background:rgba(4,10,20,.88)}
+   #orderPhotoLightbox.is-open{display:flex}
+   .order-photo-lightbox-panel{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:min(1100px,100%);height:min(92vh,900px);min-height:0}
+   #orderPhotoLightboxImage{display:block;max-width:100%;max-height:calc(100% - 34px);width:auto;height:auto;object-fit:contain;border-radius:8px;box-shadow:0 12px 45px #0008}
+   .order-photo-lightbox-close{position:absolute;right:0;top:-12px;z-index:2;width:38px;height:38px;border:0;border-radius:50%;background:#fff;color:#172b46;font-size:20px;font-weight:900;cursor:pointer;box-shadow:0 2px 12px #0005}
+   .order-photo-lightbox-caption{max-width:100%;color:#fff;font-size:12px;text-align:center;overflow-wrap:anywhere}
    .order-photos-dialog{width:min(620px,100%);max-height:min(78vh,680px);overflow:auto;background:#fff;border-radius:14px;padding:16px;box-shadow:0 18px 55px #0004}
    .order-photos-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
    .order-photos-dialog-head strong{font-size:15px;color:#172b46}
@@ -41,24 +54,39 @@
    .order-photo-card small{display:block;padding:5px 6px;font-size:10px;color:#53657c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
    .order-photo-remove{position:absolute;right:5px;top:5px;border:0;border-radius:50%;width:25px;height:25px;background:#fff;color:#b42318;font-weight:900;box-shadow:0 1px 5px #0003;cursor:pointer}
    #orderPhotosPanel.is-busy{opacity:.65;pointer-events:none}
-   @media(max-width:600px){.order-photo-add,.order-photo-view{min-height:40px;font-size:12px}.order-photos-dialog{padding:12px}.order-photo-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}}
+   @media(max-width:600px){.order-photo-add,.order-photo-view{min-height:40px;font-size:12px}.order-photos-dialog{padding:12px}.order-photo-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}#orderPhotoLightbox{padding:12px}.order-photo-lightbox-panel{height:94vh}.order-photo-lightbox-close{right:2px;top:2px}}
   `;
   document.head.appendChild(style);
   $('orderPhotoInput').addEventListener('change',e=>addFiles(e.target.files));
   $('orderPhotosView').addEventListener('click',openGallery);
   $('orderPhotosClose').addEventListener('click',closeGallery);
   $('orderPhotosModal').addEventListener('click',e=>{if(e.target.id==='orderPhotosModal')closeGallery()});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeGallery()});
+  $('orderPhotoLightboxClose').addEventListener('click',closePreview);
+  $('orderPhotoLightbox').addEventListener('click',e=>{if(e.target.id==='orderPhotoLightbox')closePreview()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('orderPhotoLightbox')?.classList.contains('is-open'))closePreview();else closeGallery()}});
   render();
  }
  function status(message){const el=$('orderPhotoStatus');if(el)el.textContent=message}
  function openGallery(){const m=$('orderPhotosModal');if(!m)return;m.classList.add('is-open');m.setAttribute('aria-hidden','false');render()}
- function closeGallery(){const m=$('orderPhotosModal');if(!m)return;m.classList.remove('is-open');m.setAttribute('aria-hidden','true')}
+ function closeGallery(){closePreview();const m=$('orderPhotosModal');if(!m)return;m.classList.remove('is-open');m.setAttribute('aria-hidden','true')}
+ function openPreview(src,name){
+  if(!src)return;
+  const modal=$('orderPhotoLightbox'),img=$('orderPhotoLightboxImage'),caption=$('orderPhotoLightboxCaption');
+  img.src=src;img.alt=name||'Foto ampliada do serviço';caption.textContent=name||'';
+  modal.classList.add('is-open');modal.setAttribute('aria-hidden','false');
+  $('orderPhotoLightboxClose')?.focus();
+ }
+ function closePreview(){
+  const modal=$('orderPhotoLightbox');if(!modal)return;
+  modal.classList.remove('is-open');modal.setAttribute('aria-hidden','true');
+  const img=$('orderPhotoLightboxImage');if(img)img.removeAttribute('src');
+ }
  function render(){
   const grid=$('orderPhotoGrid');if(!grid)return;
-  const saved=existing.map(p=>`<article class="order-photo-card"><a href="${esc(p.url||'#')}" target="_blank" rel="noopener"><img src="${esc(p.url||'')}" alt="Foto anexada à OS" loading="lazy"></a><small title="${esc(p.file_name)}">${esc(p.file_name)}</small><button type="button" class="order-photo-remove" data-remove-saved="${esc(p.id)}" title="Excluir foto">×</button></article>`).join('');
-  const queued=pending.map((p,i)=>`<article class="order-photo-card"><a href="${esc(p.preview)}" target="_blank" rel="noopener"><img src="${esc(p.preview)}" alt="Foto aguardando envio"></a><small title="${esc(p.file.name)}">Aguardando envio</small><button type="button" class="order-photo-remove" data-remove-pending="${i}" title="Remover foto">×</button></article>`).join('');
+  const saved=existing.map(p=>`<article class="order-photo-card"><button type="button" class="order-photo-open" data-preview-src="${esc(p.url||'')}" data-preview-name="${esc(p.file_name||'Foto do serviço')}" style="display:block;width:100%;padding:0;border:0;background:transparent;cursor:zoom-in"><img src="${esc(p.url||'')}" alt="Foto anexada à OS" loading="lazy"></button><small title="${esc(p.file_name)}">${esc(p.file_name)}</small><button type="button" class="order-photo-remove" data-remove-saved="${esc(p.id)}" title="Excluir foto">×</button></article>`).join('');
+  const queued=pending.map((p,i)=>`<article class="order-photo-card"><button type="button" class="order-photo-open" data-preview-src="${esc(p.preview)}" data-preview-name="Foto aguardando envio" style="display:block;width:100%;padding:0;border:0;background:transparent;cursor:zoom-in"><img src="${esc(p.preview)}" alt="Foto aguardando envio"></button><small title="${esc(p.file.name)}">Aguardando envio</small><button type="button" class="order-photo-remove" data-remove-pending="${i}" title="Remover foto">×</button></article>`).join('');
   grid.innerHTML=saved+queued||'<p style="color:#718096;font-size:12px">Nenhuma foto adicionada.</p>';
+  grid.querySelectorAll('[data-preview-src]').forEach(b=>b.onclick=()=>openPreview(b.dataset.previewSrc,b.dataset.previewName));
   grid.querySelectorAll('[data-remove-pending]').forEach(b=>b.onclick=()=>{const p=pending.splice(Number(b.dataset.removePending),1)[0];if(p?.preview)URL.revokeObjectURL(p.preview);render();updateCount()});
   grid.querySelectorAll('[data-remove-saved]').forEach(b=>b.onclick=()=>removeSaved(b.dataset.removeSaved));
   updateCount();
