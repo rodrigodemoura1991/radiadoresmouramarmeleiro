@@ -36,16 +36,48 @@
     if(button){button.disabled=true;button.textContent='Consultando...'}
     if(status)status.textContent='Consultando base pública...';
     try{
-      const response=await fetch('https://brasilapi.com.br/api/cnpj/v1/'+encodeURIComponent(cnpj),{headers:{'Accept':'application/json'}});
-      if(!response.ok){
-        let message='Não foi possível consultar o CNPJ.';
-        if(response.status===404)message='CNPJ não encontrado na base pública.';
-        else if(response.status===400)message='CNPJ inválido ou mal formatado.';
-        else if(response.status===429)message='Muitas consultas em sequência. Aguarde um pouco e tente novamente.';
-        else if(response.status>=500)message='Serviço de consulta temporariamente indisponível.';
-        throw new Error(message);
+      /* Usa duas fontes públicas em sequência. Se uma estiver fora do ar,
+         bloqueada ou sem resposta, tenta automaticamente a segunda. */
+      const sources=[
+        {name:'Minha Receita',url:'https://minhareceita.org/'+encodeURIComponent(cnpj)},
+        {name:'BrasilAPI',url:'https://brasilapi.com.br/api/cnpj/v1/'+encodeURIComponent(cnpj)}
+      ];
+      let d=null,lastError=null,sourceName='';
+      for(const source of sources){
+        let controller=null,timer=null;
+        try{
+          if(typeof AbortController!=='undefined'){
+            controller=new AbortController();
+            timer=setTimeout(()=>controller.abort(),12000);
+          }
+          const response=await fetch(source.url,{
+            headers:{'Accept':'application/json'},
+            ...(controller?{signal:controller.signal}:{})
+          });
+          if(!response.ok){
+            let message='Não foi possível consultar o CNPJ.';
+            if(response.status===404)message='CNPJ não encontrado na base pública.';
+            else if(response.status===400)message='CNPJ inválido ou mal formatado.';
+            else if(response.status===429)message='A fonte de consulta está temporariamente limitando as consultas.';
+            else if(response.status>=500)message='A fonte de consulta está temporariamente indisponível.';
+            throw new Error(message+' ('+source.name+')');
+          }
+          const result=await response.json();
+          if(!result||!result.razao_social)throw new Error('A fonte '+source.name+' não retornou os dados cadastrais esperados.');
+          d=result;sourceName=source.name;break;
+        }catch(sourceError){
+          lastError=sourceError;
+        }finally{
+          if(timer)clearTimeout(timer);
+        }
       }
-      const d=await response.json();
+      if(!d){
+        const detail=String(lastError?.message||'');
+        if(/Failed to fetch|NetworkError|Load failed|aborted|timeout/i.test(detail)){
+          throw new Error('Não foi possível conectar às fontes de consulta de CNPJ. Verifique a internet e tente novamente.');
+        }
+        throw lastError||new Error('As fontes de consulta não retornaram os dados deste CNPJ.');
+      }
       const put=(id,value)=>{const el=document.getElementById(id);if(el&&value!==undefined&&value!==null&&String(value).trim()!=='')el.value=String(value).trim()};
       const phone=String(d.ddd_telefone_1||d.ddd_telefone_2||'').trim();
       put(target.dataset.mode==='modal'?'clientReasonSocial':'launchClientReasonSocial',d.razao_social);
@@ -60,7 +92,7 @@
       put(target.dataset.mode==='modal'?'complement':'launchClientComplement',d.complemento);
       put(target.dataset.mode==='modal'?'city':'launchClientCity',d.municipio);
       put(target.dataset.mode==='modal'?'uf':'launchClientUf',d.uf);
-      if(status)status.textContent='Dados encontrados. Confira e complete os campos antes de salvar.';
+      if(status)status.textContent='Dados encontrados pela '+sourceName+'. Confira e complete os campos antes de salvar.';
       if(typeof toast==='function')toast('Dados da empresa preenchidos. Confira antes de salvar.');
     }catch(err){
       console.error('[Radiadores Moura] Consulta CNPJ:',err);
