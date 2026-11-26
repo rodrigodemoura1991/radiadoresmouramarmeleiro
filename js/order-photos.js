@@ -49,7 +49,7 @@
    .order-photos-help{font-size:11px;color:#718096;margin:7px 0 12px}
    .order-photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:9px}
    .order-photo-card{position:relative;min-width:0;border:1px solid #dce5ef;border-radius:9px;overflow:hidden;background:#fff}
-   .order-photo-card a{display:block;aspect-ratio:4/3;background:#eef2f7}
+   .order-photo-card a,.order-photo-card .order-photo-open{display:block;width:100%;aspect-ratio:4/3;background:#eef2f7;overflow:hidden}
    .order-photo-card img{width:100%;height:100%;object-fit:cover;display:block}
    .order-photo-card small{display:block;padding:5px 6px;font-size:10px;color:#53657c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
    .order-photo-remove{position:absolute;right:5px;top:5px;border:0;border-radius:50%;width:25px;height:25px;background:#fff;color:#b42318;font-weight:900;box-shadow:0 1px 5px #0003;cursor:pointer}
