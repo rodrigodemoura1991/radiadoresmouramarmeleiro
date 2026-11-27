@@ -582,3 +582,13 @@ document.addEventListener('DOMContentLoaded',()=>{
 document.addEventListener('DOMContentLoaded',()=>{
 
 });
+
+/* ESC limpa a pesquisa da lista de lançamentos. */
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape'||e.defaultPrevented)return;
+  const search=document.getElementById('launchSearch');
+  if(!search||!search.value)return;
+  search.value='';
+  if(typeof renderLaunches==='function')renderLaunches();
+  e.preventDefault();
+});
