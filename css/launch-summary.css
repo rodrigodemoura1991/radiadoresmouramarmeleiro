@@ -27,3 +27,18 @@
 .launch-summary-note{display:block;margin-top:9px;color:var(--muted);font-size:8px;line-height:1.3}
 @media(max-width:900px) and (min-width:701px){.launch-dashboard-layout{grid-template-columns:minmax(0,1fr) 290px}}
 @media(max-width:700px){.launch-dashboard-layout{display:block}.launch-summary{position:static;margin-bottom:10px;padding:11px!important}.launch-dashboard-main{display:block}.launch-summary-head select{max-width:118px}.summary-stat{padding:7px 4px}.summary-stat b{font-size:16px}}
+
+/* Painel lateral elevado: resumo e calculadora alinhados ao topo da página */
+@media(min-width:901px){
+ .launch-dashboard-layout{grid-template-columns:minmax(0,1fr) 300px!important;align-items:start!important;column-gap:12px!important;row-gap:12px!important}
+ .launch-dashboard-layout>.head{grid-column:1!important;grid-row:1!important;align-self:start!important;margin-top:0!important}
+ .launch-dashboard-main{grid-column:1!important;grid-row:2!important;align-self:start!important}
+ .launch-dashboard-side{grid-column:2!important;grid-row:1 / span 2!important;align-self:start!important;padding-top:0!important;margin-top:0!important;gap:10px!important}
+ .launch-dashboard-side>.launch-summary{position:sticky!important;top:12px!important;margin-top:0!important}
+}
+@media(min-width:701px) and (max-width:900px){
+ .launch-dashboard-layout{grid-template-columns:minmax(0,1fr) 270px!important}
+ .launch-dashboard-layout>.head{grid-column:1!important;grid-row:1!important}
+ .launch-dashboard-main{grid-column:1!important;grid-row:2!important}
+ .launch-dashboard-side{grid-column:2!important;grid-row:1 / span 2!important}
+}
