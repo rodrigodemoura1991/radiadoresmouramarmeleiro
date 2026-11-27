@@ -164,7 +164,7 @@ const paymentFlag=()=>'';
 function renderLaunches(){
   updateCatalog();
   const q=($('launchSearch').value||'').toLowerCase();
-  const a=orders.filter(o=>[o.client_name,o.vehicle_make_model,o.plate,...(o.order_items||[]).map(i=>i.description)].join(' ').toLowerCase().includes(q));
+  const a=orders.filter(o=>(!window.calendarSelectedExitDate||o.exit_date===window.calendarSelectedExitDate)&&[o.client_name,o.vehicle_make_model,o.plate,...(o.order_items||[]).map(i=>i.description)].join(' ').toLowerCase().includes(q));
   $('count').textContent=a.length+' lançamento(s)';
   $('launchList').innerHTML=a.map(o=>{
     const st=(o.order_items||[])[0]?.service_status||'Liberado';
@@ -208,7 +208,7 @@ function setupBalanceMonthFilter(){
 }
 function inPeriod(o){const d=String(o?.exit_date||'').slice(0,10);if(!d)return false;const [a,b]=balancePeriodBounds();return (!a||d>=a)&&(!b||d<=b)}
 function renderBalance(){renderAdvancedBalance();setupBalanceMonthFilter()}
-function renderAll(){renderLaunches();renderClients();calc();renderBalance()}$('balanceDate').onchange=renderBalance;document.querySelectorAll('.period').forEach(b=>b.onclick=()=>{document.querySelectorAll('.period').forEach(x=>x.classList.remove('active'));b.classList.add('active');period=b.dataset.p;renderBalance()});document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$(b.dataset.view).classList.add('active');if(b.dataset.view==='balance')renderBalance()});init();
+function renderAll(){renderLaunches();renderClients();calc();renderBalance();window.renderCalendar?.()}$('balanceDate').onchange=renderBalance;document.querySelectorAll('.period').forEach(b=>b.onclick=()=>{document.querySelectorAll('.period').forEach(x=>x.classList.remove('active'));b.classList.add('active');period=b.dataset.p;renderBalance()});document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$(b.dataset.view).classList.add('active');if(b.dataset.view==='balance')renderBalance()});init();
 
 
 /* ===== Navegação por teclado: campos de lançamento/edição e seleção de cartões ===== */
