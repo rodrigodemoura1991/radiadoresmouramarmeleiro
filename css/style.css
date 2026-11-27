@@ -111,7 +111,3 @@
 #launch>.card form{width:100%!important;box-sizing:border-box!important}
 #launch>.card .grid{width:100%!important;box-sizing:border-box!important}
 #launchAdminAccess{display:block!important;width:100%!important;box-sizing:border-box!important}
-
-/* Backup Excel junto ao indicador de sincronização no cabeçalho */
-.backup-header{white-space:nowrap;padding:9px 12px;font-size:12px;line-height:1.2}
-@media(max-width:760px){.actions .backup-header{order:2;padding:8px 10px;font-size:11px}.actions #cloud{order:1}.actions #companyPill{order:3}.actions #switch{order:4}.actions #logout{order:5}}
