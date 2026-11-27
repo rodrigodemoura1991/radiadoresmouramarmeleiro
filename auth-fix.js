@@ -167,17 +167,30 @@
       @media(max-width:600px){#launchClientDetails .client-launch-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#launchClientDetails .client-launch-grid>.field{grid-column:span 1!important}#launchClientDetails .client-launch-grid>.client-reason-field,#launchClientDetails .client-launch-grid>.client-cnpj-field,#launchClientDetails .client-launch-grid>.client-phone-field,#launchClientDetails .client-launch-grid>.client-email-field,#launchClientDetails .client-launch-grid>.client-address-field,#launchClientDetails .client-launch-grid>.client-complement-field,#launchClientDetails .client-launch-grid>.client-city-field{grid-column:span 2!important}}`;document.head.appendChild(s)}
     const clientList=()=>{try{return typeof clients!=='undefined'&&Array.isArray(clients)?clients:[]}catch(_){return[]}};
     const getClient=()=>{const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();return clientList().find(c=>[c.name,c.reason_social].some(v=>String(v||'').trim().toLowerCase()===name))||null};
-    const setFields=c=>{const fields={launchClientReasonSocial:'reason_social',launchClientCnpj:'cpf_cnpj',launchClientPhone:'phone',launchClientEmail:'email',launchClientCep:'cep',launchClientAddress:'address',launchClientNumber:'address_number',launchClientNeighborhood:'neighborhood',launchClientComplement:'complement',launchClientCity:'city',launchClientUf:'uf'};for(const [id,key] of Object.entries(fields)){const el=document.getElementById(id);if(!el)continue;const value=String(c?.[key]??'').trim();/* Não apaga dados recém-consultados quando o cadastro existente ainda está incompleto. */if(value)el.value=key==='uf'?value.toUpperCase():value;}};
+    const launchClientFieldIds=['launchClientReasonSocial','launchClientCnpj','launchClientPhone','launchClientEmail','launchClientCep','launchClientAddress','launchClientNumber','launchClientNeighborhood','launchClientComplement','launchClientCity','launchClientUf'];
+    const clearLaunchFields=()=>launchClientFieldIds.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    const setFields=c=>{const fields={launchClientReasonSocial:'reason_social',launchClientCnpj:'cpf_cnpj',launchClientPhone:'phone',launchClientEmail:'email',launchClientCep:'cep',launchClientAddress:'address',launchClientNumber:'address_number',launchClientNeighborhood:'neighborhood',launchClientComplement:'complement',launchClientCity:'city',launchClientUf:'uf'};for(const [id,key] of Object.entries(fields)){const el=document.getElementById(id);if(!el)continue;const value=String(c?.[key]??'').trim();/* Mantém dados consultados manualmente se o cadastro existente estiver incompleto. */if(value)el.value=key==='uf'?value.toUpperCase():value;}};
     let lastClientName='',lastClientSignature='';
     const fillFromName=force=>{
       const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();
       const c=getClient();
       const signature=c?JSON.stringify([c.id,c.reason_social,c.cpf_cnpj,c.phone,c.email,c.cep,c.address,c.address_number,c.neighborhood,c.complement,c.city,c.uf]):'';
       if(!force&&name===lastClientName&&signature===lastClientSignature)return;
+      if(!name&&lastClientName)clearLaunchFields();
       lastClientName=name;lastClientSignature=signature;
-      if(c)setFields(c);else if(!name)setFields(null);
+      if(c)setFields(c);
     };
     document.getElementById('clientInput')?.addEventListener('input',()=>fillFromName(false));
+    /* O reset do formulário representa um lançamento novo: limpa também os
+       campos extras que são montados dinamicamente pelo auth-fix. */
+    order.addEventListener('reset',()=>{setTimeout(()=>{clearLaunchFields();lastClientName='';lastClientSignature='';},0)});
+    /* A tela inicial sempre começa sem dados de um cliente anterior. */
+    if(typeof editing==='undefined'||!editing){
+      const nameInput=document.getElementById('clientInput');
+      if(nameInput)nameInput.value='';
+      clearLaunchFields();
+      lastClientName='';lastClientSignature='';
+    }
     document.addEventListener('click',e=>{if(e.target.closest('#clientSug button')){lastClientName='';setTimeout(()=>fillFromName(true),20)}});
     setInterval(()=>fillFromName(false),900);
 
