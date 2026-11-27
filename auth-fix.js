@@ -166,17 +166,18 @@
       @media(max-width:900px){#launchClientDetails .client-launch-grid{grid-template-columns:repeat(6,minmax(0,1fr))!important}#launchClientDetails .client-launch-grid>.field{grid-column:span 3!important}#launchClientDetails .client-launch-grid>.client-reason-field,#launchClientDetails .client-launch-grid>.client-cnpj-field,#launchClientDetails .client-launch-grid>.client-address-field{grid-column:span 6!important}}
       @media(max-width:600px){#launchClientDetails .client-launch-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#launchClientDetails .client-launch-grid>.field{grid-column:span 1!important}#launchClientDetails .client-launch-grid>.client-reason-field,#launchClientDetails .client-launch-grid>.client-cnpj-field,#launchClientDetails .client-launch-grid>.client-phone-field,#launchClientDetails .client-launch-grid>.client-email-field,#launchClientDetails .client-launch-grid>.client-address-field,#launchClientDetails .client-launch-grid>.client-complement-field,#launchClientDetails .client-launch-grid>.client-city-field{grid-column:span 2!important}}`;document.head.appendChild(s)}
     const clientList=()=>{try{return typeof clients!=='undefined'&&Array.isArray(clients)?clients:[]}catch(_){return[]}};
-    const getClient=()=>{const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();return clientList().find(c=>[c.name,c.reason_social].some(v=>String(v||'').trim().toLowerCase()===name))||null};
+    const getClient=()=>{const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();if(!name)return null;return clientList().find(c=>[c.name,c.reason_social].some(v=>String(v||'').trim().toLowerCase()===name))||null};
     const launchClientFieldIds=['launchClientReasonSocial','launchClientCnpj','launchClientPhone','launchClientEmail','launchClientCep','launchClientAddress','launchClientNumber','launchClientNeighborhood','launchClientComplement','launchClientCity','launchClientUf'];
     const clearLaunchFields=()=>launchClientFieldIds.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     const setFields=c=>{const fields={launchClientReasonSocial:'reason_social',launchClientCnpj:'cpf_cnpj',launchClientPhone:'phone',launchClientEmail:'email',launchClientCep:'cep',launchClientAddress:'address',launchClientNumber:'address_number',launchClientNeighborhood:'neighborhood',launchClientComplement:'complement',launchClientCity:'city',launchClientUf:'uf'};for(const [id,key] of Object.entries(fields)){const el=document.getElementById(id);if(!el)continue;const value=String(c?.[key]??'').trim();/* Mantém dados consultados manualmente se o cadastro existente estiver incompleto. */if(value)el.value=key==='uf'?value.toUpperCase():value;}};
     let lastClientName='',lastClientSignature='';
     const fillFromName=force=>{
       const name=(document.getElementById('clientInput')?.value||'').trim().toLowerCase();
+      /* Sem nome digitado, não procurar nem preencher qualquer cadastro. */
+      if(!name){clearLaunchFields();lastClientName='';lastClientSignature='';return;}
       const c=getClient();
       const signature=c?JSON.stringify([c.id,c.reason_social,c.cpf_cnpj,c.phone,c.email,c.cep,c.address,c.address_number,c.neighborhood,c.complement,c.city,c.uf]):'';
       if(!force&&name===lastClientName&&signature===lastClientSignature)return;
-      if(!name&&lastClientName)clearLaunchFields();
       lastClientName=name;lastClientSignature=signature;
       if(c)setFields(c);
     };
